@@ -1,6 +1,8 @@
 {
   "name": "plan",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Planning pipeline: intake router, /prd, /spec, reviewer lenses, /present review decks, /feedback ledger, with requirement IDs traced into build tasks.",
-  "author": { "name": "YOUR_NAME" }
+  "author": {
+    "name": "YOUR_NAME"
+  }
 }
