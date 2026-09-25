@@ -1,0 +1,6 @@
+{
+  "name": "lang-go",
+  "version": "0.1.0",
+  "description": "Go: gofmt on edit, build + vet + tests on stop, conventions.",
+  "author": { "name": "YOUR_NAME" }
+}

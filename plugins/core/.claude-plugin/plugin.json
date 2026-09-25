@@ -1,0 +1,6 @@
+{
+  "name": "core",
+  "version": "0.1.0",
+  "description": "Language-agnostic harness: session context, guardrails, handoffs, retro loop, core agents and workflow commands.",
+  "author": { "name": "YOUR_NAME" }
+}

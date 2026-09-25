@@ -1,0 +1,26 @@
+{
+  "extraKnownMarketplaces": {
+    "my-harness": {
+      "source": { "source": "github", "repo": "YOUR_GITHUB_USER/my-harness" }
+    }
+  },
+  "enabledPlugins": {
+    "core@my-harness": true,
+    "lang-ts@my-harness": true,
+    "lang-go@my-harness": false,
+    "lang-rust@my-harness": false,
+    "ops@my-harness": false
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)"
+    ]
+  }
+}

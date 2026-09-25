@@ -1,0 +1,39 @@
+{
+  "name": "my-harness",
+  "owner": { "name": "YOUR_NAME" },
+  "metadata": {
+    "description": "Personal Claude Code harness: guardrails, verification, orchestration, and language packs."
+  },
+  "plugins": [
+    {
+      "name": "core",
+      "source": "./plugins/core",
+      "description": "Language-agnostic harness: session context, guardrails, handoffs, retro loop, core agents and workflow commands.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "lang-ts",
+      "source": "./plugins/lang-ts",
+      "description": "TypeScript/React/Next/Expo: format + lint on edit, typecheck + tests on stop, conventions.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "lang-go",
+      "source": "./plugins/lang-go",
+      "description": "Go: gofmt on edit, build + vet + tests on stop, conventions.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "lang-rust",
+      "source": "./plugins/lang-rust",
+      "description": "Rust: rustfmt on edit, clippy + tests on stop, conventions and perf workflow.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "ops",
+      "source": "./plugins/ops",
+      "description": "Security audit agent, Sentry triage, cross-language API contracts.",
+      "version": "0.1.0"
+    }
+  ]
+}

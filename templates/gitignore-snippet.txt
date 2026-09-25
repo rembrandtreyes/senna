@@ -1,0 +1,8 @@
+# Harness runtime state (keep .harness/learnings.md and .harness/checks/ committed)
+.harness/mode
+.harness/ports.env
+.harness/progress.log
+.harness/handoff*.md
+.harness/current-task
+.harness/.stop-attempts-*
+.claude/settings.local.json

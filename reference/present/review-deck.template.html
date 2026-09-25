@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>__DECK_TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650;12..96,750&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- ================= DECK DATA (the only part Claude writes per spec) ================= -->
+<script type="application/json" id="deck-data">
+__DECK_DATA__
+</script>
+
+<style>
+:root {
+  --bg: #EEF1F2; --surface: #FFFFFF; --node: #F6F8F9; --ink: #13212B; --ink-2: #4A5A66; --ink-3: #6E7E89;
+  --line: #D3DADF; --line-2: #B9C3CA; --accent: #2B4ACB; --accent-soft: #E3E8FB;
+  --allow: #0E7F62; --allow-soft: #DDF2EA; --throttle: #A86E06; --throttle-soft: #F7ECD3;
+  --reject: #BF3B34; --reject-soft: #F8E0DE; --focus: #2B4ACB;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1519; --surface: #161E24; --node: #1B252C; --ink: #E6ECEF; --ink-2: #A3B2BB; --ink-3: #7F8F99;
+    --line: #2A363E; --line-2: #3B4952; --accent: #8A9DFF; --accent-soft: #1F2750;
+    --allow: #3CC39A; --allow-soft: #10332A; --throttle: #E2AC45; --throttle-soft: #3A2C10;
+    --reject: #F07269; --reject-soft: #3D1A18; --focus: #8A9DFF;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1519; --surface: #161E24; --node: #1B252C; --ink: #E6ECEF; --ink-2: #A3B2BB; --ink-3: #7F8F99;
+  --line: #2A363E; --line-2: #3B4952; --accent: #8A9DFF; --accent-soft: #1F2750;
+  --allow: #3CC39A; --allow-soft: #10332A; --throttle: #E2AC45; --throttle-soft: #3A2C10;
+  --reject: #F07269; --reject-soft: #3D1A18; --focus: #8A9DFF;
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); font: 400 15px/1.6 var(--body); -webkit-font-smoothing: antialiased; }
+button, select, textarea, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+[hidden] { display: none !important; }
+.slide h2[tabindex="-1"]:focus { outline: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Shell ---------- */
+.app { display: grid; grid-template-columns: 232px minmax(0, 1fr) 340px; min-height: 100%; }
+.rail { border-right: 1px solid var(--line); padding: 28px 20px; position: sticky; top: env(safe-area-inset-top, 0px); height: calc(100vh - env(safe-area-inset-top, 0px)); overflow-y: auto; }
+.doc-title { font: 650 20px/1.2 var(--display); letter-spacing: -0.01em; margin: 0 0 6px; }
+.doc-meta { color: var(--ink-3); font-size: 13px; margin: 0 0 22px; }
+.status-pill { display: inline-block; font-size: 12px; font-weight: 500; padding: 2px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); margin-bottom: 26px; }
+.toc { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; }
+.toc button { width: 100%; text-align: left; background: none; border: 0; padding: 8px 10px 8px 34px; border-radius: 8px; cursor: pointer; position: relative; color: var(--ink-2); font-size: 14px; }
+.toc button::before { content: counter(toc); position: absolute; left: 10px; top: 8px; font: 500 12px/22px var(--body); color: var(--ink-3); width: 16px; text-align: center; }
+.toc button:hover { background: var(--node); color: var(--ink); }
+.toc button[aria-current="step"] { background: var(--surface); color: var(--ink); font-weight: 500; box-shadow: inset 0 0 0 1px var(--line); }
+.toc .count { float: right; font-size: 12px; color: var(--ink-3); }
+.rail-foot { margin-top: 28px; font-size: 12px; color: var(--ink-3); line-height: 1.5; }
+
+.stage { padding: 40px clamp(20px, 4vw, 56px) 48px; min-width: 0; }
+.stage-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 26px; }
+.crumb { font-size: 13px; color: var(--ink-3); }
+.pager { display: flex; gap: 6px; }
+.btn { border: 1px solid var(--line-2); background: var(--surface); border-radius: 8px; padding: 7px 13px; cursor: pointer; font-size: 14px; line-height: 1.2; }
+.btn:hover { border-color: var(--ink-3); }
+.btn[disabled] { opacity: .45; cursor: default; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+:root[data-theme="dark"] .btn.primary { color: #0F1519; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.primary { color: #0F1519; } }
+.btn.ghost { background: none; }
+
+section.slide { max-width: 900px; }
+section.slide[hidden] { display: none; }
+.slide h2 { font: 750 clamp(30px, 4.2vw, 46px)/1.05 var(--display); letter-spacing: -0.025em; margin: 0 0 18px; max-width: 18ch; }
+.slide h3 { font: 650 18px/1.3 var(--display); margin: 34px 0 12px; }
+.lede { font-size: 18px; line-height: 1.6; color: var(--ink-2); max-width: 64ch; margin: 0 0 24px; }
+.section-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px; }
+
+/* ---------- Overview ---------- */
+.ask { border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; margin: 30px 0; font: 500 19px/1.5 var(--display); max-width: 60ch; }
+.ask span { display: block; font: 500 13px/1.4 var(--body); color: var(--ink-3); margin-bottom: 4px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0; border-top: 1px solid var(--line); margin-top: 36px; }
+.facts div { padding: 14px 16px 14px 0; border-bottom: 1px solid var(--line); }
+.facts dt { font-size: 12px; color: var(--ink-3); }
+.facts dd { margin: 2px 0 0; font-weight: 500; }
+
+/* ---------- Problem ---------- */
+.metrics { width: 100%; border-collapse: collapse; margin: 6px 0 10px; font-size: 14px; }
+.metrics th { text-align: left; font-weight: 500; color: var(--ink-3); font-size: 12px; padding: 0 12px 8px 0; border-bottom: 1px solid var(--line); }
+.metrics td { padding: 12px 12px 12px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.metrics .to { font: 650 17px/1.2 var(--display); color: var(--allow); }
+.reqs { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.reqs li { display: grid; grid-template-columns: 44px 1fr; gap: 10px; align-items: baseline; }
+.rid { font: 500 12px/1 var(--body); color: var(--accent); background: var(--accent-soft); padding: 4px 7px; border-radius: 5px; text-align: center; }
+.nongoals { padding-left: 18px; margin: 0; color: var(--ink-2); }
+.nongoals li { margin: 4px 0; }
+.scroll-x { overflow-x: auto; }
+
+/* ---------- Diagram ---------- */
+.diagram-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin: 8px 0 16px; }
+.diagram { width: 100%; height: auto; display: block; }
+.diagram .node rect { fill: var(--node); stroke: var(--line-2); stroke-width: 1; }
+.diagram .node.new rect { fill: var(--accent-soft); stroke: var(--accent); }
+.diagram .node text.l { font: 600 14.5px var(--body); fill: var(--ink); }
+.diagram .node text.s { font: 400 12px var(--body); fill: var(--ink-3); }
+.diagram .node { transition: opacity .5s ease, transform .5s cubic-bezier(.2,.8,.2,1); transform-box: fill-box; transform-origin: center; }
+.diagram .edge { fill: none; stroke: var(--line-2); stroke-width: 1.6; transition: opacity .4s ease; }
+.diagram .edge.dashed { stroke-dasharray: 4 5; }
+.diagram .edge.ghost { stroke-dasharray: 2 6; opacity: .0; }
+.diagram.mode-before .after-only { opacity: 0; }
+.diagram.mode-before .node.new { opacity: 0; transform: scale(.88); }
+.diagram.mode-after .before-only { opacity: 0; }
+.diagram .node.active rect { stroke-width: 2; }
+.diagram .node.active.t-allow rect { stroke: var(--allow); }
+.diagram .node.active.t-throttle rect { stroke: var(--throttle); }
+.diagram .node.active.t-reject rect { stroke: var(--reject); }
+.diagram .edge.lit { stroke-width: 2.4; opacity: 1; }
+.diagram .edge.lit.t-allow { stroke: var(--allow); }
+.diagram .edge.lit.t-throttle { stroke: var(--throttle); }
+.diagram .edge.lit.t-reject { stroke: var(--reject); stroke-dasharray: 5 4; }
+.diagram .packet { r: 7; }
+.diagram .packet.t-allow { fill: var(--allow); }
+.diagram .packet.t-throttle { fill: var(--throttle); }
+.diagram .packet.t-reject { fill: var(--reject); }
+.diagram .dimmed { opacity: .35; }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--ink-2); margin: 0 0 8px; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; border: 1px solid var(--line-2); background: var(--node); }
+.legend i.new { background: var(--accent-soft); border-color: var(--accent); }
+
+.seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: 9px; padding: 3px; background: var(--surface); gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; color: var(--ink-2); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.arch-note { max-width: 62ch; color: var(--ink-2); min-height: 3.2em; }
+
+/* ---------- Flows ---------- */
+.flow-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.narration { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 8px 28px; align-items: start; }
+.narration .stepno { grid-column: 1 / -1; }
+.narration .stepno { font-size: 12px; color: var(--ink-3); margin-bottom: 6px; }
+.narration p { margin: 0; min-height: 4.8em; font-size: 16px; max-width: 58ch; }
+.bucket { margin-top: 2px; }
+.bucket .label { font-size: 12px; color: var(--ink-3); display: flex; justify-content: space-between; }
+.tokens { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; margin-top: 6px; }
+.tokens span { aspect-ratio: 1; border-radius: 50%; background: var(--line); transition: background .35s ease, transform .35s ease; }
+.tokens span.on { background: var(--accent); }
+.tokens.unknown span { background: repeating-linear-gradient(45deg, var(--line) 0 2px, transparent 2px 4px); }
+.flow-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+.progress { display: flex; gap: 5px; margin-left: auto; }
+.progress i { width: 18px; height: 4px; border-radius: 2px; background: var(--line); }
+.progress i.done { background: var(--ink-2); }
+
+/* ---------- Alternatives ---------- */
+table.alts { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; min-width: 620px; }
+.alts th, .alts td { padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
+.alts thead th { font: 650 16px/1.25 var(--display); border-bottom: 1px solid var(--line-2); }
+.alts tbody th { font-weight: 500; color: var(--ink-2); width: 170px; }
+.alts .chosen { background: var(--accent-soft); }
+.alts thead .chosen { border-radius: 10px 10px 0 0; }
+.alts tr:last-child .chosen { border-radius: 0 0 10px 10px; }
+.alts .chosen-tag { display: block; font: 500 12px var(--body); color: var(--accent); margin-top: 2px; }
+.pips { display: inline-flex; gap: 3px; margin-bottom: 4px; }
+.pips i { width: 16px; height: 5px; border-radius: 3px; background: var(--line); }
+.pips i.on { background: var(--ink-2); }
+.chosen .pips i.on { background: var(--accent); }
+.alts .note { display: block; color: var(--ink-2); font-size: 13px; }
+.alts .verdict td { font-size: 13px; color: var(--ink-2); }
+
+/* ---------- Risks ---------- */
+.risk-layout { display: grid; grid-template-columns: minmax(260px, 380px) minmax(0, 1fr); gap: 28px; align-items: start; }
+.matrix { display: grid; grid-template-columns: 26px repeat(3, 1fr); grid-template-rows: repeat(3, 1fr) 26px; gap: 4px; aspect-ratio: 1.05; }
+.cell { border-radius: 8px; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 6px; padding: 6px; }
+.cell.h0 { background: var(--node); } .cell.h1 { background: var(--throttle-soft); } .cell.h2 { background: var(--reject-soft); }
+.axis { font-size: 11.5px; color: var(--ink-3); display: flex; align-items: center; justify-content: center; }
+.axis.y { writing-mode: vertical-rl; transform: rotate(180deg); }
+.risk-dot { border: 1px solid var(--line-2); background: var(--surface); border-radius: 999px; padding: 3px 9px; font-size: 12px; font-weight: 500; cursor: pointer; }
+.risk-dot[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.risk-list { list-style: none; margin: 0; padding: 0; }
+.risk-list li { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.risk-list li.sel { background: linear-gradient(90deg, var(--accent-soft), transparent 80%); margin: 0 -12px; padding: 12px; border-radius: 8px; }
+.risk-list .rt { font-weight: 500; }
+.risk-list .rm { color: var(--ink-2); font-size: 14px; }
+
+/* ---------- Rollout ---------- */
+.timeline { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; counter-reset: stage; }
+.timeline li { counter-increment: stage; position: relative; padding: 38px 16px 0 0; }
+.timeline li::before { content: counter(stage); position: absolute; top: 0; left: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--bg); font: 600 13px/26px var(--body); text-align: center; z-index: 1; }
+.timeline li::after { content: ""; position: absolute; top: 12px; left: 26px; right: 0; height: 2px; background: var(--line-2); }
+.timeline li:last-child::after { display: none; }
+.timeline h4 { font: 650 17px/1.25 var(--display); margin: 0 0 2px; }
+.timeline .len { font-size: 12px; color: var(--ink-3); margin-bottom: 8px; }
+.timeline p { margin: 0 0 10px; font-size: 14px; color: var(--ink-2); }
+.gate, .rb { font-size: 13px; padding: 7px 9px; border-radius: 7px; margin-bottom: 6px; }
+.gate { background: var(--allow-soft); color: var(--allow); }
+.rb { background: var(--node); color: var(--ink-2); border: 1px dashed var(--line-2); }
+.gate b, .rb b { font-weight: 600; display: block; font-size: 11.5px; }
+
+/* ---------- Questions ---------- */
+.questions { list-style: none; padding: 0; margin: 0; }
+.questions li { padding: 16px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; align-items: start; }
+.questions .qt { font-weight: 500; }
+.questions .qo { font-size: 13px; color: var(--ink-3); }
+.questions .qd { font-size: 13px; color: var(--allow); margin-top: 4px; }
+.qstate { font-size: 12px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.qstate.open { background: var(--throttle-soft); color: var(--throttle); }
+.qstate.decided { background: var(--allow-soft); color: var(--allow); }
+
+/* ---------- Review panel ---------- */
+.review { border-left: 1px solid var(--line); background: var(--surface); padding: 28px 20px; position: sticky; top: env(safe-area-inset-top, 0px); height: calc(100vh - env(safe-area-inset-top, 0px)); overflow-y: auto; }
+.review h2 { font: 650 17px/1.3 var(--display); margin: 0 0 4px; }
+.review .sub { font-size: 13px; color: var(--ink-3); margin: 0 0 16px; }
+.tally { display: flex; gap: 14px; font-size: 13px; color: var(--ink-2); margin-bottom: 16px; flex-wrap: wrap; }
+.tally b { font-weight: 600; color: var(--ink); }
+.kinds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; }
+.kinds button { border: 1px solid var(--line-2); background: var(--bg); border-radius: 8px; padding: 7px 4px; font-size: 13px; cursor: pointer; }
+.kinds button[aria-pressed="true"][data-kind="approve"] { background: var(--allow-soft); border-color: var(--allow); color: var(--allow); }
+.kinds button[aria-pressed="true"][data-kind="concern"] { background: var(--reject-soft); border-color: var(--reject); color: var(--reject); }
+.kinds button[aria-pressed="true"][data-kind="question"] { background: var(--throttle-soft); border-color: var(--throttle); color: var(--throttle); }
+.review textarea { width: 100%; min-height: 84px; resize: vertical; border: 1px solid var(--line-2); border-radius: 8px; padding: 9px 10px; background: var(--bg); font-size: 14px; }
+.review .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; }
+.review .err { color: var(--reject); font-size: 13px; min-height: 1.2em; margin-top: 4px; }
+.review label.claude { font-size: 13px; color: var(--ink-2); display: flex; gap: 6px; align-items: center; }
+.fb-list { list-style: none; padding: 0; margin: 20px 0 0; }
+.fb { padding: 12px 0; border-top: 1px solid var(--line); }
+.fb-head { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.fb-head img { width: 20px; height: 20px; border-radius: 50%; }
+.fb-head .who { font-weight: 500; }
+.fb-head .when { color: var(--ink-3); margin-left: auto; font-size: 12px; }
+.kind-tag { font-size: 11.5px; font-weight: 500; padding: 1px 7px; border-radius: 999px; }
+.kind-tag.approve { background: var(--allow-soft); color: var(--allow); }
+.kind-tag.concern { background: var(--reject-soft); color: var(--reject); }
+.kind-tag.question { background: var(--throttle-soft); color: var(--throttle); }
+.fb p { margin: 6px 0 6px; font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.fb .st { font-size: 12px; color: var(--ink-3); display: flex; gap: 8px; align-items: center; }
+.fb select { font-size: 12px; padding: 2px 4px; border-radius: 6px; border: 1px solid var(--line-2); background: var(--bg); }
+.empty { font-size: 14px; color: var(--ink-3); margin-top: 18px; }
+.mode-note { font-size: 12px; color: var(--ink-3); margin-top: 18px; line-height: 1.5; }
+.toast { position: sticky; bottom: 12px; margin-top: 12px; background: var(--ink); color: var(--bg); font-size: 13px; padding: 8px 12px; border-radius: 8px; opacity: 0; transition: opacity .25s; pointer-events: none; }
+.toast.show { opacity: 1; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1180px) {
+  .app { grid-template-columns: 210px minmax(0, 1fr); }
+  .review { grid-column: 2; position: static; height: auto; border-left: 0; border-top: 1px solid var(--line); }
+}
+@media (max-width: 760px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: sticky; top: 0; height: auto; z-index: 5; background: var(--bg); padding: 14px 16px 10px; border-right: 0; border-bottom: 1px solid var(--line); padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
+  .doc-meta, .status-pill, .rail-foot { display: none; }
+  .doc-title { font-size: 16px; margin-bottom: 8px; }
+  .toc { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+  .toc button { white-space: nowrap; padding: 6px 10px 6px 28px; }
+  .toc button::before { top: 6px; left: 6px; }
+  .toc .count { display: none; }
+  .review { grid-column: 1; }
+  .stage { padding-top: 24px; }
+  .flow-grid, .risk-layout { grid-template-columns: minmax(0, 1fr); }
+  .narration { grid-template-columns: minmax(0, 1fr); }
+  .diagram-wrap { overflow-x: auto; }
+  .diagram { min-width: 640px; }
+  .timeline { grid-template-columns: minmax(0, 1fr); }
+  .timeline li { padding: 0 0 22px 42px; }
+  .timeline li::after { top: 26px; left: 12px; right: auto; width: 2px; bottom: 0; height: auto; }
+  .questions li { grid-template-columns: 40px minmax(0, 1fr); }
+  .questions li > :last-child { grid-column: 2; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; }
+}
+</style>
+</head>
+<body>
+<h1 class="sr-only">Design review: __DECK_TITLE__</h1>
+<div class="app">
+  <nav class="rail" aria-label="Review sections">
+    <p class="doc-title" id="doc-title"></p>
+    <p class="doc-meta" id="doc-meta"></p>
+    <span class="status-pill" id="doc-status"></span>
+    <ol class="toc" id="toc"></ol>
+    <p class="rail-foot">Use ← and → to move between sections. Click any box or card while in comment mode to leave a comment on it.</p>
+  </nav>
+
+  <main class="stage">
+    <div class="stage-top">
+      <span class="crumb" id="crumb"></span>
+      <div class="pager">
+        <button class="btn ghost" id="prev" aria-label="Previous section">Previous</button>
+        <button class="btn" id="next" aria-label="Next section">Next</button>
+      </div>
+    </div>
+    <div id="slides"></div>
+  </main>
+
+  <aside class="review" aria-labelledby="review-h">
+    <h2 id="review-h">Review</h2>
+    <p class="sub" id="review-sub"></p>
+    <div class="tally" id="tally"></div>
+    <div class="kinds" role="group" aria-label="Feedback type">
+      <button data-kind="approve" aria-pressed="false">Approve</button>
+      <button data-kind="concern" aria-pressed="false">Concern</button>
+      <button data-kind="question" aria-pressed="true">Question</button>
+    </div>
+    <label class="sr-only" for="fb-text">Your feedback</label>
+    <textarea id="fb-text" maxlength="2000" placeholder="What should the author know about this section?"></textarea>
+    <div class="err" id="fb-err" role="alert"></div>
+    <div class="row">
+      <label class="claude" id="claude-opt" hidden><input type="checkbox" id="fb-claude"> Also ask Claude</label>
+      <button class="btn primary" id="fb-post">Post feedback</button>
+    </div>
+    <ul class="fb-list" id="fb-list"></ul>
+    <p class="empty" id="fb-empty"></p>
+    <p class="mode-note" id="mode-note">Feedback is saved in this browser only. Publish the deck to share it with reviewers.</p>
+    <div class="toast" id="toast" role="status"></div>
+  </aside>
+</div>
+
+<script>
+(() => {
+"use strict";
+// Rendered from reference/present/review-deck.template.html. Edit the template, not generated decks.
+const DATA = JSON.parse(document.getElementById("deck-data").textContent);
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const SECTIONS = [
+  { id: "overview", nav: "Overview" },
+  { id: "problem", nav: "Problem & goals" },
+  { id: "architecture", nav: "Architecture" },
+  { id: "flows", nav: "Request flows" },
+  { id: "alternatives", nav: "Alternatives" },
+  { id: "risks", nav: "Risks" },
+  { id: "rollout", nav: "Rollout" },
+  { id: "questions", nav: "Open questions" }
+];
+
+const state = {
+  idx: 0, arch: "after", scenario: DATA.scenarios[0].id, step: -1, risk: DATA.risks[0].id,
+  kind: "question", feedback: [], decisions: {},
+  db: null, user: null, comments: null, uid: null, canEdit: false, canWrite: true, shared: false, canClaude: false
+};
+
+/* ---------------- Diagram ---------------- */
+function diagramSVG(idPrefix) {
+  const d = DATA.diagram;
+  const edges = d.edges.map(e => {
+    const cls = ["edge", e.dashed ? "dashed" : "", e.ghost ? "ghost" : "", e.mode === "before" ? "before-only" : e.mode === "after" ? "after-only" : ""].join(" ");
+    const marker = e.ghost || e.dashed ? "" : ` marker-end="url(#${idPrefix}-arrow)"`;
+    return `<path id="${idPrefix}-${e.id}" class="${cls}" d="${e.d}"${marker}/>`;
+  }).join("");
+  const nodes = d.nodes.map(n => {
+    const h = 54, x = n.x - n.w / 2, y = n.y - h / 2;
+    return `<g class="node ${n.kind}" id="${idPrefix}-n-${n.id}" data-node="${n.id}" data-comment-target tabindex="-1">
+      <rect x="${x}" y="${y}" width="${n.w}" height="${h}" rx="10"/>
+      <text class="l" x="${n.x}" y="${n.y - 5}" text-anchor="middle">${esc(n.label)}</text>
+      <text class="s" x="${n.x}" y="${n.y + 13}" text-anchor="middle">${esc(n.sub)}</text></g>`;
+  }).join("");
+  return `<svg class="diagram mode-after" viewBox="${d.viewBox}" role="img" aria-labelledby="${idPrefix}-t">
+    <title id="${idPrefix}-t">System diagram: tenant client, API gateway, rate limiter, Orders service, tenant limits, Redis, and local fallback</title>
+    <defs><marker id="${idPrefix}-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M1.5 1.5L8.5 5L1.5 8.5" fill="none" stroke="var(--ink-3)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+    ${edges}${nodes}<circle class="packet" id="${idPrefix}-packet" cx="-20" cy="-20" r="7" opacity="0"/></svg>`;
+}
+
+/* ---------------- Section renderers ---------------- */
+const R = {
+  overview() {
+    const m = DATA.meta;
+    return `<h2>${esc(m.title)}</h2>
+      <p class="lede">${esc(DATA.summary)}</p>
+      <div class="ask" data-comment-target><span>The decision this review needs</span>${esc(m.ask)}</div>
+      <dl class="facts">
+        <div><dt>Document</dt><dd>${esc(m.kind)} ${esc(m.version)}</dd></div>
+        <div><dt>Implements</dt><dd>${esc(m.prd)}</dd></div>
+        <div><dt>Requirements</dt><dd>${DATA.problem.requirements.length} traced</dd></div>
+        <div><dt>Open questions</dt><dd id="facts-q">${DATA.questions.length}</dd></div>
+      </dl>`;
+  },
+  problem() {
+    const p = DATA.problem;
+    return `<h2>Why this, why now</h2>
+      <p class="lede" data-comment-target>${esc(p.statement)}</p>
+      <h3>How we'll know it worked</h3>
+      <div class="scroll-x"><table class="metrics"><thead><tr><th>Metric</th><th>Today</th><th>Target</th><th>Measured</th></tr></thead><tbody>
+      ${p.metrics.map(x => `<tr data-comment-target><td>${esc(x.label)}</td><td>${esc(x.from)}</td><td class="to">${esc(x.to)}</td><td>${esc(x.window)}</td></tr>`).join("")}
+      </tbody></table></div>
+      <h3>Requirements</h3>
+      <ul class="reqs">${p.requirements.map(r => `<li data-comment-target><span class="rid">${esc(r.id)}</span><span>${esc(r.text)}</span></li>`).join("")}</ul>
+      <h3>Not doing</h3>
+      <ul class="nongoals">${p.nonGoals.map(n => `<li data-comment-target>${esc(n)}</li>`).join("")}</ul>`;
+  },
+  architecture() {
+    return `<h2>What changes in the system</h2>
+      <div class="section-actions"><div class="seg" role="group" aria-label="Architecture view">
+        <button data-arch="before" aria-pressed="false">Today</button><button data-arch="after" aria-pressed="true">Proposed</button></div></div>
+      <div class="diagram-wrap">${diagramSVG("arch")}</div>
+      <div class="legend"><span><i></i>Existing</span><span><i class="new"></i>New in this spec</span></div>
+      <p class="arch-note" id="arch-note" aria-live="polite">${esc(DATA.architecture.after)}</p>`;
+  },
+  flows() {
+    return `<h2>Follow a request</h2>
+      <div class="section-actions"><div class="seg" role="group" aria-label="Scenario">
+        ${DATA.scenarios.map(s => `<button data-scenario="${s.id}" aria-pressed="${s.id === state.scenario}">${esc(s.label)}</button>`).join("")}</div></div>
+      <div class="flow-grid">
+        <div class="diagram-wrap">${diagramSVG("flow")}</div>
+        <div class="narration" data-comment-target>
+          <div class="stepno" id="stepno"></div>
+          <p id="narr" aria-live="polite"></p>
+          <div class="bucket"><div class="label"><span>acme's bucket</span><span id="bucket-n"></span></div><div class="tokens" id="tokens">${"<span></span>".repeat(20)}</div></div>
+        </div>
+      </div>
+      <div class="flow-controls">
+        <button class="btn" id="f-restart">Restart</button>
+        <button class="btn" id="f-back">Back</button>
+        <button class="btn primary" id="f-step">Start</button>
+        <button class="btn ghost" id="f-play">Play all</button>
+        <div class="progress" id="f-progress" aria-hidden="true"></div>
+      </div>`;
+  },
+  alternatives() {
+    const a = DATA.alternatives;
+    const pips = n => `<span class="pips" aria-label="${n} of 3">${[1, 2, 3].map(i => `<i class="${i <= n ? "on" : ""}"></i>`).join("")}</span>`;
+    return `<h2>Three ways to count</h2>
+      <p class="lede">Each option was scored against what the requirements demand. Longer bars are better.</p>
+      <div class="scroll-x"><table class="alts">
+        <thead><tr><th></th>${a.options.map(o => `<th class="${o.chosen ? "chosen" : ""}" data-comment-target>${esc(o.name)}${o.chosen ? '<span class="chosen-tag">Proposed</span>' : ""}</th>`).join("")}</tr></thead>
+        <tbody>${a.criteria.map((c, i) => `<tr><th scope="row">${esc(c)}</th>${a.options.map(o => `<td class="${o.chosen ? "chosen" : ""}">${pips(o.scores[i])}<span class="note">${esc(o.notes[i])}</span></td>`).join("")}</tr>`).join("")}
+        <tr class="verdict"><th scope="row">Verdict</th>${a.options.map(o => `<td class="${o.chosen ? "chosen" : ""}" data-comment-target>${esc(o.verdict)}</td>`).join("")}</tr></tbody>
+      </table></div>`;
+  },
+  risks() {
+    const cells = [];
+    for (let l = 3; l >= 1; l--) {
+      cells.push(`<div class="axis y">${["", "Unlikely", "Possible", "Likely"][l]}</div>`);
+      for (let i = 1; i <= 3; i++) {
+        const heat = l + i >= 5 ? "h2" : l + i >= 4 ? "h1" : "h0";
+        const here = DATA.risks.filter(r => r.likelihood === l && r.impact === i);
+        cells.push(`<div class="cell ${heat}">${here.map(r => `<button class="risk-dot" data-risk="${r.id}" aria-pressed="${r.id === state.risk}">${esc(r.id)}</button>`).join("")}</div>`);
+      }
+    }
+    cells.push(`<div></div><div class="axis">Minor</div><div class="axis">Serious</div><div class="axis">Severe</div>`);
+    return `<h2>What could go wrong</h2>
+      <p class="lede">Likelihood against impact. Select a risk to see its mitigation.</p>
+      <div class="risk-layout">
+        <div class="matrix" role="group" aria-label="Risk matrix">${cells.join("")}</div>
+        <ul class="risk-list" id="risk-list">${DATA.risks.map(r => `<li id="risk-${r.id}" data-comment-target class="${r.id === state.risk ? "sel" : ""}"><div class="rt"><span class="rid">${esc(r.id)}</span> ${esc(r.title)}</div><div class="rm">${esc(r.mitigation)}</div></li>`).join("")}</ul>
+      </div>`;
+  },
+  rollout() {
+    return `<h2>How it ships</h2>
+      <p class="lede">Each stage has a gate to move on and a way back. A feature flag controls enforcement throughout.</p>
+      <ol class="timeline">${DATA.rollout.map(s => `<li data-comment-target><h4>${esc(s.name)}</h4><div class="len">${esc(s.length)}</div><p>${esc(s.detail)}</p>
+        <div class="gate"><b>Move on when</b>${esc(s.gate)}</div><div class="rb"><b>Roll back by</b>${esc(s.rollback)}</div></li>`).join("")}</ol>`;
+  },
+  questions() {
+    return `<h2>Decisions still open</h2>
+      <p class="lede">These need an answer before build starts. Record decisions here so the spec and the tasks pick them up.</p>
+      <ul class="questions" id="qlist"></ul>`;
+  }
+};
+
+/* ---------------- Build DOM ---------------- */
+function build() {
+  const m = DATA.meta;
+  $("#doc-title").textContent = m.title;
+  $("#doc-meta").textContent = `${m.kind} ${m.version}, updated ${m.updated}`;
+  $("#doc-status").textContent = m.status;
+  $("#toc").innerHTML = SECTIONS.map((s, i) => `<li><button data-go="${i}">${esc(s.nav)}<span class="count" data-count="${s.id}"></span></button></li>`).join("");
+  $("#slides").innerHTML = SECTIONS.map(s => `<section class="slide" id="s-${s.id}" data-section="${s.id}" aria-label="${esc(s.nav)}" hidden>${R[s.id]()}
+    <div class="section-actions" style="margin-top:28px"><button class="btn ghost comment-btn" data-comment-section="${s.id}" hidden>Comment on this section</button></div></section>`).join("");
+  wire();
+  renderQuestions();
+  const hash = location.hash.replace("#", "");
+  const start = SECTIONS.findIndex(s => s.id === hash);
+  go(start >= 0 ? start : 0, false);
+}
+
+function go(i, focus = true) {
+  state.idx = Math.max(0, Math.min(SECTIONS.length - 1, i));
+  const sec = SECTIONS[state.idx];
+  document.querySelectorAll("section.slide").forEach(el => { el.hidden = el.dataset.section !== sec.id; });
+  document.querySelectorAll("#toc button").forEach((b, j) => b.toggleAttribute("aria-current", false) || (j === state.idx && b.setAttribute("aria-current", "step")));
+  $("#crumb").textContent = `${state.idx + 1} of ${SECTIONS.length}`;
+  $("#prev").disabled = state.idx === 0;
+  $("#next").disabled = state.idx === SECTIONS.length - 1;
+  $("#next").textContent = state.idx === SECTIONS.length - 1 ? "Last section" : `Next: ${SECTIONS[state.idx + 1].nav}`;
+  try { history.replaceState(null, "", "#" + sec.id); } catch (_) {}
+  if (sec.id === "flows") setStep(state.step, false);
+  if (sec.id === "architecture") setArch(state.arch, false);
+  renderReview();
+  if (focus) { const h = $(`#s-${sec.id} h2`); if (h) { h.setAttribute("tabindex", "-1"); h.focus({ preventScroll: true }); } window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" }); }
+}
+
+function wire() {
+  $("#toc").addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(+b.dataset.go); });
+  $("#prev").onclick = () => go(state.idx - 1);
+  $("#next").onclick = () => go(state.idx + 1);
+  document.addEventListener("keydown", e => {
+    if (e.target.closest("textarea, input, select")) return;
+    if (e.key === "ArrowRight") go(state.idx + 1);
+    if (e.key === "ArrowLeft") go(state.idx - 1);
+  });
+  document.querySelectorAll("[data-arch]").forEach(b => b.onclick = () => setArch(b.dataset.arch, true));
+  document.querySelectorAll("[data-scenario]").forEach(b => b.onclick = () => {
+    state.scenario = b.dataset.scenario; state.step = -1;
+    document.querySelectorAll("[data-scenario]").forEach(x => x.setAttribute("aria-pressed", x === b));
+    setStep(-1, false);
+  });
+  $("#f-step").onclick = () => setStep(state.step + 1, true);
+  $("#f-back").onclick = () => setStep(state.step - 1, false);
+  $("#f-restart").onclick = () => setStep(-1, false);
+  $("#f-play").onclick = playAll;
+  document.querySelectorAll("[data-risk]").forEach(b => b.onclick = () => selectRisk(b.dataset.risk));
+  document.querySelectorAll(".kinds button").forEach(b => b.onclick = () => {
+    state.kind = b.dataset.kind;
+    document.querySelectorAll(".kinds button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  });
+  $("#fb-text").addEventListener("input", () => { $("#fb-err").textContent = ""; });
+  $("#fb-post").onclick = postFeedback;
+  document.querySelectorAll(".comment-btn").forEach(b => b.onclick = () => openComposer($(`#s-${b.dataset.commentSection}`)));
+}
+
+/* ---------------- Architecture toggle ---------------- */
+function drawEdges(svg, animate) {
+  svg.querySelectorAll(".edge.after-only:not(.ghost)").forEach(p => {
+    const len = p.getTotalLength();
+    if (!animate || reduceMotion) { p.style.strokeDasharray = p.classList.contains("dashed") ? "" : ""; return; }
+    if (p.classList.contains("dashed")) return;
+    p.animate([{ strokeDasharray: `${len}`, strokeDashoffset: len }, { strokeDasharray: `${len}`, strokeDashoffset: 0 }],
+      { duration: 650, delay: 180, easing: "cubic-bezier(.3,.7,.2,1)", fill: "none" });
+  });
+}
+function setArch(mode, animate) {
+  state.arch = mode;
+  const svg = $("#s-architecture svg");
+  svg.classList.toggle("mode-before", mode === "before");
+  svg.classList.toggle("mode-after", mode === "after");
+  document.querySelectorAll("[data-arch]").forEach(b => b.setAttribute("aria-pressed", b.dataset.arch === mode));
+  $("#arch-note").textContent = DATA.architecture[mode];
+  if (mode === "after" && animate) drawEdges(svg, true);
+}
+
+/* ---------------- Flow walkthrough ---------------- */
+let anim = null, playing = null;
+const scenario = () => DATA.scenarios.find(s => s.id === state.scenario);
+const edgeNodes = id => { const [a, b] = id.split("-"); const map = { c: "client", g: "gateway", l: "limiter", s: "service", r: "redis", f: "fallback", k: "limits" }; return [map[a], map[b]]; };
+
+function setStep(i, animate) {
+  const sc = scenario(); const steps = sc.steps;
+  state.step = Math.max(-1, Math.min(steps.length - 1, i));
+  const svg = $("#s-flows svg");
+  svg.querySelectorAll(".edge").forEach(e => e.classList.remove("lit", "t-allow", "t-throttle", "t-reject"));
+  svg.querySelectorAll(".node").forEach(n => n.classList.remove("active", "t-allow", "t-throttle", "t-reject", "dimmed"));
+  const pk = $("#flow-packet");
+  if (anim) { cancelAnimationFrame(anim); anim = null; }
+  $("#f-progress").innerHTML = steps.map((_, j) => `<i class="${j <= state.step ? "done" : ""}"></i>`).join("");
+  $("#f-back").disabled = state.step < 0;
+  $("#f-step").disabled = state.step >= steps.length - 1;
+  $("#f-step").textContent = state.step < 0 ? "Start" : "Next step";
+  if (state.step < 0) {
+    pk.setAttribute("opacity", "0");
+    $("#stepno").textContent = `${sc.label}: ${steps.length} steps`;
+    $("#narr").textContent = "Press Start to send a request through the proposed system.";
+    setBucket(steps[0].bucket);
+    return;
+  }
+  const st = steps[state.step];
+  const tone = st.tone || sc.tone;
+  const edge = $(`#flow-${st.path}`);
+  edge.classList.add("lit", "t-" + tone);
+  edgeNodes(st.path).forEach(n => { const el = $(`#flow-n-${n}`); el.classList.add("active", "t-" + tone); });
+  $("#stepno").textContent = `Step ${state.step + 1} of ${steps.length}` + (st.ref ? `, ${st.ref}` : "");
+  $("#narr").textContent = st.text;
+  setBucket(st.bucket);
+  pk.setAttribute("class", "packet t-" + tone);
+  const len = edge.getTotalLength();
+  const place = t => { const pt = edge.getPointAtLength(st.reverse ? len * (1 - t) : len * t); pk.setAttribute("cx", pt.x); pk.setAttribute("cy", pt.y); };
+  pk.setAttribute("opacity", "1");
+  if (!animate || reduceMotion) { place(1); return; }
+  const dur = Math.max(520, len * 5.2), t0 = performance.now();
+  const ease = t => 1 - Math.pow(1 - t, 3);
+  const tick = now => { const t = Math.min(1, (now - t0) / dur); place(ease(t)); if (t < 1) anim = requestAnimationFrame(tick); else anim = null; };
+  anim = requestAnimationFrame(tick);
+}
+function setBucket(n) {
+  const tk = $("#tokens");
+  tk.classList.toggle("unknown", n === null || n === undefined);
+  [...tk.children].forEach((s, j) => s.classList.toggle("on", n !== null && j < n));
+  $("#bucket-n").textContent = n === null || n === undefined ? "Redis unreachable" : `${n} of 20 tokens`;
+}
+function playAll() {
+  if (playing) { clearTimeout(playing); playing = null; $("#f-play").textContent = "Play all"; return; }
+  $("#f-play").textContent = "Pause";
+  if (state.step >= scenario().steps.length - 1) setStep(-1, false);
+  const next = () => {
+    if (state.step >= scenario().steps.length - 1) { playing = null; $("#f-play").textContent = "Play all"; return; }
+    setStep(state.step + 1, true);
+    playing = setTimeout(next, reduceMotion ? 2600 : 2400);
+  };
+  next();
+}
+
+/* ---------------- Risks ---------------- */
+function selectRisk(id) {
+  state.risk = id;
+  document.querySelectorAll("[data-risk]").forEach(b => b.setAttribute("aria-pressed", b.dataset.risk === id));
+  document.querySelectorAll("#risk-list li").forEach(li => li.classList.toggle("sel", li.id === "risk-" + id));
+}
+
+/* ---------------- Questions ---------------- */
+function renderQuestions() {
+  const list = $("#qlist"); if (!list) return;
+  list.innerHTML = "";
+  let open = 0;
+  DATA.questions.forEach(q => {
+    const dec = state.decisions[q.id];
+    if (!dec || dec.status !== "decided") open++;
+    const li = document.createElement("li");
+    li.setAttribute("data-comment-target", "");
+    li.innerHTML = `<span class="rid">${esc(q.id)}</span><div><div class="qt"></div><div class="qo"></div><div class="qd" hidden></div></div><div class="qctl"></div>`;
+    $(".qt", li).textContent = q.text;
+    $(".qo", li).textContent = "Owner: " + q.owner;
+    if (dec && dec.status === "decided") { const d = $(".qd", li); d.hidden = false; d.textContent = "Decided: " + (dec.note || "see review thread"); }
+    const ctl = $(".qctl", li);
+    const tag = document.createElement("span");
+    tag.className = "qstate " + (dec && dec.status === "decided" ? "decided" : "open");
+    tag.textContent = dec && dec.status === "decided" ? "Decided" : "Open";
+    ctl.appendChild(tag);
+    if (state.canEdit) {
+      const b = document.createElement("button");
+      b.className = "btn ghost"; b.style.marginLeft = "8px"; b.style.fontSize = "13px";
+      b.textContent = dec && dec.status === "decided" ? "Reopen" : "Record decision";
+      b.onclick = () => recordDecision(q, dec);
+      ctl.appendChild(b);
+    }
+    list.appendChild(li);
+  });
+  const f = $("#facts-q"); if (f) f.textContent = `${open} of ${DATA.questions.length}`;
+}
+async function recordDecision(q, dec) {
+  if (dec && dec.status === "decided") return saveDecision(q.id, { status: "open", note: "" });
+  const note = prompt(`Decision for ${q.id}:\n${q.text}`);
+  if (note === null) return;
+  if (!note.trim()) { toast("Write the decision to record it."); return; }
+  saveDecision(q.id, { status: "decided", note: note.trim().slice(0, 500) });
+}
+async function saveDecision(id, body) {
+  body.updatedAt = new Date().toISOString(); body.by = state.uid;
+  if (state.db) {
+    try { await state.db.doc("decisions/" + id).set(body); toast(body.status === "decided" ? "Decision recorded" : "Question reopened"); }
+    catch (e) { toast("Decision not saved: " + (e && e.code || "error")); }
+  } else { state.decisions[id] = body; saveLocal(); renderQuestions(); toast(body.status === "decided" ? "Decision recorded" : "Question reopened"); }
+}
+
+/* ---------------- Review panel ---------------- */
+const KIND_LABEL = { approve: "Approve", concern: "Concern", question: "Question" };
+const STATUS = [["open", "Open"], ["accepted", "Accepted"], ["rejected", "Rejected"], ["deferred", "Deferred to v2"]];
+let renderToken = 0;
+async function renderReview() {
+  const my = ++renderToken;
+  const sec = SECTIONS[state.idx];
+  $("#review-sub").textContent = `Feedback on ${sec.nav.toLowerCase()}`;
+  const all = state.feedback;
+  const counts = k => all.filter(f => f.kind === k).length;
+  $("#tally").innerHTML = `<span><b>${counts("approve")}</b> approvals</span><span><b>${counts("concern")}</b> concerns</span><span><b>${all.filter(f => f.status === "open").length}</b> unresolved</span>`;
+  SECTIONS.forEach(s => { const c = all.filter(f => f.section === s.id).length; const el = $(`[data-count="${s.id}"]`); if (el) el.textContent = c ? c : ""; });
+  const items = all.filter(f => f.section === sec.id);
+  const ids = [...new Set(items.map(f => f.author).filter(Boolean))];
+  let profiles = {};
+  if (state.user && ids.length) { try { profiles = await state.user.profiles(ids); } catch (_) {} }
+  if (my !== renderToken) return;
+  const list = $("#fb-list"); list.innerHTML = "";
+  items.forEach(f => {
+    const li = document.createElement("li"); li.className = "fb";
+    const p = f.author && profiles[f.author];
+    const head = document.createElement("div"); head.className = "fb-head";
+    if (p && p.avatarUrl) { const img = document.createElement("img"); img.src = p.avatarUrl; img.alt = ""; head.appendChild(img); }
+    const who = document.createElement("span"); who.className = "who"; who.textContent = p ? (p.isMe ? "You" : (p.name || "Someone")) : "You"; head.appendChild(who);
+    const tag = document.createElement("span"); tag.className = "kind-tag " + f.kind; tag.textContent = KIND_LABEL[f.kind] || f.kind; head.appendChild(tag);
+    const when = document.createElement("span"); when.className = "when"; when.textContent = relTime(f.createdAt); head.appendChild(when);
+    const body = document.createElement("p"); body.textContent = f.text;
+    const st = document.createElement("div"); st.className = "st";
+    if (state.canEdit) {
+      const lab = document.createElement("label"); lab.textContent = "Status";
+      const sel = document.createElement("select");
+      STATUS.forEach(([v, t]) => { const o = document.createElement("option"); o.value = v; o.textContent = t; if (f.status === v) o.selected = true; sel.appendChild(o); });
+      sel.onchange = () => setStatus(f, sel.value);
+      lab.appendChild(sel); st.appendChild(lab);
+    } else {
+      st.textContent = "Status: " + (STATUS.find(s => s[0] === f.status) || STATUS[0])[1];
+    }
+    li.append(head, body, st); list.appendChild(li);
+  });
+  $("#fb-empty").textContent = items.length ? "" : "No feedback on this section yet. Approve it, raise a concern, or ask a question.";
+}
+function relTime(iso) {
+  const d = new Date(iso); if (isNaN(d)) return "";
+  const s = (Date.now() - d) / 1000;
+  if (s < 60) return "just now"; if (s < 3600) return Math.floor(s / 60) + " min ago"; if (s < 86400) return Math.floor(s / 3600) + " h ago";
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+async function postFeedback() {
+  const text = $("#fb-text").value.trim();
+  if (!text && state.kind !== "approve") { $("#fb-err").textContent = "Write your feedback first."; $("#fb-text").focus(); return; }
+  const sec = SECTIONS[state.idx];
+  const doc = { section: sec.id, kind: state.kind, text: text || "Looks good.", author: state.uid, createdAt: new Date().toISOString(), status: state.kind === "approve" ? "accepted" : "open", specVersion: DATA.meta.version };
+  const btn = $("#fb-post"); btn.disabled = true;
+  try {
+    if (state.db) {
+      if (!state.canWrite) throw { code: "read_only" };
+      await state.db.collection("feedback").add(doc);
+    } else {
+      doc.id = "local-" + Date.now(); state.feedback.push(doc); saveLocal(); renderReview();
+    }
+    $("#fb-text").value = "";
+    toast("Feedback posted");
+    if ($("#fb-claude").checked && state.comments) sendToClaude(sec, doc);
+  } catch (e) {
+    const code = e && e.code;
+    if (code === "invalid_argument" || code === "read_only") { state.canWrite = false; $("#fb-err").textContent = "You can view this review but not post feedback. Ask the author for Contributor access."; }
+    else if (code === "quota_exceeded") $("#fb-err").textContent = "This review has reached its feedback limit. Ask the author to archive resolved items.";
+    else $("#fb-err").textContent = "Feedback wasn't posted. Check your connection and try again.";
+  } finally { btn.disabled = false; }
+}
+async function setStatus(f, status) {
+  if (state.db) {
+    try { await state.db.doc("feedback/" + f.id).update({ status, resolvedBy: state.uid, resolvedAt: new Date().toISOString() }); toast("Status updated"); }
+    catch (e) { toast("Status not saved: " + (e && e.code || "error")); }
+  } else { f.status = status; saveLocal(); renderReview(); toast("Status updated"); }
+}
+
+/* ---------------- Comments + Claude ---------------- */
+async function openComposer(el) {
+  if (!state.comments || !el) return;
+  try { await state.comments.openComposer({ element: el }); }
+  catch (e) { if (e && (e.code === "unavailable" || e.code === "not_granted")) document.querySelectorAll(".comment-btn").forEach(b => b.hidden = true); }
+}
+async function sendToClaude(sec, doc) {
+  try {
+    const avail = await state.comments.canSendToClaude();
+    if (avail !== "available") { toast("Claude isn't available to reply right now. Your feedback was saved."); return; }
+    const anchor = await state.comments.anchorFor($(`#s-${sec.id} h2`));
+    await state.comments.sendToClaude({ anchor, text: `[${KIND_LABEL[doc.kind]} on "${sec.nav}"] ${doc.text}`.slice(0, 3900) });
+    toast("Sent to Claude. The reply will appear in the comment thread.");
+  } catch (e) {
+    const c = e && e.code;
+    if (c === "consent_required") toast("Not sent to Claude: allow commenting from this page to send it.");
+    else if (c === "forbidden" || c === "claude_unavailable" || c === "not_granted") { $("#claude-opt").hidden = true; toast("Sending to Claude is off here. Your feedback was saved."); }
+    else toast("Not sent to Claude. Your feedback was saved.");
+  }
+}
+
+/* ---------------- Local fallback ---------------- */
+const LS_KEY = "rate-limit-review-v1";
+function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify({ feedback: state.feedback, decisions: state.decisions })); } catch (_) {} }
+function loadLocal() { try { const d = JSON.parse(localStorage.getItem(LS_KEY) || "null"); if (d) { state.feedback = d.feedback || []; state.decisions = d.decisions || {}; } } catch (_) {} }
+
+let toastT;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 2800); }
+
+/* ---------------- Capabilities ---------------- */
+async function connect() {
+  if (!window.claude || typeof window.claude.use !== "function") return;
+  const [db, user, comments] = await Promise.all([window.claude.use("db"), window.claude.use("user"), window.claude.use("comments")]);
+  if (user) {
+    state.user = user;
+    try { const me = await user.me(); state.uid = me.id; state.canEdit = !!me.canEdit; } catch (_) {}
+    try { const w = await user.can("data.write"); if (w === false) state.canWrite = false; } catch (_) {}
+  }
+  if (comments) {
+    state.comments = comments;
+    document.querySelectorAll(".comment-btn").forEach(b => b.hidden = false);
+    try { if ((await comments.canSendToClaude()) === "available") $("#claude-opt").hidden = false; } catch (_) {}
+  }
+  if (db) {
+    state.db = db; state.shared = true;
+    state.feedback = []; state.decisions = {};
+    $("#mode-note").textContent = state.canWrite ? "Feedback is shared with everyone reviewing this deck and read back into the spec." : "You can read this review. Posting feedback needs Contributor access.";
+    if (!state.canWrite) { $("#fb-post").disabled = true; }
+    db.collection("feedback").orderBy("createdAt", "asc").limit(500).onSnapshot(
+      snap => { state.feedback = snap.docs.map(d => Object.assign({ id: d.id }, d.data())); renderReview(); },
+      () => { $("#mode-note").textContent = "Live feedback stopped updating. Reload to reconnect."; }
+    );
+    db.collection("decisions").limit(100).onSnapshot(
+      snap => { const m = {}; snap.docs.forEach(d => { m[d.id] = d.data(); }); state.decisions = m; renderQuestions(); },
+      () => {}
+    );
+  }
+  renderQuestions();
+  renderReview();
+}
+
+loadLocal();
+build();
+connect();
+})();
+</script>
+</body>
+</html>

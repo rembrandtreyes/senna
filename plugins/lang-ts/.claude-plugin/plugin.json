@@ -1,0 +1,6 @@
+{
+  "name": "lang-ts",
+  "version": "0.1.0",
+  "description": "TypeScript/React/Next/Expo: format + lint on edit, typecheck + tests on stop, conventions.",
+  "author": { "name": "YOUR_NAME" }
+}

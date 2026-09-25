@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Design review deck",
+  "description": "Data for review-deck.template.html. Produced by the /present narrative and diagram agents from spec.md and the LikeC4 model.",
+  "type": "object",
+  "required": ["meta", "summary", "problem", "diagram", "architecture", "scenarios", "alternatives", "risks", "rollout", "questions"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["title", "kind", "version", "updated", "prd", "status", "ask"],
+      "properties": {
+        "title": { "type": "string" }, "kind": { "type": "string" }, "version": { "type": "string" },
+        "updated": { "type": "string" }, "prd": { "type": "string" }, "status": { "type": "string" },
+        "ask": { "type": "string", "description": "The decision this review needs, one sentence." }
+      }
+    },
+    "summary": { "type": "string" },
+    "problem": {
+      "type": "object",
+      "required": ["statement", "metrics", "requirements", "nonGoals"],
+      "properties": {
+        "statement": { "type": "string" },
+        "metrics": { "type": "array", "items": { "type": "object", "required": ["label", "from", "to", "window"] } },
+        "requirements": { "type": "array", "items": { "type": "object", "required": ["id", "text"], "properties": { "id": { "type": "string", "pattern": "^R-\\d+$" } } } },
+        "nonGoals": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "diagram": {
+      "type": "object",
+      "required": ["viewBox", "nodes", "edges"],
+      "properties": {
+        "viewBox": { "type": "string" },
+        "nodes": { "type": "array", "items": { "type": "object", "required": ["id", "label", "sub", "x", "y", "w", "kind"],
+          "properties": { "kind": { "enum": ["existing", "new"] } } } },
+        "edges": { "type": "array", "items": { "type": "object", "required": ["id", "d", "mode"],
+          "properties": { "id": { "type": "string", "pattern": "^[a-z]-[a-z]$", "description": "<from initial>-<to initial>; initials must be unique per node" },
+            "mode": { "enum": ["before", "after", "both"] }, "dashed": { "type": "boolean" }, "ghost": { "type": "boolean" } } } }
+      }
+    },
+    "architecture": { "type": "object", "required": ["before", "after"] },
+    "scenarios": { "type": "array", "items": { "type": "object", "required": ["id", "label", "tone", "steps"],
+      "properties": { "tone": { "enum": ["allow", "throttle", "reject"] },
+        "steps": { "type": "array", "items": { "type": "object", "required": ["path", "text"],
+          "properties": { "path": { "type": "string" }, "reverse": { "type": "boolean" }, "tone": { "enum": ["allow", "throttle", "reject"] },
+            "ref": { "type": "string" }, "bucket": { "type": ["integer", "null"] } } } } } } },
+    "alternatives": { "type": "object", "required": ["criteria", "options"] },
+    "risks": { "type": "array", "items": { "type": "object", "required": ["id", "title", "likelihood", "impact", "mitigation"],
+      "properties": { "likelihood": { "enum": [1, 2, 3] }, "impact": { "enum": [1, 2, 3] } } } },
+    "rollout": { "type": "array", "items": { "type": "object", "required": ["name", "length", "detail", "gate", "rollback"] } },
+    "questions": { "type": "array", "items": { "type": "object", "required": ["id", "text", "owner"] } }
+  }
+}

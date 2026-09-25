@@ -1,0 +1,6 @@
+{
+  "name": "lang-LANG",
+  "version": "0.1.0",
+  "description": "TEMPLATE: copy to plugins/lang-<name>, rename, and add to marketplace.json.",
+  "author": { "name": "YOUR_NAME" }
+}

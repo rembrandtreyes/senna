@@ -1,0 +1,435 @@
+{
+  "meta": {
+    "title": "Per-tenant API rate limiting",
+    "kind": "Tech spec",
+    "version": "v1",
+    "updated": "Sep 24, 2026",
+    "prd": "PRD-007",
+    "status": "In review",
+    "ask": "Approve a Redis-backed token bucket per tenant that fails open to local buckets, and the four-stage rollout."
+  },
+  "summary": "Give every tenant a fair share of the public API. The gateway checks a token bucket per tenant in Redis. Tenants over their limit get 429 with Retry-After; if Redis is unavailable, the gateway falls back to local buckets so traffic keeps flowing.",
+  "problem": {
+    "statement": "One tenant's traffic spike can exhaust the shared Orders service. In Q2 this caused 6 incidents where every tenant saw timeouts. The only protection today is a global cap at the load balancer, which throttles all tenants equally, including the ones behaving well.",
+    "metrics": [
+      {
+        "label": "Noisy-neighbor incidents",
+        "from": "6 / quarter",
+        "to": "0",
+        "window": "2 quarters after launch"
+      },
+      {
+        "label": "Other tenants' p99 during a burst",
+        "from": "1.8 s",
+        "to": "< 300 ms",
+        "window": "measured per incident drill"
+      },
+      {
+        "label": "False 429s (tenant under its limit)",
+        "from": "n/a",
+        "to": "< 0.01%",
+        "window": "of all requests, weekly"
+      }
+    ],
+    "requirements": [
+      {
+        "id": "R-1",
+        "text": "Reject requests over a tenant's limit within 1 second of the limit being exceeded."
+      },
+      {
+        "id": "R-2",
+        "text": "Rejected requests return 429 with Retry-After and X-RateLimit-* headers."
+      },
+      {
+        "id": "R-3",
+        "text": "The limiter adds at most 2 ms to gateway p99 latency."
+      },
+      {
+        "id": "R-4",
+        "text": "A limiter or Redis failure never blocks traffic; on-call is alerted within 5 minutes."
+      },
+      {
+        "id": "R-5",
+        "text": "Per-tenant limits change without a deploy."
+      }
+    ],
+    "nonGoals": [
+      "Per-endpoint limits (v2, if tenants ask)",
+      "Monthly quotas and billing (owned by the billing team)",
+      "Blocking abusive IPs (handled by the WAF)"
+    ]
+  },
+  "diagram": {
+    "viewBox": "8 24 736 344",
+    "nodes": [
+      {
+        "id": "client",
+        "label": "Tenant client",
+        "sub": "API key",
+        "x": 80,
+        "y": 195,
+        "w": 120,
+        "kind": "existing"
+      },
+      {
+        "id": "gateway",
+        "label": "API gateway",
+        "sub": "8 replicas",
+        "x": 255,
+        "y": 195,
+        "w": 130,
+        "kind": "existing"
+      },
+      {
+        "id": "limiter",
+        "label": "Rate limiter",
+        "sub": "gateway middleware",
+        "x": 440,
+        "y": 195,
+        "w": 136,
+        "kind": "new"
+      },
+      {
+        "id": "service",
+        "label": "Orders service",
+        "sub": "shared by tenants",
+        "x": 650,
+        "y": 195,
+        "w": 150,
+        "kind": "existing"
+      },
+      {
+        "id": "limits",
+        "label": "Tenant limits",
+        "sub": "config, hot reload",
+        "x": 440,
+        "y": 62,
+        "w": 150,
+        "kind": "new"
+      },
+      {
+        "id": "redis",
+        "label": "Redis",
+        "sub": "token buckets",
+        "x": 440,
+        "y": 328,
+        "w": 130,
+        "kind": "new"
+      },
+      {
+        "id": "fallback",
+        "label": "Local fallback",
+        "sub": "in-process bucket",
+        "x": 255,
+        "y": 328,
+        "w": 150,
+        "kind": "new"
+      }
+    ],
+    "edges": [
+      {
+        "id": "c-g",
+        "d": "M140 195 L188 195",
+        "mode": "both"
+      },
+      {
+        "id": "g-s",
+        "d": "M320 195 L573 195",
+        "mode": "before"
+      },
+      {
+        "id": "g-l",
+        "d": "M320 195 L370 195",
+        "mode": "after"
+      },
+      {
+        "id": "l-s",
+        "d": "M508 195 L573 195",
+        "mode": "after"
+      },
+      {
+        "id": "l-r",
+        "d": "M440 222 L440 299",
+        "mode": "after"
+      },
+      {
+        "id": "l-f",
+        "d": "M404 222 C 404 262, 300 262, 288 299",
+        "mode": "after"
+      },
+      {
+        "id": "l-k",
+        "d": "M440 168 L440 91",
+        "mode": "after",
+        "dashed": true
+      },
+      {
+        "id": "l-c",
+        "d": "M420 168 C 420 112, 92 112, 92 166",
+        "mode": "after",
+        "ghost": true
+      }
+    ]
+  },
+  "architecture": {
+    "before": "Today every request goes straight from the gateway to Orders. Nothing distinguishes one tenant from another until the load balancer's global cap trips.",
+    "after": "A limiter inside the gateway checks each tenant's bucket in Redis before forwarding. Limits come from hot-reloaded config (R-5). If Redis can't answer in time, a local bucket takes over (R-4)."
+  },
+  "scenarios": [
+    {
+      "id": "allowed",
+      "label": "Within limit",
+      "tone": "allow",
+      "steps": [
+        {
+          "path": "c-g",
+          "text": "Tenant acme sends POST /orders with its API key.",
+          "bucket": 12
+        },
+        {
+          "path": "g-l",
+          "text": "The gateway resolves the tenant from the key and asks the limiter for one token.",
+          "ref": "R-1",
+          "bucket": 12
+        },
+        {
+          "path": "l-r",
+          "text": "One atomic Lua script in Redis refills the bucket by elapsed time and takes a token. One round trip, about 0.4 ms at p50.",
+          "ref": "R-3",
+          "bucket": 11
+        },
+        {
+          "path": "l-r",
+          "reverse": true,
+          "text": "Token granted. 11 of 20 tokens left in acme's burst allowance.",
+          "bucket": 11
+        },
+        {
+          "path": "l-s",
+          "text": "The request is forwarded to Orders with X-RateLimit-Remaining: 11.",
+          "ref": "R-2",
+          "bucket": 11
+        }
+      ]
+    },
+    {
+      "id": "throttled",
+      "label": "Over limit",
+      "tone": "throttle",
+      "steps": [
+        {
+          "path": "c-g",
+          "text": "acme is bursting: its 21st request inside one second.",
+          "bucket": 0
+        },
+        {
+          "path": "g-l",
+          "text": "The gateway asks the limiter for a token.",
+          "bucket": 0
+        },
+        {
+          "path": "l-r",
+          "text": "The bucket is empty. Refill rate is 20 tokens per second.",
+          "bucket": 0
+        },
+        {
+          "path": "l-r",
+          "reverse": true,
+          "text": "Denied. Redis reports the next token arrives in 50 ms.",
+          "ref": "R-1",
+          "bucket": 0
+        },
+        {
+          "path": "l-c",
+          "tone": "throttle",
+          "text": "The client gets 429 with Retry-After: 1. The request never reaches Orders, so other tenants are untouched.",
+          "ref": "R-2",
+          "bucket": 0
+        }
+      ]
+    },
+    {
+      "id": "redis-down",
+      "label": "Redis unavailable",
+      "tone": "reject",
+      "steps": [
+        {
+          "path": "c-g",
+          "text": "acme sends a normal request.",
+          "bucket": 12
+        },
+        {
+          "path": "g-l",
+          "text": "The gateway asks the limiter for a token.",
+          "bucket": 12
+        },
+        {
+          "path": "l-r",
+          "tone": "reject",
+          "text": "Redis doesn't answer within the 5 ms budget. The circuit breaker opens after 20 consecutive timeouts.",
+          "ref": "R-3",
+          "bucket": null
+        },
+        {
+          "path": "l-f",
+          "tone": "throttle",
+          "text": "The limiter fails open to an in-process bucket sized at the tenant limit divided by 8 replicas. Accuracy drops; availability holds.",
+          "ref": "R-4",
+          "bucket": 2
+        },
+        {
+          "path": "l-s",
+          "text": "The request is served. An alert fires if more than 1% of traffic uses the fallback for 5 minutes.",
+          "ref": "R-4",
+          "bucket": 2
+        }
+      ]
+    }
+  ],
+  "alternatives": {
+    "criteria": [
+      "Accuracy at window edges",
+      "Redis calls per request",
+      "Memory per tenant",
+      "Burst control"
+    ],
+    "options": [
+      {
+        "id": "fixed",
+        "name": "Fixed window counter",
+        "scores": [
+          1,
+          3,
+          3,
+          1
+        ],
+        "notes": [
+          "Up to 2× the limit across a window boundary",
+          "1 INCR",
+          "1 counter",
+          "None; resets every window"
+        ],
+        "verdict": "Rejected: boundary bursts are exactly the noisy-neighbor pattern we're fixing."
+      },
+      {
+        "id": "log",
+        "name": "Sliding window log",
+        "scores": [
+          3,
+          1,
+          1,
+          2
+        ],
+        "notes": [
+          "Exact",
+          "3 commands",
+          "One entry per request; the largest tenant needs ~40 MB",
+          "Implicit"
+        ],
+        "verdict": "Rejected: exact, but memory grows with traffic and it costs 3 round trips."
+      },
+      {
+        "id": "bucket",
+        "name": "Token bucket (GCRA)",
+        "scores": [
+          3,
+          3,
+          3,
+          3
+        ],
+        "chosen": true,
+        "notes": [
+          "Smooth; no boundary effect",
+          "1 Lua script",
+          "2 numbers",
+          "Explicit burst size per tenant"
+        ],
+        "verdict": "Chosen: one atomic call, constant memory, and burst size is a tunable we can give sales."
+      }
+    ]
+  },
+  "risks": [
+    {
+      "id": "K-1",
+      "title": "Redis latency spikes slow every request",
+      "likelihood": 2,
+      "impact": 3,
+      "mitigation": "5 ms timeout per call, circuit breaker, fail open to local buckets (R-4)."
+    },
+    {
+      "id": "K-2",
+      "title": "Tenants exceed limits during a Redis outage",
+      "likelihood": 2,
+      "impact": 2,
+      "mitigation": "Local bucket is limit ÷ replicas; alert when fallback traffic passes 1%."
+    },
+    {
+      "id": "K-3",
+      "title": "A misconfigured limit throttles a large customer",
+      "likelihood": 2,
+      "impact": 3,
+      "mitigation": "Shadow mode first; audit log on limit changes; per-tenant override without deploy."
+    },
+    {
+      "id": "K-4",
+      "title": "Clock skew between gateway replicas",
+      "likelihood": 1,
+      "impact": 1,
+      "mitigation": "The Lua script reads time from Redis TIME, not the gateway clock."
+    },
+    {
+      "id": "K-5",
+      "title": "The largest tenant creates a hot key on one shard",
+      "likelihood": 1,
+      "impact": 2,
+      "mitigation": "Per-shard CPU alert; split the tenant's bucket across 4 keys if it trips."
+    }
+  ],
+  "rollout": [
+    {
+      "name": "Shadow mode",
+      "length": "1 week",
+      "detail": "Decide every request and log would-be 429s. Enforce nothing.",
+      "gate": "Would-be false 429s under 0.01%",
+      "rollback": "Nothing to roll back"
+    },
+    {
+      "name": "5% of tenants",
+      "length": "3 days",
+      "detail": "Internal tenants plus customers who opted in.",
+      "gate": "Added p99 latency ≤ 2 ms",
+      "rollback": "Feature flag off, under 1 minute"
+    },
+    {
+      "name": "50% of tenants",
+      "length": "1 week",
+      "detail": "Random half, excluding the top 10 tenants by volume.",
+      "gate": "No tickets citing 429s from tenants under their limit",
+      "rollback": "Feature flag off, under 1 minute"
+    },
+    {
+      "name": "All tenants",
+      "length": "Ongoing",
+      "detail": "Top 10 tenants join last, each with a named contact.",
+      "gate": "Noisy-neighbor alarms quiet for 2 weeks",
+      "rollback": "Per-tenant override, or flag off"
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q-1",
+      "text": "Should internal service accounts bypass the limiter, or get their own higher limits?",
+      "owner": "Platform team"
+    },
+    {
+      "id": "Q-2",
+      "text": "Do we show each tenant its limits in the developer dashboard at launch, or in a follow-up?",
+      "owner": "Product"
+    },
+    {
+      "id": "Q-3",
+      "text": "Should free-tier tenants fail closed instead of open during a Redis outage?",
+      "owner": "Product + SRE"
+    }
+  ]
+}
