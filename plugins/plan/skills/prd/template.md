@@ -47,13 +47,3 @@ Teams, systems, and facts this relies on. Mark each assumption as verified or un
 ## Changelog
 - <date> v1 created
 
----
-### prd-critic checklist (the harness runs this before /spec)
-- [ ] The problem statement doesn't paraphrase the feature.
-- [ ] Evidence is cited for the problem.
-- [ ] Every metric has a baseline, target, timeframe, and owner.
-- [ ] Every requirement has an ID and a Given/When/Then acceptance check.
-- [ ] Non-goals exist and are specific.
-- [ ] Unhappy paths are covered, not just the happy path.
-- [ ] Unverified assumptions are listed as such.
-- [ ] Open questions have owners.

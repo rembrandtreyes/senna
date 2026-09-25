@@ -40,7 +40,7 @@ specs/<slug>/
 
 | Stage | Command | Borrowed from | Gate to move on |
 |---|---|---|---|
-| PRD | `/prd` | grill-me: one question at a time, each with a recommended answer; answer from the codebase instead of asking whenever possible | prd-critic passes (checklist in templates/planning/prd.md) |
+| PRD | `/prd` | grill-me: one question at a time, each with a recommended answer; answer from the codebase instead of asking whenever possible | prd-critic passes (checklist in plugins/plan/agents/prd-critic.md) |
 | Tech spec | `/spec` | Lyft + Stack Overflow templates; pstack-style "arena": 2–3 subagents design independently, the spec records the winner and why the others lost | spec-critic passes, including "could an engineer implement this from the spec alone?" |
 | Present | `/present` | gstack: role-separated reviews | deck renders, visual QA passes |
 | Review | (humans + agents) | gstack role reviews: architecture, security, SRE/ops, product | every reviewer lens has reported |

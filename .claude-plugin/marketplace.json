@@ -41,7 +41,7 @@
       "name": "plan",
       "source": "./plugins/plan",
       "description": "Planning pipeline: intake router, /prd, /spec, reviewer lenses, /present review decks, /feedback ledger, with requirement IDs traced into build tasks.",
-      "version": "0.2.0"
+      "version": "0.3.0"
     }
   ]
 }

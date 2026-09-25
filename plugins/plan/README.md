@@ -9,7 +9,7 @@ Built in the order listed in HANDOFF.md (Phase 2). Components land here as they 
 | Component | Kind | Build step |
 |---|---|---|
 | intake router (`route`) | skill | 2 ✓ |
-| `/prd`, prd-critic | skill, agent | 3 |
+| `/prd`, prd-critic | skill, agent | 3 ✓ |
 | `/spec`, designer, spec-critic | skill, agents | 4 |
 | architecture / sre / product reviewers | agents | 5 |
 | `/present`, narrative, diagram, visual-qa, renderer | skill, agents, script | 6 |
