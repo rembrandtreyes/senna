@@ -130,44 +130,60 @@
       {
         "id": "c-g",
         "d": "M140 195 L188 195",
-        "mode": "both"
+        "mode": "both",
+        "from": "client",
+        "to": "gateway"
       },
       {
         "id": "g-s",
         "d": "M320 195 L573 195",
-        "mode": "before"
+        "mode": "before",
+        "from": "gateway",
+        "to": "service"
       },
       {
         "id": "g-l",
         "d": "M320 195 L370 195",
-        "mode": "after"
+        "mode": "after",
+        "from": "gateway",
+        "to": "limiter"
       },
       {
         "id": "l-s",
         "d": "M508 195 L573 195",
-        "mode": "after"
+        "mode": "after",
+        "from": "limiter",
+        "to": "service"
       },
       {
         "id": "l-r",
         "d": "M440 222 L440 299",
-        "mode": "after"
+        "mode": "after",
+        "from": "limiter",
+        "to": "redis"
       },
       {
         "id": "l-f",
         "d": "M404 222 C 404 262, 300 262, 288 299",
-        "mode": "after"
+        "mode": "after",
+        "from": "limiter",
+        "to": "fallback"
       },
       {
         "id": "l-k",
         "d": "M440 168 L440 91",
         "mode": "after",
-        "dashed": true
+        "dashed": true,
+        "from": "limiter",
+        "to": "limits"
       },
       {
         "id": "l-c",
         "d": "M420 168 C 420 112, 92 112, 92 166",
         "mode": "after",
-        "ghost": true
+        "ghost": true,
+        "from": "limiter",
+        "to": "client"
       }
     ]
   },

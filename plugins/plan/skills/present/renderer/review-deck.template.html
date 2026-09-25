@@ -15,9 +15,9 @@ __DECK_DATA__
 
 <style>
 :root {
-  --bg: #EEF1F2; --surface: #FFFFFF; --node: #F6F8F9; --ink: #13212B; --ink-2: #4A5A66; --ink-3: #6E7E89;
+  --bg: #EEF1F2; --surface: #FFFFFF; --node: #F6F8F9; --ink: #13212B; --ink-2: #4A5A66; --ink-3: #56656F;
   --line: #D3DADF; --line-2: #B9C3CA; --accent: #2B4ACB; --accent-soft: #E3E8FB;
-  --allow: #0E7F62; --allow-soft: #DDF2EA; --throttle: #A86E06; --throttle-soft: #F7ECD3;
+  --allow: #0B6B53; --allow-soft: #DDF2EA; --throttle: #865604; --throttle-soft: #F7ECD3;
   --reject: #BF3B34; --reject-soft: #F8E0DE; --focus: #2B4ACB;
   --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
   --body: "IBM Plex Sans", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
@@ -45,6 +45,7 @@ button, select, textarea, input { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
 [hidden] { display: none !important; }
 .slide h2[tabindex="-1"]:focus { outline: none; }
+.slide p, .slide li, .slide td, .slide th, .slide dd, .gate, .rb { overflow-wrap: break-word; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---------- Shell ---------- */
@@ -321,7 +322,7 @@ table.alts { width: 100%; border-collapse: separate; border-spacing: 0; font-siz
 <script>
 (() => {
 "use strict";
-// Rendered from reference/present/review-deck.template.html. Edit the template, not generated decks.
+// Rendered from plugins/plan/skills/present/renderer/review-deck.template.html. Edit the template, not generated decks.
 const DATA = JSON.parse(document.getElementById("deck-data").textContent);
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -410,7 +411,7 @@ const R = {
         <div class="narration" data-comment-target>
           <div class="stepno" id="stepno"></div>
           <p id="narr" aria-live="polite"></p>
-          <div class="bucket"><div class="label"><span>acme's bucket</span><span id="bucket-n"></span></div><div class="tokens" id="tokens">${"<span></span>".repeat(20)}</div></div>
+          ${DATA.scenarios.some(s => s.steps.some(st => "bucket" in st)) ? `<div class="bucket"><div class="label"><span>acme's bucket</span><span id="bucket-n"></span></div><div class="tokens" id="tokens">${"<span></span>".repeat(20)}</div></div>` : ""}
         </div>
       </div>
       <div class="flow-controls">
@@ -424,7 +425,7 @@ const R = {
   alternatives() {
     const a = DATA.alternatives;
     const pips = n => `<span class="pips" aria-label="${n} of 3">${[1, 2, 3].map(i => `<i class="${i <= n ? "on" : ""}"></i>`).join("")}</span>`;
-    return `<h2>Three ways to count</h2>
+    return `<h2>${DATA.alternatives.options.length} options considered</h2>
       <p class="lede">Each option was scored against what the requirements demand. Longer bars are better.</p>
       <div class="scroll-x"><table class="alts">
         <thead><tr><th></th>${a.options.map(o => `<th class="${o.chosen ? "chosen" : ""}" data-comment-target>${esc(o.name)}${o.chosen ? '<span class="chosen-tag">Proposed</span>' : ""}</th>`).join("")}</tr></thead>
@@ -452,7 +453,7 @@ const R = {
   },
   rollout() {
     return `<h2>How it ships</h2>
-      <p class="lede">Each stage has a gate to move on and a way back. A feature flag controls enforcement throughout.</p>
+      <p class="lede">Each stage has a gate to move on and a way back.</p>
       <ol class="timeline">${DATA.rollout.map(s => `<li data-comment-target><h4>${esc(s.name)}</h4><div class="len">${esc(s.length)}</div><p>${esc(s.detail)}</p>
         <div class="gate"><b>Move on when</b>${esc(s.gate)}</div><div class="rb"><b>Roll back by</b>${esc(s.rollback)}</div></li>`).join("")}</ol>`;
   },
@@ -547,7 +548,7 @@ function setArch(mode, animate) {
 /* ---------------- Flow walkthrough ---------------- */
 let anim = null, playing = null;
 const scenario = () => DATA.scenarios.find(s => s.id === state.scenario);
-const edgeNodes = id => { const [a, b] = id.split("-"); const map = { c: "client", g: "gateway", l: "limiter", s: "service", r: "redis", f: "fallback", k: "limits" }; return [map[a], map[b]]; };
+const edgeNodes = id => { const e = DATA.diagram.edges.find(x => x.id === id); return e && e.from ? [e.from, e.to] : id.split("-"); };
 
 function setStep(i, animate) {
   const sc = scenario(); const steps = sc.steps;
@@ -588,6 +589,7 @@ function setStep(i, animate) {
 }
 function setBucket(n) {
   const tk = $("#tokens");
+  if (!tk) return;
   tk.classList.toggle("unknown", n === null || n === undefined);
   [...tk.children].forEach((s, j) => s.classList.toggle("on", n !== null && j < n));
   $("#bucket-n").textContent = n === null || n === undefined ? "Redis unreachable" : `${n} of 20 tokens`;

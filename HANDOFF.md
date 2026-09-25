@@ -96,9 +96,8 @@ routing rules, stage gates, artifact layout, and verified facts about claude.ai 
 - Planning templates (PRD, tech spec, feedback ledger), built from Lyft's and Stack Overflow's
   spec guides plus PRD best practices. Originally in `templates/planning/`; moved into
   `plugins/plan/skills/{prd,spec,design-review}/` in steps 3–5, with checklists in the critics.
-- `reference/present/`: a working review deck, split into `review-deck.template.html` +
-  `example-deck.json` + `deck.schema.json` + `render.mjs` (tested: renders identically to the
-  published prototype and rejects decks with broken edge or requirement references).
+- `reference/present/` (moved to `plugins/plan/skills/present/renderer/` in step 6): a working
+  review deck, split into template + example data + schema + renderer.
   Live prototype: https://claude.ai/artifact/FZzEbydpqj2QVX4LLD8QLp
 
 ## Build order
@@ -117,8 +116,11 @@ routing rules, stage gates, artifact layout, and verified facts about claude.ai 
 6. **`/present`:** narrative agent (spec → deck.json), diagram agent, `render.mjs`, and a
    **visual-qa** agent (Playwright screenshots: light and dark, 1440px and 390px; fix overflow,
    contrast, density; re-render until clean). Move the renderer into the plugin.
-7. **Generalize the template** using the limitations listed in `reference/present/README.md`:
-   data-driven section list, explicit edge `from`/`to`, a "what changed since vN" view, and an
+   Built: `deck-narrator` + `deck-diagrammer` write source JSON, `build.mjs` lays out a grid
+   diagram and validates, `qa.mjs` drives system Chrome via playwright-core. Pulled forward
+   from step 7: edge `from`/`to` (the template had the example's node names hard-coded).
+7. **Generalize the template** using the limitations listed in the renderer README:
+   data-driven section list, a "what changed since vN" view, and an
    export-feedback button.
 8. **LikeC4 spike:** model the example system in `.c4`, try deriving deck diagram data (nodes,
    positions, flows) from the model and its dynamic views, and decide whether interactive LikeC4

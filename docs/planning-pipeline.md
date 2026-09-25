@@ -34,7 +34,8 @@ specs/<slug>/
   spec.md           tech spec, versioned, dated changelog at the bottom
   adr/NNN-*.md      one per significant decision
   model/*.c4        LikeC4 architecture model (source of truth for diagrams)
-  deck/deck.json    presentation data (schema: reference/present/deck.schema.json)
+  deck/narrative.json, diagram.src.json   agent-written sources (build.mjs merges them)
+  deck/deck.json    presentation data (schema: plugins/plan/skills/present/renderer/deck.schema.json)
   feedback.md       ledger: every comment gets a status and resolution
 ```
 
@@ -57,7 +58,7 @@ implementation diverges from the spec, update the spec (living doc) in the same 
 
 ## Presentation layer
 - **Claude writes data, not animations.** Agents produce `deck.json` plus diagram models; one fixed
-  renderer produces the HTML. Reference implementation: `reference/present/`.
+  renderer produces the HTML: `plugins/plan/skills/present/renderer/`.
 - **Agents in /present:** narrative (spec → deck.json story), diagram (LikeC4 model + dynamic
   views for flows), renderer (script, no LLM), visual QA (Playwright screenshots in light/dark,
   desktop/mobile; fix overflow, contrast, density), publisher (adapter).

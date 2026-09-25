@@ -12,7 +12,7 @@ Built in the order listed in HANDOFF.md (Phase 2). Components land here as they 
 | `/prd`, prd-critic | skill, agent | 3 ✓ |
 | `/spec`, designer, spec-critic | skill, agents | 4 ✓ |
 | `/design-review`, architecture / sre / product reviewers | skill, agents | 5 ✓ |
-| `/present`, narrative, diagram, visual-qa, renderer | skill, agents, script | 6 |
+| `/present`, deck-narrator, deck-diagrammer, visual-qa, renderer | skill, agents, scripts | 6 ✓ |
 | publish + feedback adapters, `/feedback` | scripts, skill | 9 |
 | deck staleness hook | hook | 10 |
 
