@@ -62,7 +62,7 @@ subagents, slash commands) and fix anything that's drifted:
    an existing one). Replace `YOUR_NAME` / `YOUR_GITHUB_USER` everywhere.
 4. **Review skills with the owner:** walk through react-next, expo, go, and rust, and cut or
    change anything that doesn't match how they actually work.
-5. **Publish:** `git init`, commit, and create a **private** GitHub repo (`gh repo create`). Ask
+5. **Publish:** `git init`, commit, and create a GitHub repo (`gh repo create`). Done: public, MIT. Ask
    before pushing.
 6. **Install and smoke-test live:** `/plugin marketplace add <path or user/repo>`, install
    `core` plus one language plugin, then confirm in a scratch project that the SessionStart
