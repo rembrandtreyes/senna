@@ -93,9 +93,9 @@ routing rules, stage gates, artifact layout, and verified facts about claude.ai 
 
 ## What already exists
 - `docs/planning-pipeline.md`: the design.
-- `templates/planning/`: tech spec and feedback-ledger templates, each with a critic checklist.
-  Built from Lyft's and Stack Overflow's spec guides plus PRD best practices. (The PRD template
-  moved to `plugins/plan/skills/prd/template.md` in step 3, and its checklist to prd-critic.)
+- `templates/planning/`: the feedback-ledger template, with its checklist. The PRD and spec
+  templates (built from Lyft's and Stack Overflow's spec guides plus PRD best practices) moved
+  into `plugins/plan/skills/{prd,spec}/` in steps 3–4, and their checklists into the critics.
 - `reference/present/`: a working review deck, split into `review-deck.template.html` +
   `example-deck.json` + `deck.schema.json` + `render.mjs` (tested: renders identically to the
   published prototype and rejects decks with broken edge or requirement references).

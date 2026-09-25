@@ -10,12 +10,18 @@ this review needs.
 ## Goals and non-goals
 Goals map to PRD requirement IDs. Non-goals are prominent here, not buried.
 
+### Requirement coverage
+| Req | Design section | Test(s) | Milestone |
+|---|---|---|---|
+| R-1 | | | |
+
 ## Background and current system
 How it works today (brownfield first): components, data, flows, and the pain. Link code.
 
 ## Proposed design
 ### Architecture
-Reference LikeC4 views in `model/` (before and after). Every component: responsibility and owner.
+Every component: responsibility and owner, before and after. Reference LikeC4 views in `model/`
+when the project has them; otherwise a component table is enough.
 ### Data model and migrations
 Schemas, indexes, migration steps, backfill, and how old and new code coexist during rollout.
 ### APIs and contracts
@@ -29,6 +35,7 @@ Expected load, limits, latency budget per hop, and capacity math.
 
 ## Alternatives considered
 At least two, each with why it was rejected. This stops reviewers re-proposing discarded ideas.
+The losing designs from /spec's design round go here; the decision itself is `adr/001-*.md`.
 
 ## Security and privacy
 Threat model: assets, entry points, trust boundaries, and the mitigations for each.
@@ -63,13 +70,3 @@ Each milestone lists the requirement IDs it delivers. `/breakdown` turns these i
 Date every change after the first review. Summarize what changed and why (link feedback IDs).
 - <date> v1 first draft
 
----
-### spec-critic checklist (the harness runs this before /present)
-- [ ] Every PRD requirement maps to a design section, a test, and a milestone.
-- [ ] Non-goals appear in the first screen of the document.
-- [ ] At least two alternatives with rejection reasons.
-- [ ] Every flow covers its failure paths.
-- [ ] Rollout has gates AND a rollback per stage.
-- [ ] Observability names the alerts that would catch this feature breaking.
-- [ ] Security section names trust boundaries.
-- [ ] Final read-through: could an engineer implement this from the spec alone?
