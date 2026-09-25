@@ -12,6 +12,7 @@ plugins/
   lang-go/     gofmt on edit, build+vet(+tests) on stop
   lang-rust/   rustfmt on edit, clippy(+tests) on stop, perf workflow skill
   ops/         security-auditor agent, /triage via Sentry MCP, api-contracts skill
+  plan/        planning pipeline: router, /prd, /spec, reviewers, /present, /feedback
   lang-template/  copy to add Python, Java, Kotlin, Swift... (not listed in marketplace)
 shared/common.sh  canonical hook library (synced into each plugin)
 docs/             planning-pipeline.md: the Phase 2 design (PRD → spec → present → review → build)

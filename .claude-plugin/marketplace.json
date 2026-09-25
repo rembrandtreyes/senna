@@ -1,6 +1,8 @@
 {
   "name": "my-harness",
-  "owner": { "name": "YOUR_NAME" },
+  "owner": {
+    "name": "YOUR_NAME"
+  },
   "metadata": {
     "description": "Personal Claude Code harness: guardrails, verification, orchestration, and language packs."
   },
@@ -33,6 +35,12 @@
       "name": "ops",
       "source": "./plugins/ops",
       "description": "Security audit agent, Sentry triage, cross-language API contracts.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "plan",
+      "source": "./plugins/plan",
+      "description": "Planning pipeline: intake router, /prd, /spec, reviewer lenses, /present review decks, /feedback ledger, with requirement IDs traced into build tasks.",
       "version": "0.1.0"
     }
   ]
