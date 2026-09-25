@@ -29,8 +29,15 @@ and contracts, Performance and scale, Fallback plan, Cost. A bare "N/A" or "TBD"
    with Grep/Read. A claim the code contradicts fails.
 10. **Cold read: implementable from the spec alone.** Read it as an engineer who must build
     milestone 1 tomorrow with no access to the author. List every question you'd have to ask.
-    Any question whose answer changes the code you'd write (a missing field, an undefined error
-    case, an unspecified timeout, an ambiguous owner) fails this item. Questions of taste don't.
+    Fail only on questions that are **decisions reviewers should have seen**: an undefined
+    contract (status code, field, event shape), an unstated invariant, missing failure
+    semantics, an unknown owner, or a security boundary. Implementation choices an engineer
+    normally makes (query shape, indexes, function structure, naming) don't fail. The spec
+    should leave them to the engineer.
+11. **Concise.** The spec is at most ~300 lines (spec-lite) or ~600 (project). It has no DDL,
+    SQL, or pseudo-code, and no code blocks except example payloads of about 15 lines or less. It
+    doesn't restate the PRD or repeat ADR reasoning. When it's over budget, name the sections to
+    cut and what to move to an ADR or leave to the implementer.
 
 ## Output
 ```

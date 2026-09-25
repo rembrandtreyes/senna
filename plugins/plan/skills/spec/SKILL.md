@@ -52,6 +52,21 @@ Proposed design; each loser becomes an entry in Alternatives considered with the
 it lost (not "more complex").
 
 ## 3. Write
+A spec records the decisions reviewers must see, not the implementation. Humans review it and
+agents (`/breakdown`, reviewers, the deck narrator) read it whole, so shorter is better for both.
+
+- **Budget:** ~300 lines for spec-lite and ~600 for a project. A project that needs more gets one
+  spec per subsystem, with a short parent spec that links them.
+- **In the spec:** things that are expensive to change or cross a boundary: contracts, data shape
+  and invariants, failure semantics, security boundaries, rollout, and ownership.
+- **Not in the spec:** DDL, SQL, pseudo-code, function structure, index choices, config
+  plumbing. Those are the implementer's calls at `/breakdown` time. If one of them is really a
+  decision (for example, "the event row doubles as the queue"), state it in one line and give
+  the reasoning in an ADR.
+- **Each fact goes in one place.** Cite R-IDs instead of restating requirements, link ADRs
+  instead of repeating their reasoning, and link contract files instead of pasting shapes.
+- Prefer tables to prose. The designers' output is input to your judgment; don't paste it in.
+
 - Fill `spec.md` from the template. Fill the **Requirement coverage** table for every R-ID in the
   PRD: design section, test(s), milestone. An R-ID you can't place means the design is missing
   something; fix the design, don't leave the row blank.

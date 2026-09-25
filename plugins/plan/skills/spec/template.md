@@ -3,6 +3,9 @@
 Status: draft | in review | approved | implemented   ·   Version: v1   ·   Author: <name>
 Reviewers: <names / lenses>   ·   PRD: specs/<slug>/prd.md   ·   Feedback closes: <date>
 
+<!-- Budget: ~300 lines (spec-lite) or ~600 (project). Decisions and contracts, not code.
+     Detail that's cheap to change later is the implementer's call. -->
+
 ## Summary
 One paragraph: what we're building and how, in plain language. Then **the ask**: the decision
 this review needs.
@@ -23,15 +26,20 @@ How it works today (brownfield first): components, data, flows, and the pain. Li
 Every component: responsibility and owner, before and after. Reference LikeC4 views in `model/`
 when the project has them; otherwise a component table is enough.
 ### Data model and migrations
-Schemas, indexes, migration steps, backfill, and how old and new code coexist during rollout.
+A table: entity, key fields, invariants (uniqueness, lifecycle states, retention), owner. Then
+migration steps, backfill, and how old and new code coexist during rollout. No DDL; column
+types and indexes are the implementer's call unless one is a decision (then it's an ADR).
 ### APIs and contracts
-Endpoints/messages, request/response shapes, errors, versioning. Contract file is the source
-of truth (see api-contracts skill).
+A table: endpoint or message, purpose, success and error codes, R-IDs. Link the contract file
+(OpenAPI, JSON Schema, proto) as the source of truth instead of pasting shapes (see the
+api-contracts skill). At most one short example payload per new message type.
 ### Key flows
-One subsection per flow, including failure paths (timeouts, retries, partial failure).
+One subsection per flow: at most ~7 numbered steps, then a failure table (failure, what
+happens, what the user sees). No queries or pseudo-code.
 Each flow becomes a LikeC4 dynamic view and a deck scenario.
 ### Performance and scale
-Expected load, limits, latency budget per hop, and capacity math.
+Expected load, limits, latency budget per hop, and capacity math: the numbers and the one-line
+reasoning behind each, not the derivation.
 
 ## Alternatives considered
 At least two, each with why it was rejected. This stops reviewers re-proposing discarded ideas.
