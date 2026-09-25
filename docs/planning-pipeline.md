@@ -43,7 +43,7 @@ specs/<slug>/
 | PRD | `/prd` | grill-me: one question at a time, each with a recommended answer; answer from the codebase instead of asking whenever possible | prd-critic passes (checklist in plugins/plan/agents/prd-critic.md) |
 | Tech spec | `/spec` | Lyft + Stack Overflow templates; pstack-style "arena": 2–3 subagents design independently, the spec records the winner and why the others lost | spec-critic passes (plugins/plan/agents/spec-critic.md), including "could an engineer implement this from the spec alone?" |
 | Present | `/present` | gstack: role-separated reviews | deck renders, visual QA passes |
-| Review | (humans + agents) | gstack role reviews: architecture, security, SRE/ops, product | every reviewer lens has reported |
+| Review | `/design-review` (agent lenses) + humans | gstack role reviews: architecture, security, SRE/ops, product | every reviewer lens has reported |
 | Feedback | `/feedback` | Lyft: respond to and resolve every comment; close feedback at some point; date changes | no open critical items; open questions decided or explicitly deferred; owner sign-off recorded |
 | Iterate | `/spec` again | — | bump version, changelog entry, regenerate deck with "what changed" |
 | Build | `/breakdown` | — | tasks carry requirement IDs; reviewer checks code against them |

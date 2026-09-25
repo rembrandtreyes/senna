@@ -35,13 +35,13 @@
       "name": "ops",
       "source": "./plugins/ops",
       "description": "Security audit agent, Sentry triage, cross-language API contracts.",
-      "version": "0.1.0"
+      "version": "0.2.0"
     },
     {
       "name": "plan",
       "source": "./plugins/plan",
       "description": "Planning pipeline: intake router, /prd, /spec, reviewer lenses, /present review decks, /feedback ledger, with requirement IDs traced into build tasks.",
-      "version": "0.4.1"
+      "version": "0.5.0"
     }
   ]
 }

@@ -93,9 +93,9 @@ routing rules, stage gates, artifact layout, and verified facts about claude.ai 
 
 ## What already exists
 - `docs/planning-pipeline.md`: the design.
-- `templates/planning/`: the feedback-ledger template, with its checklist. The PRD and spec
-  templates (built from Lyft's and Stack Overflow's spec guides plus PRD best practices) moved
-  into `plugins/plan/skills/{prd,spec}/` in steps 3–4, and their checklists into the critics.
+- Planning templates (PRD, tech spec, feedback ledger), built from Lyft's and Stack Overflow's
+  spec guides plus PRD best practices. Originally in `templates/planning/`; moved into
+  `plugins/plan/skills/{prd,spec,design-review}/` in steps 3–5, with checklists in the critics.
 - `reference/present/`: a working review deck, split into `review-deck.template.html` +
   `example-deck.json` + `deck.schema.json` + `render.mjs` (tested: renders identically to the
   published prototype and rejects decks with broken edge or requirement references).
@@ -112,7 +112,8 @@ routing rules, stage gates, artifact layout, and verified facts about claude.ai 
    the core design and record the winner and rejected alternatives. Write ADRs. Add a
    **spec-critic** agent (template checklist, including the "implementable from the spec alone" read).
 5. **Reviewer lenses:** `architecture-reviewer`, `sre-reviewer`, `product-reviewer` agents (reuse
-   `security-auditor` from ops). Each writes findings straight into `feedback.md`.
+   `security-auditor` from ops). Built as `/design-review`: the lenses run in parallel and return
+   findings; the skill is the only writer of `feedback.md` (avoids parallel-write races).
 6. **`/present`:** narrative agent (spec → deck.json), diagram agent, `render.mjs`, and a
    **visual-qa** agent (Playwright screenshots: light and dark, 1440px and 390px; fix overflow,
    contrast, density; re-render until clean). Move the renderer into the plugin.
