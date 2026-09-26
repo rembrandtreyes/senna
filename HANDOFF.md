@@ -126,6 +126,12 @@ routing rules, stage gates, artifact layout, and verified facts about claude.ai 
 8. **LikeC4 spike:** model the example system in `.c4`, try deriving deck diagram data (nodes,
    positions, flows) from the model and its dynamic views, and decide whether interactive LikeC4
    views can be embedded in a single-file page. Report the options before committing to one.
+   Result (2026-09-25): compared grid, ELK.js, Mermaid, LikeC4 (https://claude.ai/artifact/7Kp7B1Am2uwea6rN3pNvrC).
+   Owner chose architecture-as-code: LikeC4 model per repo in `architecture/` (pinned dev
+   dependency), `architecture` skill in core, SessionStart mentions it. 8a done: skill + senna's
+   own model (bootstrapped by the skill). 8b: derive deck diagrams and flows from the model
+   (keeping a grid placement file for layout), Mermaid sequence diagrams into spec.md, and
+   spec proposals as `specs/<slug>/model/*.c4`.
 9. **Publish and feedback adapters:** `artifact`, `vercel`, `static`. Then **`/feedback`**
    normalizes every source into `feedback.md`.
 10. **Wire the build step:** `/breakdown` reads spec milestones and carries requirement IDs into

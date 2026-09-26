@@ -26,6 +26,9 @@ fi
 [ -n "$(found Cargo.toml)" ] && stacks="$stacks rust"
 [ -n "$(found pyproject.toml)" ] && stacks="$stacks python"
 echo "- Detected stacks:${stacks:- none}"
+if ls "$root"/architecture/*.c4 >/dev/null 2>&1; then
+  echo "- Architecture model: \`architecture/\` (LikeC4). Read it before cross-service work; update it in the same change when services, stores, or dependencies change (architecture skill)."
+fi
 
 if git -C "$root" rev-parse --git-dir >/dev/null 2>&1; then
   br="$(git -C "$root" branch --show-current 2>/dev/null)"

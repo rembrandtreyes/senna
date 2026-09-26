@@ -8,10 +8,10 @@ err() { echo "FAIL: $*"; fail=1; }
 command -v jq >/dev/null || { echo "jq required"; exit 1; }
 
 while IFS= read -r f; do jq empty "$f" 2>/dev/null || err "invalid JSON: $f"; done \
-  < <(find . -name '*.json' -not -path './.git/*')
+  < <(find . -name '*.json' -not -path './.git/*' -not -path '*/node_modules/*' -not -path './architecture/.export/*')
 
 while IFS= read -r f; do bash -n "$f" 2>/dev/null || err "bash syntax: $f"; done \
-  < <(find . -name '*.sh' -not -path './.git/*')
+  < <(find . -name '*.sh' -not -path './.git/*' -not -path '*/node_modules/*')
 
 while IFS= read -r f; do [ -x "$f" ] || err "not executable: $f"; done \
   < <(find plugins \( -path '*/hooks/scripts/*.sh' -o -path '*/scripts/*.sh' \) -not -name common.sh)
@@ -32,5 +32,10 @@ while IFS= read -r f; do
   [ "$(head -n1 "$f")" = "---" ] || err "missing frontmatter: $f"
   grep -q '^description:' "$f" || err "missing description: $f"
 done < <(find plugins \( -path '*/agents/*.md' -o -path '*/commands/*.md' -o -name SKILL.md \))
+
+# Architecture model (only when the likec4 dev dependency is installed).
+if [ -d architecture ] && [ -x node_modules/.bin/likec4 ]; then
+  node_modules/.bin/likec4 validate architecture >/dev/null 2>&1 || err "architecture model invalid (run: npm run arch:validate)"
+fi
 
 [ $fail -eq 0 ] && echo "All checks passed." || exit 1

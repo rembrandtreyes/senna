@@ -1,0 +1,122 @@
+views {
+
+  view index {
+    title 'Landscape'
+    include developer, claudeCode, harness, project, github, sentry, ntfy, toolchains, chromium
+  }
+
+  view harnessView of harness {
+    title 'my-harness: plugins'
+    include *
+  }
+
+  view projectView of project {
+    title 'Target project: state the harness reads and writes'
+    include *
+  }
+
+  view coreView of harness.core {
+    title 'core plugin'
+    include *
+  }
+
+  view planView of harness.plan {
+    title 'plan plugin'
+    include *
+  }
+
+  view opsView of harness.ops {
+    title 'ops plugin'
+    include *
+  }
+
+  view langTsView of harness.langTs {
+    title 'lang-ts plugin (lang-go and lang-rust have the same shape)'
+    include *
+  }
+
+  view toolingView of harness.tooling {
+    title 'Repo tooling'
+    include *
+  }
+
+  dynamic view guardBash {
+    title 'Bash guard: a destructive command is blocked'
+    claudeCode -> harness.core.guards 'PreToolUse: git push --force'
+    harness.core.guards -> project.harnessState 'reads mode, blocked-commands.txt'
+    harness.core.guards -> claudeCode 'exit 2 + reason on stderr (blocked)'
+  }
+
+  dynamic view editStopLoop {
+    title 'Edit and stop hooks: verify, retry, hand back'
+    claudeCode -> harness.langTs.onEdit 'PostToolUse: Edit src/a.ts'
+    harness.langTs.onEdit -> toolchains 'format + lint one file'
+    harness.langTs.onEdit -> claudeCode 'exit 0, or exit 2 with lint errors'
+    claudeCode -> harness.langTs.onStop 'Stop'
+    harness.langTs.onStop -> project.workTree 'git status: any TS changed?'
+    harness.langTs.onStop -> project.harnessState 'checks/ts-stop.sh override? mode?'
+    harness.langTs.onStop -> toolchains 'tsc --noEmit (+ tests if strict)'
+    harness.langTs.onStop -> project.harnessState 'bump stop-attempts counter'
+    harness.langTs.onStop -> claudeCode 'exit 2 while retries remain, then exit 1 to hand back'
+  }
+
+  dynamic view shipFlow {
+    title '/ship: review and open a PR'
+    developer -> claudeCode '/ship'
+    claudeCode -> harness.core.ship 'runs'
+    harness.core.ship -> toolchains 'stack checks'
+    parallel {
+      harness.core.ship -> harness.core.reviewer 'review diff vs acceptance criteria'
+      harness.core.ship -> harness.ops.securityAuditor 'security audit (if installed)'
+    }
+    harness.core.reviewer -> project.tasks 'reads acceptance criteria'
+    harness.core.ship -> project.tasks 'status: done'
+    harness.core.ship -> project.workTree 'commit'
+    harness.core.ship -> github 'gh pr create (auto mode, or after OK)'
+  }
+
+  dynamic view parallelWork {
+    title '/breakdown then /worktree: parallel tasks'
+    developer -> claudeCode '/breakdown <idea>'
+    claudeCode -> harness.core.breakdown 'runs'
+    harness.core.breakdown -> harness.core.explorer 'map unfamiliar code'
+    harness.core.breakdown -> project.tasks 'write T-NNN.md with Touches:'
+    developer -> claudeCode '/worktree T-3 T-4'
+    claudeCode -> harness.core.worktree 'runs'
+    harness.core.worktree -> project.workTree 'git worktree add (per task)'
+    harness.core.worktree -> project.harnessState 'mode=parallel, ports.env, current-task'
+  }
+
+  dynamic view planningPipeline {
+    title 'Planning: route to PRD to spec to review'
+    developer -> claudeCode 'new feature request'
+    claudeCode -> harness.plan.route 'classify'
+    harness.plan.route -> harness.plan.prd 'feature (after user confirms)'
+    harness.plan.prd -> harness.plan.prdCritic 'gate'
+    harness.plan.prd -> project.specs 'prd.md'
+    harness.plan.prd -> harness.plan.spec 'approved'
+    harness.plan.spec -> harness.plan.designer 'arena: 2-3 stances'
+    harness.plan.spec -> harness.plan.specCritic 'gate'
+    harness.plan.spec -> project.specs 'spec.md, adr/'
+    harness.plan.spec -> harness.plan.present 'next'
+    harness.plan.present -> project.specs 'deck/index.html'
+    claudeCode -> harness.plan.designReview '/design-review'
+    parallel {
+      harness.plan.designReview -> harness.plan.lenses 'architecture, SRE, product'
+      harness.plan.designReview -> harness.ops.securityAuditor 'security lens'
+    }
+    harness.plan.designReview -> project.specs 'feedback.md'
+  }
+
+  dynamic view releaseHarness {
+    title 'Changing the harness and rolling it out'
+    developer -> harness.tooling.sharedCommon 'edit hook helper'
+    developer -> harness.tooling.syncCommon 'run'
+    harness.tooling.syncCommon -> harness.langTs 'copy common.sh (and core, lang-go, lang-rust, lang-template)'
+    developer -> harness.tooling.validate 'run'
+    harness.tooling.validate -> harness.tooling.marketplace 'versions match plugin.json?'
+    developer -> github 'push'
+    claudeCode -> github 'marketplace update'
+    claudeCode -> harness.tooling.marketplace 'install new plugin versions'
+  }
+}

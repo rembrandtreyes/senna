@@ -1,0 +1,13 @@
+{
+  "name": "my-harness",
+  "private": true,
+  "description": "Dev tooling for the harness repo (architecture model). The plugins themselves have no npm dependencies.",
+  "scripts": {
+    "arch": "likec4 start architecture",
+    "arch:validate": "likec4 validate architecture",
+    "arch:export": "likec4 export json architecture --pretty -o architecture/.export/model.json"
+  },
+  "devDependencies": {
+    "likec4": "1.59.4"
+  }
+}

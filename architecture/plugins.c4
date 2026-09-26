@@ -1,0 +1,118 @@
+// plugins/ops and plugins/lang-*: security, Sentry triage, and per-language verification
+model {
+  extend harness {
+    ops = service 'ops plugin' {
+      description 'Security review, Sentry triage, and API contract discipline'
+      technology 'markdown, MCP'
+      link ../plugins/ops 'code'
+
+      securityAuditor = component 'security-auditor' {
+        description 'Read-only security audit of a diff, or the security lens in a design review'
+        technology 'subagent'
+        link ../plugins/ops/agents/security-auditor.md 'code'
+      }
+      triage = component '/triage' {
+        description 'Pulls a Sentry issue, assesses impact, and hands the fix to the debugger'
+        technology 'command'
+        link ../plugins/ops/commands/triage.md 'code'
+      }
+      apiContracts = component 'api-contracts' {
+        description 'Contract-first rules for endpoints shared across TS, Go, and Rust'
+        technology 'skill'
+        link ../plugins/ops/skills/api-contracts/SKILL.md 'code'
+      }
+    }
+
+    langTs = service 'lang-ts plugin' {
+      description 'React, Next, and Expo: format and lint on edit, typecheck (and tests in strict modes) on stop'
+      technology 'bash hooks'
+      link ../plugins/lang-ts 'code'
+
+      onEdit = component 'on-edit.sh' {
+        description 'Formats the edited file (biome or prettier) and lints it (biome or eslint)'
+        technology 'PostToolUse hook'
+        link ../plugins/lang-ts/hooks/scripts/on-edit.sh 'code'
+      }
+      onStop = component 'on-stop.sh' {
+        description 'If TS/JS changed: tsc --noEmit per tsconfig; package tests in strict modes'
+        technology 'Stop hook'
+        link ../plugins/lang-ts/hooks/scripts/on-stop.sh 'code'
+      }
+    }
+
+    langGo = service 'lang-go plugin' {
+      description 'goimports/gofmt on edit, build and vet (and tests in strict modes) on stop'
+      technology 'bash hooks'
+      link ../plugins/lang-go 'code'
+
+      onEdit = component 'on-edit.sh' {
+        description 'goimports -w, or gofmt -w'
+        technology 'PostToolUse hook'
+        link ../plugins/lang-go/hooks/scripts/on-edit.sh 'code'
+      }
+      onStop = component 'on-stop.sh' {
+        description 'If .go changed: go build and go vet per module; go test in strict modes'
+        technology 'Stop hook'
+        link ../plugins/lang-go/hooks/scripts/on-stop.sh 'code'
+      }
+    }
+
+    langRust = service 'lang-rust plugin' {
+      description 'rustfmt on edit, clippy (and tests in strict modes) on stop'
+      technology 'bash hooks'
+      link ../plugins/lang-rust 'code'
+
+      onEdit = component 'on-edit.sh' {
+        description 'rustfmt with the detected edition'
+        technology 'PostToolUse hook'
+        link ../plugins/lang-rust/hooks/scripts/on-edit.sh 'code'
+      }
+      onStop = component 'on-stop.sh' {
+        description 'If .rs changed: cargo clippy (or cargo check); cargo test in strict modes'
+        technology 'Stop hook'
+        link ../plugins/lang-rust/hooks/scripts/on-stop.sh 'code'
+      }
+    }
+
+    langTemplate = service 'lang-template' {
+      #scaffold
+      description 'Copy-and-rename starting point for a new language plugin; not listed in the marketplace'
+      technology 'bash hooks with placeholders'
+      link ../plugins/lang-template 'code'
+    }
+  }
+
+  // ops
+  claudeCode -> harness.ops.triage '/triage <issue>'
+  harness.ops.triage -> sentry 'reads issue (MCP)'
+  harness.ops.triage -> harness.core.debugger 'hands off root cause'
+  harness.ops.triage -> project.tasks 'writes a task if non-trivial'
+  harness.ops.securityAuditor -> project.workTree 'reads diff vs main' { style { line dashed } }
+
+  // lang-ts
+  claudeCode -> harness.langTs.onEdit 'PostToolUse (Edit/Write)'
+  claudeCode -> harness.langTs.onStop 'Stop'
+  harness.langTs.onEdit -> project.workTree 'formats the file'
+  harness.langTs.onEdit -> toolchains 'biome/prettier, eslint'
+  harness.langTs.onStop -> toolchains 'tsc, npm test'
+  harness.langTs.onStop -> project.workTree 'reads changed files' { style { line dashed } }
+  harness.langTs.onStop -> project.harnessState 'reads mode and checks/ override, counts stop attempts'
+
+  // lang-go
+  claudeCode -> harness.langGo.onEdit 'PostToolUse (Edit/Write)'
+  claudeCode -> harness.langGo.onStop 'Stop'
+  harness.langGo.onEdit -> project.workTree 'formats the file'
+  harness.langGo.onEdit -> toolchains 'goimports/gofmt'
+  harness.langGo.onStop -> toolchains 'go build, vet, test'
+  harness.langGo.onStop -> project.workTree 'reads changed files' { style { line dashed } }
+  harness.langGo.onStop -> project.harnessState 'reads mode and checks/ override, counts stop attempts'
+
+  // lang-rust
+  claudeCode -> harness.langRust.onEdit 'PostToolUse (Edit/Write)'
+  claudeCode -> harness.langRust.onStop 'Stop'
+  harness.langRust.onEdit -> project.workTree 'formats the file'
+  harness.langRust.onEdit -> toolchains 'rustfmt'
+  harness.langRust.onStop -> toolchains 'cargo clippy, test'
+  harness.langRust.onStop -> project.workTree 'reads changed files' { style { line dashed } }
+  harness.langRust.onStop -> project.harnessState 'reads mode and checks/ override, counts stop attempts'
+}

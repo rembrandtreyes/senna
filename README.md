@@ -15,6 +15,7 @@ plugins/
   plan/        planning pipeline: router, /prd, /spec, reviewers, /present, /feedback
   lang-template/  copy to add Python, Java, Kotlin, Swift... (not listed in marketplace)
 shared/common.sh  canonical hook library (synced into each plugin)
+architecture/     LikeC4 model of this repo (npm run arch to browse, arch:validate to check)
 docs/             planning-pipeline.md: the Phase 2 design (PRD → spec → present → review → build)
 templates/        global + project CLAUDE.md, settings, gitignore, override examples
 scripts/          sync-common.sh, validate.sh

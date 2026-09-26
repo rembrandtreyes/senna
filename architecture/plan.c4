@@ -1,0 +1,130 @@
+// plugins/plan: route -> PRD -> spec -> present -> design review
+model {
+  extend harness {
+    plan = service 'plan plugin' {
+      description 'Planning pipeline for features and projects, before any code is written'
+      technology 'skills, subagents, Node'
+      link ../plugins/plan 'code'
+
+      // Skills
+      route = component 'route' {
+        description 'Classifies new work as bug, small task, feature, or project, and waits for confirmation'
+        technology 'skill'
+        link ../plugins/plan/skills/route/SKILL.md 'code'
+      }
+      prd = component '/prd' {
+        description 'One-question-at-a-time interview that writes prd.md, gated by prd-critic'
+        technology 'skill'
+        link ../plugins/plan/skills/prd/SKILL.md 'code'
+      }
+      spec = component '/spec' {
+        description 'Runs 2-3 designers, records the winner and ADRs, gated by spec-critic'
+        technology 'skill'
+        link ../plugins/plan/skills/spec/SKILL.md 'code'
+      }
+      present = component '/present' {
+        description 'Builds the review deck from the spec and loops visual QA until clean'
+        technology 'skill'
+        link ../plugins/plan/skills/present/SKILL.md 'code'
+      }
+      designReview = component '/design-review' {
+        description 'Runs the reviewer lenses in parallel and records findings in feedback.md'
+        technology 'skill'
+        link ../plugins/plan/skills/design-review/SKILL.md 'code'
+      }
+
+      // Subagents
+      prdCritic = component 'prd-critic' {
+        description 'Read-only PASS/FAIL gate on prd.md'
+        technology 'subagent'
+        link ../plugins/plan/agents/prd-critic.md 'code'
+      }
+      designer = component 'designer' {
+        description 'Produces one candidate design for a given stance (minimal, robust, different shape)'
+        technology 'subagent'
+        link ../plugins/plan/agents/designer.md 'code'
+      }
+      specCritic = component 'spec-critic' {
+        description 'Read-only PASS/FAIL gate on spec.md, including a cold read'
+        technology 'subagent'
+        link ../plugins/plan/agents/spec-critic.md 'code'
+      }
+      lenses = component 'reviewer lenses' {
+        description 'architecture-reviewer, sre-reviewer, product-reviewer: read-only design critiques'
+        technology 'subagents'
+        link ../plugins/plan/agents 'code'
+      }
+      deckNarrator = component 'deck-narrator' {
+        description 'Writes the deck text (narrative.json) from the spec and PRD'
+        technology 'subagent'
+        link ../plugins/plan/agents/deck-narrator.md 'code'
+      }
+      deckDiagrammer = component 'deck-diagrammer' {
+        description 'Writes components, edges, and flow scenarios (diagram.src.json)'
+        technology 'subagent'
+        link ../plugins/plan/agents/deck-diagrammer.md 'code'
+      }
+      visualQa = component 'visual-qa' {
+        description 'Reads screenshots and the QA report, fixes the deck JSON, rebuilds (up to 3 rounds)'
+        technology 'subagent'
+        link ../plugins/plan/agents/visual-qa.md 'code'
+      }
+
+      // Renderer
+      build = component 'build.mjs' {
+        description 'Merges deck JSON, lays out the diagram, validates the schema, renders index.html'
+        technology 'Node, no dependencies'
+        link ../plugins/plan/skills/present/renderer/build.mjs 'code'
+      }
+      qa = component 'qa.mjs' {
+        description 'Screenshots the deck in light/dark at 1440 and 390px and runs layout checks'
+        technology 'Node, playwright-core'
+        link ../plugins/plan/skills/present/renderer/qa.mjs 'code'
+      }
+    }
+  }
+
+  claudeCode -> harness.plan.route 'any new request'
+  claudeCode -> harness.plan.designReview '/design-review'
+
+  // Routing
+  harness.plan.route -> harness.core.debugger 'bug'
+  harness.plan.route -> harness.core.breakdown 'small task'
+  harness.plan.route -> harness.plan.prd 'feature or project'
+
+  // PRD
+  harness.plan.prd -> harness.core.explorer 'dispatches'
+  harness.plan.prd -> harness.plan.prdCritic 'gates on (up to 3 rounds)'
+  harness.plan.prd -> project.specs 'writes prd.md'
+  harness.plan.prd -> harness.plan.spec 'suggests next'
+
+  // Spec
+  harness.plan.spec -> harness.core.explorer 'dispatches'
+  harness.plan.spec -> harness.plan.designer 'dispatches 2-3 in parallel'
+  harness.plan.spec -> harness.plan.specCritic 'gates on (up to 3 rounds)'
+  harness.plan.spec -> harness.ops.apiContracts 'uses for the API section' { style { line dashed } }
+  harness.plan.spec -> project.specs 'writes spec.md, adr/'
+  harness.plan.spec -> harness.plan.present 'suggests next'
+  harness.plan.spec -> harness.core.breakdown 'build stage, after approval'
+
+  // Present
+  harness.plan.present -> harness.plan.deckNarrator 'dispatches'
+  harness.plan.present -> harness.plan.deckDiagrammer 'dispatches'
+  harness.plan.present -> harness.plan.build 'runs'
+  harness.plan.present -> harness.plan.visualQa 'dispatches'
+  harness.plan.present -> project.specs 'writes deck/build-info.json'
+  harness.plan.deckNarrator -> project.specs 'writes deck/narrative.json'
+  harness.plan.deckDiagrammer -> project.specs 'writes deck/diagram.src.json'
+  harness.plan.build -> project.specs 'writes deck/deck.json, deck/index.html'
+  harness.plan.visualQa -> harness.plan.build 'runs'
+  harness.plan.visualQa -> harness.plan.qa 'runs'
+  harness.plan.visualQa -> project.specs 'edits deck JSON'
+  harness.plan.qa -> chromium 'screenshots via'
+  harness.plan.qa -> project.specs 'writes deck/qa/'
+
+  // Design review
+  harness.plan.designReview -> harness.plan.lenses 'dispatches in parallel'
+  harness.plan.designReview -> harness.ops.securityAuditor 'dispatches (security lens)'
+  harness.plan.designReview -> project.specs 'writes feedback.md'
+  harness.plan.lenses -> project.specs 'reads prd.md, spec.md' { style { line dashed } }
+}

@@ -1,0 +1,118 @@
+// Landscape: people, external systems, the target project, and the harness shell.
+// Plugin internals live in core.c4, plan.c4, and plugins.c4 (ops + lang-*).
+model {
+
+  developer = actor 'Developer' {
+    description 'Owns the harness; uses it in every project through Claude Code'
+  }
+
+  claudeCode = system 'Claude Code' {
+    description 'Agent runtime: installs plugins, fires hook events, runs commands, skills, and subagents'
+    link https://code.claude.com/docs 'docs'
+  }
+
+  github = system 'GitHub' {
+    description 'Hosts the marketplace repo and receives PRs'
+    technology 'git, gh CLI'
+    link https://cli.github.com/manual/ 'gh docs'
+  }
+
+  sentry = system 'Sentry' {
+    description 'Production errors, reached through its hosted MCP server'
+    technology 'MCP over HTTP'
+    link https://docs.sentry.io/product/sentry-mcp/ 'docs'
+  }
+
+  ntfy = system 'ntfy.sh' {
+    description 'Push notifications to the phone when HARNESS_NTFY_TOPIC is set'
+    link https://docs.ntfy.sh/ 'docs'
+  }
+
+  toolchains = system 'Language toolchains' {
+    description 'Formatters, linters, compilers, and test runners already installed on the machine'
+    technology 'biome/prettier/eslint/tsc, gofmt/go, rustfmt/cargo'
+    link ../README.md 'prerequisites'
+  }
+
+  chromium = system 'Chrome / Chromium' {
+    description 'Headless browser that the deck QA script screenshots through'
+    technology 'playwright-core'
+    link https://playwright.dev/docs/library 'docs'
+  }
+
+  project = system 'Target project' {
+    description 'Any repo where the harness plugins are enabled'
+    link ../templates/project-settings.json 'settings template'
+
+    workTree = store 'Working tree' {
+      description 'Source files and git status; hooks format edited files and diff changed ones'
+      technology 'git'
+      link ../shared/common.sh 'changed_files()'
+    }
+    harnessState = store '.harness/' {
+      description 'Runtime state: mode, current-task, handoffs, learnings, progress.log, stop-attempt counters, checks/ overrides, blocked-commands.txt'
+      technology 'files'
+      link ../templates/gitignore-snippet.txt 'ignored files'
+    }
+    tasks = store 'tasks/' {
+      description 'Task files (T-NNN.md) with acceptance criteria and status'
+      technology 'markdown'
+      link ../plugins/core/skills/task-files/SKILL.md 'format'
+    }
+    specs = store 'specs/<slug>/' {
+      description 'Planning artifacts: prd.md, spec.md, adr/, feedback.md, deck/'
+      technology 'markdown, JSON, HTML'
+      link ../docs/planning-pipeline.md 'design'
+    }
+  }
+
+  harness = system 'my-harness' {
+    description 'Claude Code plugin marketplace: hooks, agents, commands, and skills shared across projects'
+    link ../.claude-plugin/marketplace.json 'marketplace'
+
+    tooling = service 'Repo tooling' {
+      description 'Keeps the plugins consistent before they are pushed'
+      technology 'bash, jq'
+      link ../scripts 'code'
+
+      marketplace = component 'Marketplace manifest' {
+        description 'Lists installable plugins (core, lang-ts, lang-go, lang-rust, ops, plan) with versions'
+        technology 'JSON'
+        link ../.claude-plugin/marketplace.json 'code'
+      }
+      sharedCommon = component 'shared/common.sh' {
+        description 'Canonical hook library: JSON input, mode, changed_files, stop retry budget, run_override'
+        technology 'bash'
+        link ../shared/common.sh 'code'
+      }
+      syncCommon = component 'sync-common.sh' {
+        description 'Copies shared/common.sh into every plugin that has hooks'
+        technology 'bash'
+        link ../scripts/sync-common.sh 'code'
+      }
+      validate = component 'validate.sh' {
+        description 'Checks JSON, bash syntax, executability, synced copies, versions, and frontmatter'
+        technology 'bash, jq'
+        link ../scripts/validate.sh 'code'
+      }
+    }
+  }
+
+  // Working on the harness itself
+  developer -> harness.tooling.sharedCommon 'edits hook helpers'
+  developer -> harness.tooling.syncCommon 'runs'
+  developer -> harness.tooling.validate 'runs before pushing'
+  developer -> github 'pushes the harness repo'
+  harness.tooling.syncCommon -> harness.tooling.sharedCommon 'reads' { style { line dashed } }
+  harness.tooling.syncCommon -> harness.core 'copies common.sh into'
+  harness.tooling.syncCommon -> harness.langTs 'copies common.sh into'
+  harness.tooling.syncCommon -> harness.langGo 'copies common.sh into'
+  harness.tooling.syncCommon -> harness.langRust 'copies common.sh into'
+  harness.tooling.syncCommon -> harness.langTemplate 'copies common.sh into'
+  harness.tooling.validate -> harness.tooling.marketplace 'checks versions match plugin.json' { style { line dashed } }
+
+  // Using the harness in a project
+  developer -> claudeCode 'prompts and slash commands'
+  claudeCode -> github 'fetches the marketplace' { style { line dashed } }
+  claudeCode -> harness.tooling.marketplace 'installs enabled plugins from' { style { line dashed } }
+}

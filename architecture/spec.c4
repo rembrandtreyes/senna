@@ -1,0 +1,10 @@
+specification {
+  element actor { style { shape person } }
+  element system
+  element service
+  element component
+  element store { style { shape cylinder } }
+
+  // Not installable: copied by hand to start a new language plugin
+  tag scaffold
+}

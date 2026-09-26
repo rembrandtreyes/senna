@@ -1,0 +1,125 @@
+// plugins/core: guardrails, session context, and the task workflow
+model {
+  extend harness {
+    core = service 'core plugin' {
+      description 'Every project: session context, guardrails, handoffs, retro loop, task workflow'
+      technology 'bash hooks, markdown'
+      link ../plugins/core 'code'
+
+      // Hooks
+      sessionStart = component 'session-start.sh' {
+        description 'Prints mode, stack, git state, current task, latest handoff, and learnings as context'
+        technology 'SessionStart hook'
+        link ../plugins/core/hooks/scripts/session-start.sh 'code'
+      }
+      guards = component 'guard-bash.sh / guard-files.sh' {
+        description 'Blocks destructive commands and secret-file access (exit 2)'
+        technology 'PreToolUse hooks'
+        link ../plugins/core/hooks/scripts/guard-bash.sh 'code'
+      }
+      progressLog = component 'progress-log.sh' {
+        description 'Strict modes only: appends one line per tool call'
+        technology 'PostToolUse hook'
+        link ../plugins/core/hooks/scripts/progress-log.sh 'code'
+      }
+      preCompact = component 'pre-compact.sh' {
+        description 'Writes a mechanical handoff snapshot before compaction'
+        technology 'PreCompact hook'
+        link ../plugins/core/hooks/scripts/pre-compact.sh 'code'
+      }
+      notify = component 'notify.sh' {
+        description 'Desktop notification, plus an ntfy.sh push if configured'
+        technology 'Notification hook'
+        link ../plugins/core/hooks/scripts/notify.sh 'code'
+      }
+
+      // Commands and skills
+      breakdown = component '/breakdown' {
+        description 'Turns an idea or plan into task files with acceptance criteria'
+        technology 'command'
+        link ../plugins/core/commands/breakdown.md 'code'
+      }
+      worktree = component '/worktree + worktree.sh' {
+        description 'One git worktree per independent task: env copied, port slot, deps, mode=parallel'
+        technology 'command, bash'
+        link ../plugins/core/scripts/worktree.sh 'code'
+      }
+      ship = component '/ship' {
+        description 'Runs checks, dispatches reviewers, fixes blockers, commits, opens the PR'
+        technology 'command'
+        link ../plugins/core/commands/ship.md 'code'
+      }
+      handoff = component '/handoff' {
+        description 'Writes a human-readable handoff for the next session'
+        technology 'command'
+        link ../plugins/core/commands/handoff.md 'code'
+      }
+      retro = component '/retro' {
+        description 'Captures lessons; proposes promoting recurring ones to a hook or skill'
+        technology 'command'
+        link ../plugins/core/commands/retro.md 'code'
+      }
+      architecture = component 'architecture skill' {
+        description 'Reads, bootstraps, and checks the LikeC4 model in architecture/'
+        technology 'skill'
+        link ../plugins/core/skills/architecture/SKILL.md 'code'
+      }
+
+      // Subagents
+      explorer = component 'explorer' {
+        description 'Read-only scout; returns a file:line map'
+        technology 'subagent'
+        link ../plugins/core/agents/explorer.md 'code'
+      }
+      reviewer = component 'reviewer' {
+        description 'Adversarial review of the diff against the task acceptance criteria'
+        technology 'subagent'
+        link ../plugins/core/agents/reviewer.md 'code'
+      }
+      debugger = component 'debugger' {
+        description 'Reproduces, fixes minimally, and leaves a regression test'
+        technology 'subagent'
+        link ../plugins/core/agents/debugger.md 'code'
+      }
+    }
+  }
+
+  // Hook events
+  claudeCode -> harness.core.sessionStart 'SessionStart'
+  claudeCode -> harness.core.guards 'PreToolUse (Bash, Read/Edit/Write)'
+  claudeCode -> harness.core.progressLog 'PostToolUse' { style { line dashed } }
+  claudeCode -> harness.core.preCompact 'PreCompact'
+  claudeCode -> harness.core.notify 'Notification' { style { line dashed } }
+
+  // Commands
+  claudeCode -> harness.core.breakdown '/breakdown'
+  claudeCode -> harness.core.worktree '/worktree'
+  claudeCode -> harness.core.ship '/ship'
+  claudeCode -> harness.core.handoff '/handoff'
+  claudeCode -> harness.core.retro '/retro'
+  claudeCode -> harness.core.architecture '/architecture, or on cross-service questions'
+  claudeCode -> harness.core.debugger 'bugs and failing tests'
+
+  // State
+  harness.core.sessionStart -> project.harnessState 'reads mode, current-task, handoffs, learnings, ports.env' { style { line dashed } }
+  harness.core.sessionStart -> project.workTree 'reads git status' { style { line dashed } }
+  harness.core.guards -> project.harnessState 'reads blocked-commands.txt, mode' { style { line dashed } }
+  harness.core.progressLog -> project.harnessState 'appends progress.log'
+  harness.core.preCompact -> project.harnessState 'writes handoff-auto.md'
+  harness.core.notify -> ntfy 'POST alert'
+  harness.core.breakdown -> project.tasks 'writes T-NNN.md'
+  harness.core.breakdown -> project.harnessState 'writes current-task'
+  harness.core.breakdown -> harness.core.explorer 'dispatches'
+  harness.core.worktree -> project.workTree 'git worktree add'
+  harness.core.worktree -> project.harnessState 'writes mode=parallel, ports.env, current-task'
+  harness.core.ship -> harness.core.reviewer 'dispatches'
+  harness.core.ship -> harness.ops.securityAuditor 'dispatches (if installed)'
+  harness.core.ship -> project.tasks 'updates status'
+  harness.core.ship -> project.workTree 'commits'
+  harness.core.ship -> github 'gh pr create'
+  harness.core.handoff -> project.harnessState 'writes handoff.md'
+  harness.core.retro -> project.harnessState 'writes learnings.md'
+  harness.core.architecture -> harness.core.explorer 'dispatches (init)'
+  harness.core.reviewer -> project.tasks 'reads acceptance criteria' { style { line dashed } }
+  harness.core.reviewer -> project.workTree 'reads git diff' { style { line dashed } }
+}
