@@ -200,33 +200,54 @@
         {
           "path": "c-g",
           "text": "Tenant acme sends POST /orders with its API key.",
-          "bucket": 12
+          "state": "12 of 20 tokens",
+          "meter": {
+            "value": 12,
+            "max": 20
+          }
         },
         {
           "path": "g-l",
           "text": "The gateway resolves the tenant from the key and asks the limiter for one token.",
           "ref": "R-1",
-          "bucket": 12
+          "state": "12 of 20 tokens",
+          "meter": {
+            "value": 12,
+            "max": 20
+          }
         },
         {
           "path": "l-r",
           "text": "One atomic Lua script in Redis refills the bucket by elapsed time and takes a token. One round trip, about 0.4 ms at p50.",
           "ref": "R-3",
-          "bucket": 11
+          "state": "11 of 20 tokens",
+          "meter": {
+            "value": 11,
+            "max": 20
+          }
         },
         {
           "path": "l-r",
           "reverse": true,
           "text": "Token granted. 11 of 20 tokens left in acme's burst allowance.",
-          "bucket": 11
+          "state": "11 of 20 tokens",
+          "meter": {
+            "value": 11,
+            "max": 20
+          }
         },
         {
           "path": "l-s",
           "text": "The request is forwarded to Orders with X-RateLimit-Remaining: 11.",
           "ref": "R-2",
-          "bucket": 11
+          "state": "11 of 20 tokens",
+          "meter": {
+            "value": 11,
+            "max": 20
+          }
         }
-      ]
+      ],
+      "stateLabel": "acme's bucket"
     },
     {
       "id": "throttled",
@@ -236,33 +257,54 @@
         {
           "path": "c-g",
           "text": "acme is bursting: its 21st request inside one second.",
-          "bucket": 0
+          "state": "0 of 20 tokens",
+          "meter": {
+            "value": 0,
+            "max": 20
+          }
         },
         {
           "path": "g-l",
           "text": "The gateway asks the limiter for a token.",
-          "bucket": 0
+          "state": "0 of 20 tokens",
+          "meter": {
+            "value": 0,
+            "max": 20
+          }
         },
         {
           "path": "l-r",
           "text": "The bucket is empty. Refill rate is 20 tokens per second.",
-          "bucket": 0
+          "state": "0 of 20 tokens",
+          "meter": {
+            "value": 0,
+            "max": 20
+          }
         },
         {
           "path": "l-r",
           "reverse": true,
           "text": "Denied. Redis reports the next token arrives in 50 ms.",
           "ref": "R-1",
-          "bucket": 0
+          "state": "0 of 20 tokens",
+          "meter": {
+            "value": 0,
+            "max": 20
+          }
         },
         {
           "path": "l-c",
           "tone": "throttle",
           "text": "The client gets 429 with Retry-After: 1. The request never reaches Orders, so other tenants are untouched.",
           "ref": "R-2",
-          "bucket": 0
+          "state": "0 of 20 tokens",
+          "meter": {
+            "value": 0,
+            "max": 20
+          }
         }
-      ]
+      ],
+      "stateLabel": "acme's bucket"
     },
     {
       "id": "redis-down",
@@ -272,34 +314,52 @@
         {
           "path": "c-g",
           "text": "acme sends a normal request.",
-          "bucket": 12
+          "state": "12 of 20 tokens",
+          "meter": {
+            "value": 12,
+            "max": 20
+          }
         },
         {
           "path": "g-l",
           "text": "The gateway asks the limiter for a token.",
-          "bucket": 12
+          "state": "12 of 20 tokens",
+          "meter": {
+            "value": 12,
+            "max": 20
+          }
         },
         {
           "path": "l-r",
           "tone": "reject",
           "text": "Redis doesn't answer within the 5 ms budget. The circuit breaker opens after 20 consecutive timeouts.",
           "ref": "R-3",
-          "bucket": null
+          "state": "Redis unreachable",
+          "meter": null
         },
         {
           "path": "l-f",
           "tone": "throttle",
           "text": "The limiter fails open to an in-process bucket sized at the tenant limit divided by 8 replicas. Accuracy drops; availability holds.",
           "ref": "R-4",
-          "bucket": 2
+          "state": "2 of 20 tokens",
+          "meter": {
+            "value": 2,
+            "max": 20
+          }
         },
         {
           "path": "l-s",
           "text": "The request is served. An alert fires if more than 1% of traffic uses the fallback for 5 minutes.",
           "ref": "R-4",
-          "bucket": 2
+          "state": "2 of 20 tokens",
+          "meter": {
+            "value": 2,
+            "max": 20
+          }
         }
-      ]
+      ],
+      "stateLabel": "acme's bucket"
     }
   ],
   "alternatives": {

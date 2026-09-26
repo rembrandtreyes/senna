@@ -8,12 +8,7 @@
     "summary",
     "problem",
     "diagram",
-    "architecture",
-    "scenarios",
-    "alternatives",
-    "risks",
-    "rollout",
-    "questions"
+    "architecture"
   ],
   "properties": {
     "meta": {
@@ -230,14 +225,29 @@
                 "ref": {
                   "type": "string"
                 },
-                "bucket": {
+                "state": {
+                  "type": "string"
+                },
+                "meter": {
                   "type": [
-                    "integer",
+                    "object",
                     "null"
-                  ]
+                  ],
+                  "properties": {
+                    "value": {
+                      "type": "number"
+                    },
+                    "max": {
+                      "type": "number"
+                    }
+                  }
                 }
               }
             }
+          },
+          "stateLabel": {
+            "type": "string",
+            "description": "Optional state panel label (e.g. \"Delivery attempts\")."
           }
         }
       }
@@ -300,6 +310,95 @@
           "text",
           "owner"
         ]
+      }
+    },
+    "sections": {
+      "type": "array",
+      "description": "Section order; ids or {id, nav, title}. Default: all. Sections with no data are skipped.",
+      "items": {
+        "anyOf": [
+          {
+            "enum": [
+              "overview",
+              "changes",
+              "problem",
+              "architecture",
+              "flows",
+              "alternatives",
+              "risks",
+              "rollout",
+              "questions"
+            ]
+          },
+          {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "enum": [
+                  "overview",
+                  "changes",
+                  "problem",
+                  "architecture",
+                  "flows",
+                  "alternatives",
+                  "risks",
+                  "rollout",
+                  "questions"
+                ]
+              },
+              "nav": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "changes": {
+      "type": "object",
+      "required": [
+        "since",
+        "items"
+      ],
+      "description": "What changed since the last reviewed version; drives the What changed section and nav markers.",
+      "properties": {
+        "since": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "section",
+              "text"
+            ],
+            "properties": {
+              "section": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              },
+              "feedback": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^F-\\d+$"
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

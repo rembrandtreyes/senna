@@ -25,6 +25,13 @@ and match it exactly. `example-deck.json` next to it shows the tone and length t
 - `risks`: from the spec's Risks table, with `likelihood` and `impact` as 1 to 3. At most 6.
 - `rollout`: one entry per stage, with `name`, `length`, `detail`, `gate`, and `rollback`.
 - `questions`: open questions with `id`, `text`, and `owner`.
+- `sections` (optional): the section order, as ids or `{id, nav, title}` to relabel one (for
+  example `{"id": "flows", "nav": "Delivery flows"}`). Leave out a section the spec has nothing
+  for; sections with no data are skipped anyway. Omit the field to show them all.
+- `changes` (only when the caller gives you a previous version): `since` (e.g. "v1"), an
+  optional one-line `summary`, and `items`, one per meaningful change in the spec's changelog
+  since then: `section` (the deck section it shows up in), `text` (at most 20 words), and
+  `feedback` (the `F-n` IDs that prompted it). Sections listed here get a "changed" marker.
 
 ## Rules
 - Every fact comes from the spec or PRD. If a field has no source (a missing baseline, say),

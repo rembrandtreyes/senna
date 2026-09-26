@@ -25,7 +25,12 @@ template to fix one deck.
 ## 1. Write the data (in parallel)
 Dispatch **deck-narrator** and **deck-diagrammer** in one message. Give both the spec path, the
 PRD path, the renderer directory, and their output path: `specs/<slug>/deck/narrative.json` and
-`specs/<slug>/deck/diagram.src.json`.
+`specs/<slug>/deck/diagram.src.json`. Also tell the narrator the depth (spec-lite decks leave
+out sections the spec marks N/A).
+
+**Re-presenting after a revision:** if `deck/build-info.json` exists and its `specVersion` is
+older than the spec's, give the narrator that previous version so it writes `changes` (the
+"What changed" section and the nav markers), citing the `F-n` IDs from `feedback.md`.
 
 ## 2. Build
 `node <renderer>/build.mjs specs/<slug>/deck`. It lays out the diagram, merges both files into
@@ -44,5 +49,6 @@ Template bugs it reports are real bugs in `renderer/`: tell the user and don't w
   compares the spec against this.
 - `deck/qa/` holds screenshots; it shouldn't be committed (see the gitignore snippet).
 - Tell the user the path to `index.html` (on macOS, offer `open <path>`), the QA result, and
-  that feedback typed into an unpublished deck stays in that browser. Publishing to reviewers
-  comes from the publish adapters.
+  that feedback typed into an unpublished deck stays in that browser. Reviewers can use
+  **Export feedback (JSON)** in the review panel to send it back (`/feedback --from <file>`).
+  Publishing to reviewers comes from the publish adapters.

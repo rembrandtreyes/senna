@@ -121,7 +121,8 @@ routing rules, stage gates, artifact layout, and verified facts about claude.ai 
    from step 7: edge `from`/`to` (the template had the example's node names hard-coded).
 7. **Generalize the template** using the limitations listed in the renderer README:
    data-driven section list, a "what changed since vN" view, and an
-   export-feedback button.
+   export-feedback button. Built: `sections`, `changes`, a generic scenario state panel, and
+   an export button (downloads capability, or a browser download when unpublished).
 8. **LikeC4 spike:** model the example system in `.c4`, try deriving deck diagram data (nodes,
    positions, flows) from the model and its dynamic views, and decide whether interactive LikeC4
    views can be embedded in a single-file page. Report the options before committing to one.

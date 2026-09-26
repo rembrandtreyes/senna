@@ -110,7 +110,7 @@ for (const v of VARIANTS) {
   page.on("console", m => { if (m.type() === "error") jsErrors.push(m.text()); });
   await page.goto(url);
   await page.waitForTimeout(300);
-  const sections = await page.$$eval("[data-go]", bs => bs.map(b => ({ i: +b.dataset.go, name: b.textContent.trim().replace(/\d+$/, "").trim() })));
+  const sections = await page.$$eval("[data-go]", bs => bs.map(b => ({ i: +b.dataset.go, name: (b.firstChild ? b.firstChild.textContent : b.textContent).trim() })));
   const dir = join(outArg, v.name); mkdirSync(dir, { recursive: true });
   const results = [];
   for (const s of sections) {

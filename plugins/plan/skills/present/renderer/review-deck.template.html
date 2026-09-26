@@ -61,6 +61,14 @@ button, select, textarea, input { font: inherit; color: inherit; }
 .toc button:hover { background: var(--node); color: var(--ink); }
 .toc button[aria-current="step"] { background: var(--surface); color: var(--ink); font-weight: 500; box-shadow: inset 0 0 0 1px var(--line); }
 .toc .count { float: right; font-size: 12px; color: var(--ink-3); }
+.toc .chg { font-size: 11px; font-weight: 500; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 1px 7px; margin-left: 6px; }
+.changes { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.changes li { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.changes .cm { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 6px; font-size: 13px; }
+.linkish { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; text-decoration: underline; cursor: pointer; }
+.review .export { margin-top: 10px; font-size: 13px; }
+.scroll-hint { display: none; font-size: 12px; color: var(--ink-3); margin: -8px 0 12px; }
+@media (max-width: 760px) { .scroll-hint { display: block; } }
 .rail-foot { margin-top: 28px; font-size: 12px; color: var(--ink-3); line-height: 1.5; }
 
 .stage { padding: 40px clamp(20px, 4vw, 56px) 48px; min-width: 0; }
@@ -315,6 +323,7 @@ table.alts { width: 100%; border-collapse: separate; border-spacing: 0; font-siz
     <ul class="fb-list" id="fb-list"></ul>
     <p class="empty" id="fb-empty"></p>
     <p class="mode-note" id="mode-note">Feedback is saved in this browser only. Publish the deck to share it with reviewers.</p>
+    <button class="btn ghost export" id="fb-export">Export feedback (JSON)</button>
     <div class="toast" id="toast" role="status"></div>
   </aside>
 </div>
@@ -328,19 +337,35 @@ const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const SECTIONS = [
+// Sections come from DATA.sections (ids, or {id, nav, title}) in that order; the default is all of
+// them. A section whose data is missing or empty is skipped, so spec-lite decks can leave it out.
+const DEFAULT_SECTIONS = [
   { id: "overview", nav: "Overview" },
+  { id: "changes", nav: "What changed" },
   { id: "problem", nav: "Problem & goals" },
   { id: "architecture", nav: "Architecture" },
-  { id: "flows", nav: "Request flows" },
+  { id: "flows", nav: "Flows" },
   { id: "alternatives", nav: "Alternatives" },
   { id: "risks", nav: "Risks" },
   { id: "rollout", nav: "Rollout" },
   { id: "questions", nav: "Open questions" }
 ];
+const has = {
+  changes: () => !!(DATA.changes && DATA.changes.items && DATA.changes.items.length),
+  flows: () => !!(DATA.scenarios && DATA.scenarios.length),
+  alternatives: () => !!(DATA.alternatives && DATA.alternatives.options && DATA.alternatives.options.length),
+  risks: () => !!(DATA.risks && DATA.risks.length),
+  rollout: () => !!(DATA.rollout && DATA.rollout.length),
+  questions: () => !!(DATA.questions && DATA.questions.length)
+};
+const SECTIONS = (DATA.sections || DEFAULT_SECTIONS)
+  .map(s => { const id = typeof s === "string" ? s : s.id; const def = DEFAULT_SECTIONS.find(d => d.id === id); return def ? Object.assign({}, def, typeof s === "string" ? {} : s) : null; })
+  .filter(s => s && (!has[s.id] || has[s.id]()));
+const heading = (id, fallback) => esc((SECTIONS.find(s => s.id === id) || {}).title || fallback);
+const CHANGED = new Set(has.changes() ? DATA.changes.items.map(c => c.section) : []);
 
 const state = {
-  idx: 0, arch: "after", scenario: DATA.scenarios[0].id, step: -1, risk: DATA.risks[0].id,
+  idx: 0, arch: "after", scenario: has.flows() ? DATA.scenarios[0].id : null, step: -1, risk: has.risks() ? DATA.risks[0].id : null,
   kind: "question", feedback: [], decisions: {},
   db: null, user: null, comments: null, uid: null, canEdit: false, canWrite: true, shared: false, canClaude: false
 };
@@ -361,7 +386,7 @@ function diagramSVG(idPrefix) {
       <text class="s" x="${n.x}" y="${n.y + 13}" text-anchor="middle">${esc(n.sub)}</text></g>`;
   }).join("");
   return `<svg class="diagram mode-after" viewBox="${d.viewBox}" role="img" aria-labelledby="${idPrefix}-t">
-    <title id="${idPrefix}-t">System diagram: tenant client, API gateway, rate limiter, Orders service, tenant limits, Redis, and local fallback</title>
+    <title id="${idPrefix}-t">System diagram: ${esc(d.nodes.map(n => n.label).join(", "))}</title>
     <defs><marker id="${idPrefix}-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M1.5 1.5L8.5 5L1.5 8.5" fill="none" stroke="var(--ink-3)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
     ${edges}${nodes}<circle class="packet" id="${idPrefix}-packet" cx="-20" cy="-20" r="7" opacity="0"/></svg>`;
@@ -378,12 +403,21 @@ const R = {
         <div><dt>Document</dt><dd>${esc(m.kind)} ${esc(m.version)}</dd></div>
         <div><dt>Implements</dt><dd>${esc(m.prd)}</dd></div>
         <div><dt>Requirements</dt><dd>${DATA.problem.requirements.length} traced</dd></div>
-        <div><dt>Open questions</dt><dd id="facts-q">${DATA.questions.length}</dd></div>
+        <div><dt>Open questions</dt><dd id="facts-q">${(DATA.questions || []).length}</dd></div>
       </dl>`;
+  },
+  changes() {
+    const c = DATA.changes;
+    const nav = id => (SECTIONS.find(s => s.id === id) || {}).nav;
+    return `<h2>${heading("changes", `What changed since ${c.since}`)}</h2>
+      <p class="lede">${esc(c.summary || `Changes in ${DATA.meta.version}, and the feedback that prompted them.`)}</p>
+      <ul class="changes">${c.items.map(i => `<li data-comment-target>
+        <div class="ct">${esc(i.text)}</div>
+        <div class="cm">${nav(i.section) ? `<button class="linkish" data-go-section="${esc(i.section)}">${esc(nav(i.section))}</button>` : ""}${(i.feedback || []).map(f => `<span class="rid">${esc(f)}</span>`).join("")}</div></li>`).join("")}</ul>`;
   },
   problem() {
     const p = DATA.problem;
-    return `<h2>Why this, why now</h2>
+    return `<h2>${heading("problem", "Why this, why now")}</h2>
       <p class="lede" data-comment-target>${esc(p.statement)}</p>
       <h3>How we'll know it worked</h3>
       <div class="scroll-x"><table class="metrics"><thead><tr><th>Metric</th><th>Today</th><th>Target</th><th>Measured</th></tr></thead><tbody>
@@ -395,23 +429,23 @@ const R = {
       <ul class="nongoals">${p.nonGoals.map(n => `<li data-comment-target>${esc(n)}</li>`).join("")}</ul>`;
   },
   architecture() {
-    return `<h2>What changes in the system</h2>
+    return `<h2>${heading("architecture", "What changes in the system")}</h2>
       <div class="section-actions"><div class="seg" role="group" aria-label="Architecture view">
         <button data-arch="before" aria-pressed="false">Today</button><button data-arch="after" aria-pressed="true">Proposed</button></div></div>
-      <div class="diagram-wrap">${diagramSVG("arch")}</div>
+      <div class="diagram-wrap">${diagramSVG("arch")}</div><p class="scroll-hint">Swipe sideways to see the whole diagram.</p>
       <div class="legend"><span><i></i>Existing</span><span><i class="new"></i>New in this spec</span></div>
       <p class="arch-note" id="arch-note" aria-live="polite">${esc(DATA.architecture.after)}</p>`;
   },
   flows() {
-    return `<h2>Follow a request</h2>
+    return `<h2>${heading("flows", "Follow a request")}</h2>
       <div class="section-actions"><div class="seg" role="group" aria-label="Scenario">
         ${DATA.scenarios.map(s => `<button data-scenario="${s.id}" aria-pressed="${s.id === state.scenario}">${esc(s.label)}</button>`).join("")}</div></div>
       <div class="flow-grid">
-        <div class="diagram-wrap">${diagramSVG("flow")}</div>
+        <div style="min-width:0"><div class="diagram-wrap">${diagramSVG("flow")}</div><p class="scroll-hint">Swipe sideways to see the whole diagram.</p></div>
         <div class="narration" data-comment-target>
           <div class="stepno" id="stepno"></div>
           <p id="narr" aria-live="polite"></p>
-          ${DATA.scenarios.some(s => s.steps.some(st => "bucket" in st)) ? `<div class="bucket"><div class="label"><span>acme's bucket</span><span id="bucket-n"></span></div><div class="tokens" id="tokens">${"<span></span>".repeat(20)}</div></div>` : ""}
+          <div class="bucket" id="state-panel" hidden><div class="label"><span id="state-label"></span><span id="state-value"></span></div><div class="tokens" id="tokens"></div></div>
         </div>
       </div>
       <div class="flow-controls">
@@ -425,7 +459,7 @@ const R = {
   alternatives() {
     const a = DATA.alternatives;
     const pips = n => `<span class="pips" aria-label="${n} of 3">${[1, 2, 3].map(i => `<i class="${i <= n ? "on" : ""}"></i>`).join("")}</span>`;
-    return `<h2>${DATA.alternatives.options.length} options considered</h2>
+    return `<h2>${heading("alternatives", `${DATA.alternatives.options.length} options considered`)}</h2>
       <p class="lede">Each option was scored against what the requirements demand. Longer bars are better.</p>
       <div class="scroll-x"><table class="alts">
         <thead><tr><th></th>${a.options.map(o => `<th class="${o.chosen ? "chosen" : ""}" data-comment-target>${esc(o.name)}${o.chosen ? '<span class="chosen-tag">Proposed</span>' : ""}</th>`).join("")}</tr></thead>
@@ -444,7 +478,7 @@ const R = {
       }
     }
     cells.push(`<div></div><div class="axis">Minor</div><div class="axis">Serious</div><div class="axis">Severe</div>`);
-    return `<h2>What could go wrong</h2>
+    return `<h2>${heading("risks", "What could go wrong")}</h2>
       <p class="lede">Likelihood against impact. Select a risk to see its mitigation.</p>
       <div class="risk-layout">
         <div class="matrix" role="group" aria-label="Risk matrix">${cells.join("")}</div>
@@ -452,13 +486,13 @@ const R = {
       </div>`;
   },
   rollout() {
-    return `<h2>How it ships</h2>
+    return `<h2>${heading("rollout", "How it ships")}</h2>
       <p class="lede">Each stage has a gate to move on and a way back.</p>
       <ol class="timeline">${DATA.rollout.map(s => `<li data-comment-target><h4>${esc(s.name)}</h4><div class="len">${esc(s.length)}</div><p>${esc(s.detail)}</p>
         <div class="gate"><b>Move on when</b>${esc(s.gate)}</div><div class="rb"><b>Roll back by</b>${esc(s.rollback)}</div></li>`).join("")}</ol>`;
   },
   questions() {
-    return `<h2>Decisions still open</h2>
+    return `<h2>${heading("questions", "Decisions still open")}</h2>
       <p class="lede">These need an answer before build starts. Record decisions here so the spec and the tasks pick them up.</p>
       <ul class="questions" id="qlist"></ul>`;
   }
@@ -470,7 +504,7 @@ function build() {
   $("#doc-title").textContent = m.title;
   $("#doc-meta").textContent = `${m.kind} ${m.version}, updated ${m.updated}`;
   $("#doc-status").textContent = m.status;
-  $("#toc").innerHTML = SECTIONS.map((s, i) => `<li><button data-go="${i}">${esc(s.nav)}<span class="count" data-count="${s.id}"></span></button></li>`).join("");
+  $("#toc").innerHTML = SECTIONS.map((s, i) => `<li><button data-go="${i}">${esc(s.nav)}${CHANGED.has(s.id) ? `<span class="chg" title="Changed in ${esc(DATA.meta.version)}">changed</span>` : ""}<span class="count" data-count="${s.id}"></span></button></li>`).join("");
   $("#slides").innerHTML = SECTIONS.map(s => `<section class="slide" id="s-${s.id}" data-section="${s.id}" aria-label="${esc(s.nav)}" hidden>${R[s.id]()}
     <div class="section-actions" style="margin-top:28px"><button class="btn ghost comment-btn" data-comment-section="${s.id}" hidden>Comment on this section</button></div></section>`).join("");
   wire();
@@ -498,6 +532,8 @@ function go(i, focus = true) {
 
 function wire() {
   $("#toc").addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(+b.dataset.go); });
+  $("#slides").addEventListener("click", e => { const b = e.target.closest("[data-go-section]"); if (b) go(SECTIONS.findIndex(s => s.id === b.dataset.goSection)); });
+  $("#fb-export").onclick = exportFeedback;
   $("#prev").onclick = () => go(state.idx - 1);
   $("#next").onclick = () => go(state.idx + 1);
   document.addEventListener("keydown", e => {
@@ -565,8 +601,8 @@ function setStep(i, animate) {
   if (state.step < 0) {
     pk.setAttribute("opacity", "0");
     $("#stepno").textContent = `${sc.label}: ${steps.length} steps`;
-    $("#narr").textContent = "Press Start to send a request through the proposed system.";
-    setBucket(steps[0].bucket);
+    $("#narr").textContent = "Press Start to walk through this flow.";
+    setState(null);
     return;
   }
   const st = steps[state.step];
@@ -576,7 +612,7 @@ function setStep(i, animate) {
   edgeNodes(st.path).forEach(n => { const el = $(`#flow-n-${n}`); el.classList.add("active", "t-" + tone); });
   $("#stepno").textContent = `Step ${state.step + 1} of ${steps.length}` + (st.ref ? `, ${st.ref}` : "");
   $("#narr").textContent = st.text;
-  setBucket(st.bucket);
+  setState(st);
   pk.setAttribute("class", "packet t-" + tone);
   const len = edge.getTotalLength();
   const place = t => { const pt = edge.getPointAtLength(st.reverse ? len * (1 - t) : len * t); pk.setAttribute("cx", pt.x); pk.setAttribute("cy", pt.y); };
@@ -587,12 +623,23 @@ function setStep(i, animate) {
   const tick = now => { const t = Math.min(1, (now - t0) / dur); place(ease(t)); if (t < 1) anim = requestAnimationFrame(tick); else anim = null; };
   anim = requestAnimationFrame(tick);
 }
-function setBucket(n) {
-  const tk = $("#tokens");
-  if (!tk) return;
-  tk.classList.toggle("unknown", n === null || n === undefined);
-  [...tk.children].forEach((s, j) => s.classList.toggle("on", n !== null && j < n));
-  $("#bucket-n").textContent = n === null || n === undefined ? "Redis unreachable" : `${n} of 20 tokens`;
+// Optional state panel: a scenario's `stateLabel` plus each step's `state` text and `meter`
+// ({value, max}, or null when the value is unknown).
+function setState(st) {
+  const sc = scenario(), panel = $("#state-panel");
+  if (!panel) return;
+  panel.hidden = !sc.stateLabel;
+  if (!sc.stateLabel) return;
+  $("#state-label").textContent = sc.stateLabel;
+  $("#state-value").textContent = st && st.state ? st.state : "";
+  const tk = $("#tokens"), m = st && "meter" in st ? st.meter : undefined;
+  const max = (sc.steps.find(s => s.meter && s.meter.max) || {}).meter?.max || 0;
+  tk.hidden = !max;
+  if (!max) return;
+  if (tk.children.length !== Math.min(max, 30)) tk.innerHTML = "<span></span>".repeat(Math.min(max, 30));
+  tk.classList.toggle("unknown", m === null);
+  const on = m ? Math.round(m.value / max * tk.children.length) : 0;
+  [...tk.children].forEach((s, j) => s.classList.toggle("on", j < on));
 }
 function playAll() {
   if (playing) { clearTimeout(playing); playing = null; $("#f-play").textContent = "Play all"; return; }
@@ -618,7 +665,7 @@ function renderQuestions() {
   const list = $("#qlist"); if (!list) return;
   list.innerHTML = "";
   let open = 0;
-  DATA.questions.forEach(q => {
+  (DATA.questions || []).forEach(q => {
     const dec = state.decisions[q.id];
     if (!dec || dec.status !== "decided") open++;
     const li = document.createElement("li");
@@ -641,7 +688,7 @@ function renderQuestions() {
     }
     list.appendChild(li);
   });
-  const f = $("#facts-q"); if (f) f.textContent = `${open} of ${DATA.questions.length}`;
+  const f = $("#facts-q"); if (f) f.textContent = `${open} of ${(DATA.questions || []).length}`;
 }
 async function recordDecision(q, dec) {
   if (dec && dec.status === "decided") return saveDecision(q.id, { status: "open", note: "" });
@@ -756,8 +803,39 @@ async function sendToClaude(sec, doc) {
   }
 }
 
+/* ---------------- Export ---------------- */
+// One JSON file with every feedback item and decision, for `/feedback --from <file>`.
+async function exportFeedback() {
+  const m = DATA.meta;
+  const slug = String(m.title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "deck";
+  // Author ids are opaque outside this artifact, so resolve names now while the page can.
+  let names = {};
+  const ids = [...new Set(state.feedback.map(f => f.author).filter(Boolean))];
+  if (state.user && ids.length) { try { const ps = await state.user.profiles(ids); for (const id of ids) names[id] = (ps[id] && ps[id].name) || ""; } catch (_) {} }
+  const payload = JSON.stringify({
+    format: "review-deck-feedback/1", deck: { title: m.title, version: m.version },
+    exportedAt: new Date().toISOString(), source: state.db ? "artifact db" : "browser",
+    feedback: state.feedback.map(f => Object.assign({}, f, f.author ? { authorName: names[f.author] || "" } : {})),
+    decisions: state.decisions
+  }, null, 2);
+  const filename = `${slug}-feedback-${m.version}.json`;
+  const downloads = window.claude && typeof window.claude.use === "function" ? await window.claude.use("downloads") : null;
+  if (downloads) {
+    try { await downloads.save({ filename, data: payload }); toast("Feedback exported"); }
+    catch (e) { const c = e && e.code; toast(c === "declined" ? "Export cancelled" : c === "rate_limited" ? "An export is already waiting for you to confirm" : "Export isn't available here"); }
+    return;
+  }
+  try {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([payload], { type: "application/json" }));
+    a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    toast("Feedback exported");
+  } catch (_) { toast("Export isn't available here"); }
+}
+
 /* ---------------- Local fallback ---------------- */
-const LS_KEY = "rate-limit-review-v1";
+const LS_KEY = "review-deck:" + DATA.meta.title;
 function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify({ feedback: state.feedback, decisions: state.decisions })); } catch (_) {} }
 function loadLocal() { try { const d = JSON.parse(localStorage.getItem(LS_KEY) || "null"); if (d) { state.feedback = d.feedback || []; state.decisions = d.decisions || {}; } } catch (_) {} }
 

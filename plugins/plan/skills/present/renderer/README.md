@@ -17,13 +17,19 @@ Original prototype: https://claude.ai/artifact/FZzEbydpqj2QVX4LLD8QLp
   and Chrome or Chromium.
 - `example-deck.json`: the rate-limiting example (`node build.mjs example-deck.json out.html`).
 
-Known limitations (HANDOFF.md, Phase 2 step 7):
-- Section list is fixed to 8 sections; make it data-driven so spec-lite decks can skip sections.
-- The flows section's token-bucket meter only suits the rate-limit example. It's hidden unless
-  a scenario step has a `bucket` value; a general "state" panel would replace it.
+Deck data features (step 7):
+- `sections`: order, relabel (`{id, nav, title}`), or leave out sections; sections with no data
+  are skipped, so spec-lite decks can omit alternatives, risks, and so on.
+- `changes`: a "What changed since vN" section plus "changed" markers in the nav, citing `F-n`
+  feedback IDs.
+- Scenario state panel: `stateLabel` on a scenario, `state` / `meter` on steps (replaces the
+  rate-limit example's token bucket).
+- Export feedback (JSON) in the review panel: uses the `downloads` capability when published as
+  a claude.ai artifact, a plain browser download otherwise. Format `review-deck-feedback/1`,
+  with author display names resolved at export time.
+
+Known limitations:
 - Scenario tones are `allow` / `throttle` / `reject`; deck-diagrammer maps them to success /
   degraded / failed.
-- No "what changed since last version" view yet.
-- No export button (downloads capability) for sending feedback to Claude Code from a deck that
-  isn't published as a claude.ai artifact.
+- A selected risk card sticks out ~10px on the right at some widths.
 - Diagram layout is a simple grid; LikeC4 may replace it (step 8).

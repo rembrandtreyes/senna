@@ -126,6 +126,12 @@ function inferEdgeEnds(diagram) {
 // ---- Minimal JSON Schema check (type, required, properties, items, enum, pattern) -----------
 function check(v, s, path) {
   if (!s) return;
+  if (s.anyOf) {
+    const before = errors.length;
+    const ok = s.anyOf.some(branch => { check(v, branch, path); const pass = errors.length === before; errors.length = before; return pass; });
+    if (!ok) errors.push(`${path}: ${JSON.stringify(v)} doesn't match any allowed form`);
+    return;
+  }
   const types = [].concat(s.type || []);
   const t = v === null ? "null" : Array.isArray(v) ? "array" : Number.isInteger(v) ? "integer" : typeof v;
   if (types.length && !types.includes(t) && !(t === "integer" && types.includes("number"))) {
@@ -140,13 +146,15 @@ function check(v, s, path) {
   if (t === "array" && s.items) v.forEach((x, i) => check(x, s.items, `${path}[${i}]`));
 }
 
+const SECTION_IDS = ["overview", "changes", "problem", "architecture", "flows", "alternatives", "risks", "rollout", "questions"];
 function crossCheck(deck) {
   const edgeIds = new Set(deck.diagram.edges.map(e => e.id));
   const reqIds = new Set(deck.problem.requirements.map(r => r.id));
-  for (const s of deck.scenarios) s.steps.forEach((st, i) => {
+  for (const s of deck.scenarios || []) s.steps.forEach((st, i) => {
     if (st.path && !edgeIds.has(st.path)) errors.push(`scenario ${s.id} step ${i + 1}: unknown edge "${st.path}"`);
     if (st.ref && !reqIds.has(st.ref)) errors.push(`scenario ${s.id} step ${i + 1}: unknown requirement "${st.ref}"`);
   });
+  for (const c of deck.changes?.items || []) if (!SECTION_IDS.includes(c.section)) errors.push(`changes: unknown section "${c.section}"`);
 }
 
 // ---- Main ---------------------------------------------------------------------------------
