@@ -238,6 +238,10 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
 4. **Testing lens on `core/agents/reviewer.md`**: check the diff's tests against the rubric,
    especially question 6. Split into its own agent only if the lens outgrows the reviewer. This
    pairs with Phase 2 step 10 (reviewer fails tasks whose tests don't reference requirement IDs).
+   **Done 2026-09-26 (core 0.4.1):** reviewer step 6 reads the testing skill and grades each test;
+   blockers are untested behavior, a test that can't fail, and a boundary change tested only
+   through mocks. Tested headless on a scratch repo (a mocked query on a missing column): it
+   caught all three and the schema mismatch.
 5. **Stop-hook checks**, gated on `changed_files`:
    - Generic (lang plugins): source changed but no test files changed → block once in
      interactive mode, like the existing checks.

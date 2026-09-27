@@ -109,6 +109,7 @@ model {
   claudeCode -> harness.core.retro '/retro'
   claudeCode -> harness.core.architecture '/architecture, or on cross-service questions'
   claudeCode -> harness.core.testing 'writing, fixing, or reviewing tests; every bug fix'
+  harness.core.reviewer -> harness.core.testing 'grades the diff\'s tests against the rubric'
   claudeCode -> harness.core.debugger 'bugs and failing tests'
 
   // State
