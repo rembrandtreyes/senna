@@ -30,6 +30,16 @@ Starting defaults; edit freely.
 
 A perf claim without numbers isn't done.
 
+## Tests
+- Use `cargo nextest run` if the project has it (faster, isolated per test); it skips doctests,
+  so run `cargo test --doc` too.
+- Invariants (round trips, parse then serialize, ordering) get `proptest`; commit the
+  `proptest-regressions/` files it writes.
+- Large or structured outputs: `insta` snapshots, reviewed with `cargo insta review`. Never
+  accept all snapshots blindly.
+- Integration tests in `tests/` use the public API only. DB code runs against a real database
+  (testcontainers), not a mocked trait.
+
 ## Async
 - One runtime per binary (usually tokio). Don't block in async code; use `spawn_blocking` for CPU
   or blocking I/O.

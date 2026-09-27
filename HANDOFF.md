@@ -229,6 +229,8 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
    non-default parts (for example: Browser Mode for anything layout-dependent, since jsdom has no
    layout; query by role; MSW at the network boundary). Fold into Phase 1 step 4's skill review.
    Python needs a `lang-py` plugin from `lang-template` first.
+   **Done 2026-09-26 (lang-* 0.1.2)** for react-next, expo, go, rust, and the template's hint.
+   `lang-py` not built yet.
 3. **`testing` skill in `core`** carrying the rubric above. Pushy description: triggers when
    writing, fixing, or reviewing tests, and on any bug fix.
 4. **Testing lens on `core/agents/reviewer.md`**: check the diff's tests against the rubric,

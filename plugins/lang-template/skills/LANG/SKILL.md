@@ -11,4 +11,6 @@ repeating, the team's style guide, and /retro learnings that have come up twice.
 ## Errors
 ## Structure
 ## Tests
+<!-- Only the non-default parts: which tool for which layer, how tests reach real dependencies
+     (databases, external APIs) instead of mocks, and what the Stop hook runs. -->
 ## Before finishing

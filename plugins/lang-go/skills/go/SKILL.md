@@ -28,10 +28,16 @@ Starting defaults; edit freely.
 - Zero values should be useful. Constructors only when invariants need them.
 
 ## Tests
-- Table-driven tests with `t.Run(tc.name, ...)`. Use `t.Helper()` in helpers and `t.Cleanup` for
-  teardown.
-- Use `httptest` for HTTP handlers. Use real dependencies (testcontainers) over deep mocks for DB
-  code when the project supports it.
+- Table-driven tests with `t.Run(tc.name, ...)`. Use `t.Helper()` in helpers, `t.Cleanup` for
+  teardown, and `t.Context()` for a context that's canceled when the test ends.
+- Compare with `cmp.Diff(want, got)` and report `(-want +got)`, so a failure shows what broke.
+- Use `httptest` for HTTP handlers. DB code runs against a real database (testcontainers), not a
+  mocked driver or repository: a mock can't disagree with your SQL. Gate slow integration tests
+  behind `testing.Short()` so the fast suite stays fast.
+- Timers, tickers, and goroutine coordination: `testing/synctest` (Go 1.25+) instead of sleeps.
+- Parsers, decoders, and anything taking untrusted input get a native fuzz test (`FuzzXxx`);
+  commit the failing inputs it finds under `testdata/fuzz/`.
+- Large outputs: golden files in `testdata/` with an `-update` flag, reviewed in the diff.
 
 ## Services
 - In a parallel worktree, listen on `API_PORT` from `.harness/ports.env`.

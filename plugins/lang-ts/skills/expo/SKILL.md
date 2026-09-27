@@ -27,6 +27,12 @@ Starting defaults; edit freely.
   `ScrollView` + `map`.
 - Keep secrets out of the bundle. Anything in app config or `EXPO_PUBLIC_*` ships to users.
 
+## Tests
+- `jest-expo` preset with React Native Testing Library, queried by role and label.
+- Mock native modules at the module boundary, and remember a mock can't show device behavior:
+  permissions, background state, keyboard, and safe areas need a device check or an E2E flow.
+- E2E (Maestro) only for the critical journeys the spec names.
+
 ## Releases
 - `eas build` / `eas submit` / `eas update` are release actions. The harness blocks them in
   parallel/auto mode, so ask me before running them interactively.

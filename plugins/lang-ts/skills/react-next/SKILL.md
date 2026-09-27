@@ -31,8 +31,24 @@ promote real lessons into here.
   dialogs.
 
 ## Tests
-- Test behavior through the UI (Testing Library queries by role/label), not implementation details.
-- Every bug fix gets a regression test.
+Pick the cheapest layer that would catch the bug (the testing skill has the rubric).
+- **Logic:** plain Vitest unit tests. Pull logic out of components to test it here.
+- **Components:** Testing Library, queried by role and label, driven with `userEvent`. Anything
+  that depends on layout, scrolling, focus, or real browser APIs runs in **Vitest Browser Mode**:
+  jsdom has no layout, so those tests pass there while the UI is broken.
+- **Network:** mock with MSW at the HTTP boundary, never by mocking the module that calls
+  `fetch`. Build handler payloads from the same schema the app validates with, so they can't
+  drift from the contract.
+- **Database:** don't mock the client for queries or access policies (RLS); those mocks agree
+  with your assumptions, not the database. Run them against a real local database, or make it
+  a type error: a column list that `satisfies` the generated DB types.
+- **Third-party APIs:** fixtures are recorded real responses, and requests are checked against
+  the provider's actual schema rules, not a hand-written mock.
+- **Runtime:** behavior specific to the edge runtime, `after()`, or streaming isn't covered by
+  Node-based unit tests. Test it where it runs, or say it needs a manual check.
+- **E2E (Playwright):** only the critical journeys the spec names. Make sure CI runs the existing
+  ones before writing more.
+- Every bug fix gets a regression test at the layer that would have caught it.
 
 ## Before finishing
 The Stop hook runs `tsc --noEmit` (plus tests in parallel/auto mode). Run them yourself first if
