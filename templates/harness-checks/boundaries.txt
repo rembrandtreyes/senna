@@ -1,7 +1,7 @@
 # Copy to <project>/.harness/checks/boundaries.txt. The core plugin's Stop hook warns (never
 # blocks) when a change touches a boundary on the left and no test matching the right changed.
 # Boundaries are where mocks lie: schemas, access policies, queries, third-party API contracts.
-#   <boundary glob> => <globs of tests that hit the real dependency, space-separated>
+#   <boundary glob> => <globs of tests that hit the real dependency, space- or comma-separated>
 # Globs are relative to the repo root, and `*` also matches `/`. Examples for a Next.js app
 # on Postgres with an LLM API:
 supabase/migrations/* => tests/integration/*

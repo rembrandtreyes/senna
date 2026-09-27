@@ -2,7 +2,7 @@
 # Stop: warn (never block) when a change touches a project-defined boundary, such as migrations,
 # queries, or a third-party API schema, and no test that exercises the real thing changed.
 # Rules live in the project, in .harness/checks/boundaries.txt, one per line:
-#   <boundary glob> => <globs of tests that hit the real dependency, space-separated>
+#   <boundary glob> => <globs of tests that hit the real dependency, space- or comma-separated>
 #   supabase/migrations/* => tests/integration/* *.integration.test.ts
 # Globs are shell case patterns relative to the repo root; `*` also matches `/`.
 # Warns once per distinct set of boundary files. HARNESS_BOUNDARY_CHECK=off disables it.
@@ -21,7 +21,7 @@ while IFS= read -r line || [ -n "$line" ]; do
   case "$line" in ''|'#'*) continue ;; esac
   case "$line" in *'=>'*) ;; *) continue ;; esac
   lhs="$(printf '%s' "${line%%=>*}" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
-  rhs="$(printf '%s' "${line#*=>}" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+  rhs="$(printf '%s' "${line#*=>}" | tr ',' ' ' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
   [ -n "$lhs" ] && [ -n "$rhs" ] || continue
   hits=""; verified=""
   while IFS= read -r f; do

@@ -51,7 +51,8 @@ it's meant to be committed, since the next audit compares against it. It holds:
    the existing E2E suite in CI, or Browser Mode for layout bugs. Name the commits each covers.
    Mutation testing or more E2E only if the data points there.
 5. **Boundary candidates:** paths that keep appearing in mock-disagreement bugs, drafted as
-   `.harness/checks/boundaries.txt` rules (`<boundary glob> => <real-dependency test globs>`).
+   `.harness/checks/boundaries.txt` rules (`<boundary glob> => <real-dependency test globs>`,
+   globs space-separated; `*` already matches across directories).
 6. **Since last audit:** if an earlier `.harness/test-audit-*.md` exists, what moved.
 
 Then give the user the summary and ask before writing `boundaries.txt`, changing a lang skill,
