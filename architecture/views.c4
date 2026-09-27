@@ -2,7 +2,7 @@ views {
 
   view index {
     title 'Landscape'
-    include developer, claudeCode, harness, project, github, sentry, ntfy, toolchains, chromium
+    include developer, claudeCode, harness, project, github, sentry, ntfy, toolchains, chromium, claudeAi, vercel
   }
 
   view harnessView of harness {
@@ -88,7 +88,7 @@ views {
   }
 
   dynamic view planningPipeline {
-    title 'Planning: route to PRD to spec to review'
+    title 'Planning: route to PRD to spec to review to sign-off'
     developer -> claudeCode 'new feature request'
     claudeCode -> harness.plan.route 'classify'
     harness.plan.route -> harness.plan.prd 'feature (after user confirms)'
@@ -109,6 +109,11 @@ views {
       harness.plan.designReview -> harness.ops.securityAuditor 'security lens'
     }
     harness.plan.designReview -> project.specs 'feedback.md'
+    claudeCode -> harness.plan.publish '/publish'
+    harness.plan.publish -> claudeAi 'deck as artifact'
+    claudeCode -> harness.plan.feedback '/feedback'
+    harness.plan.feedback -> claudeAi 'read feedback, write statuses'
+    harness.plan.feedback -> project.specs 'feedback.md, sign-off'
   }
 
   dynamic view releaseHarness {

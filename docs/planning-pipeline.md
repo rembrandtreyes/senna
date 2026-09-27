@@ -74,7 +74,11 @@ implementation diverges from the spec, update the spec (living doc) in the same 
   company on Claude Team/Enterprise), `vercel` (preview deploy; Vercel Toolbar comments, reviewers
   need Vercel accounts), `static` (any host; feedback via the PR).
 - **Feedback adapters** normalize every source (artifact db, artifact comments, Vercel comments, PR
-  review comments) into `feedback.md`.
+  review comments) into `feedback.md`. Each adapter (`plugins/plan/adapters/<name>.md`) has
+  Publish (`/publish`), Collect, and Write back (`/feedback`). `scripts/feedback.mjs` normalizes
+  export files and PR comments, dedupes against the ledger by the source's own id (kept in the
+  Source column as `<source> (<ref>)`), and hands out the next F-ID; Claude writes the rows and
+  triages them with the user. `deck/publish.json` records where a deck was published.
 - **Staleness hook:** editing `spec.md` or `model/*.c4` marks the deck stale; SessionStart warns.
 
 ## Verified facts about claude.ai artifacts (runtime contract 0.2.58, 2026-09-24)

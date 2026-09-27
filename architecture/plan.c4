@@ -27,6 +27,26 @@ model {
         technology 'skill'
         link ../plugins/plan/skills/present/SKILL.md 'code'
       }
+      publish = component '/publish' {
+        description 'Publishes a deck through an adapter (artifact, static, vercel) and records it in publish.json'
+        technology 'skill'
+        link ../plugins/plan/skills/publish/SKILL.md 'code'
+      }
+      feedback = component '/feedback' {
+        description 'Pulls reviewer feedback from every source into feedback.md, triages it, writes back, runs sign-off'
+        technology 'skill'
+        link ../plugins/plan/skills/feedback/SKILL.md 'code'
+      }
+      adapters = component 'publish adapters' {
+        description 'artifact, static, vercel: how to publish, collect feedback, and write statuses back'
+        technology 'markdown'
+        link ../plugins/plan/adapters 'code'
+      }
+      feedbackScript = component 'feedback.mjs' {
+        description 'Normalizes deck exports and PR comments, dedupes against the ledger, assigns the next F-ID'
+        technology 'Node, gh'
+        link ../plugins/plan/scripts/feedback.mjs 'code'
+      }
       designReview = component '/design-review' {
         description 'Runs the reviewer lenses in parallel and records findings in feedback.md'
         technology 'skill'
@@ -117,6 +137,17 @@ model {
   harness.plan.present -> harness.plan.deckNarrator 'dispatches'
   harness.plan.present -> harness.plan.deckDiagrammer 'dispatches'
   harness.plan.present -> harness.plan.build 'runs'
+  harness.plan.present -> harness.plan.publish 'suggests next'
+  harness.plan.publish -> harness.plan.adapters 'follows Publish'
+  harness.plan.publish -> claudeAi 'publishes deck (artifact adapter)'
+  harness.plan.publish -> vercel 'deploys preview (vercel adapter)'
+  harness.plan.publish -> project.specs 'writes deck/publish.json'
+  harness.plan.feedback -> harness.plan.adapters 'follows Collect, Write back'
+  harness.plan.feedback -> claudeAi 'reads db and comments, writes statuses'
+  harness.plan.feedback -> github 'reads PR review comments' { style { line dashed } }
+  harness.plan.feedback -> harness.plan.feedbackScript 'runs pending'
+  harness.plan.feedback -> project.specs 'writes feedback.md, sets spec approved'
+  harness.plan.feedback -> harness.core.breakdown 'suggests after sign-off'
   harness.plan.deckDiagrammer -> harness.plan.model 'runs views, deck'
   harness.plan.model -> project.specs 'reads model/, writes deck/diagram.src.json' 
   harness.plan.present -> harness.plan.visualQa 'dispatches'

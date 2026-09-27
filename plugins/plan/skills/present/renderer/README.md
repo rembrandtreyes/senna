@@ -26,7 +26,9 @@ Deck data features (step 7):
   rate-limit example's token bucket).
 - Export feedback (JSON) in the review panel: uses the `downloads` capability when published as
   a claude.ai artifact, a plain browser download otherwise. Format `review-deck-feedback/1`,
-  with author display names resolved at export time.
+  with author display names (feedback and decisions) resolved at export time.
+- Resolutions: when /feedback writes `ledgerId` and `resolution` back to a feedback doc, the
+  review panel shows them under the item (step 9).
 
 Known limitations:
 - Scenario tones are `allow` / `throttle` / `reject`; deck-diagrammer maps them to success /

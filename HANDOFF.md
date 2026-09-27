@@ -139,7 +139,12 @@ routing rules, stage gates, artifact layout, and verified facts about claude.ai 
    drawn on the diagram collided with nodes on the grid, so they are tooltips instead.
    Not built: embedding LikeC4's interactive views in the deck.
 9. **Publish and feedback adapters:** `artifact`, `vercel`, `static`. Then **`/feedback`**
-   normalizes every source into `feedback.md`.
+   normalizes every source into `feedback.md`. Done 2026-09-26: `/publish`, `/feedback`,
+   `plan/adapters/*.md` (Publish / Collect / Write back each), `scripts/feedback.mjs`. Tested:
+   artifact publish with db/comments/user/downloads, db read, pinned write-back (a stale write is
+   refused), the deck showing `ledgerId: resolution`; feedback.mjs on export files, records, and
+   a real public PR. **Vercel adapter is untested** (no CLI or account here); it follows the
+   `vercel comments` beta docs. Sign-off gate lives in /feedback.
 10. **Wire the build step:** `/breakdown` reads spec milestones and carries requirement IDs into
     tasks; the reviewer agent fails tasks whose tests don't reference their IDs. Add a hook that
     marks the deck stale when `spec.md` or `model/*.c4` changes, and have SessionStart report it.

@@ -248,6 +248,7 @@ table.alts { width: 100%; border-collapse: separate; border-spacing: 0; font-siz
 .kind-tag.question { background: var(--throttle-soft); color: var(--throttle); }
 .fb p { margin: 6px 0 6px; font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .fb .st { font-size: 12px; color: var(--ink-3); display: flex; gap: 8px; align-items: center; }
+.fb .res { font-size: 12.5px; color: var(--ink-2); margin-top: 6px; padding-left: 8px; border-left: 2px solid var(--line-2); overflow-wrap: anywhere; }
 .fb select { font-size: 12px; padding: 2px 4px; border-radius: 6px; border: 1px solid var(--line-2); background: var(--bg); }
 .empty { font-size: 14px; color: var(--ink-3); margin-top: 18px; }
 .mode-note { font-size: 12px; color: var(--ink-3); margin-top: 18px; line-height: 1.5; }
@@ -756,7 +757,14 @@ async function renderReview() {
     } else {
       st.textContent = "Status: " + (STATUS.find(s => s[0] === f.status) || STATUS[0])[1];
     }
-    li.append(head, body, st); list.appendChild(li);
+    li.append(head, body, st);
+    // Set by /feedback when it writes the ledger decision back (feedback.md item and resolution).
+    if (f.ledgerId || f.resolution) {
+      const res = document.createElement("div"); res.className = "res";
+      res.textContent = [f.ledgerId, f.resolution].filter(Boolean).join(": ");
+      li.appendChild(res);
+    }
+    list.appendChild(li);
   });
   $("#fb-empty").textContent = items.length ? "" : "No feedback on this section yet. Approve it, raise a concern, or ask a question.";
 }
@@ -824,13 +832,13 @@ async function exportFeedback() {
   const slug = String(m.title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "deck";
   // Author ids are opaque outside this artifact, so resolve names now while the page can.
   let names = {};
-  const ids = [...new Set(state.feedback.map(f => f.author).filter(Boolean))];
+  const ids = [...new Set(state.feedback.map(f => f.author).concat(Object.values(state.decisions).map(d => d.by)).filter(Boolean))];
   if (state.user && ids.length) { try { const ps = await state.user.profiles(ids); for (const id of ids) names[id] = (ps[id] && ps[id].name) || ""; } catch (_) {} }
   const payload = JSON.stringify({
     format: "review-deck-feedback/1", deck: { title: m.title, version: m.version },
     exportedAt: new Date().toISOString(), source: state.db ? "artifact db" : "browser",
     feedback: state.feedback.map(f => Object.assign({}, f, f.author ? { authorName: names[f.author] || "" } : {})),
-    decisions: state.decisions
+    decisions: Object.fromEntries(Object.entries(state.decisions).map(([q, d]) => [q, Object.assign({}, d, d.by ? { byName: names[d.by] || "" } : {})]))
   }, null, 2);
   const filename = `${slug}-feedback-${m.version}.json`;
   const downloads = window.claude && typeof window.claude.use === "function" ? await window.claude.use("downloads") : null;

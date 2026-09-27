@@ -40,6 +40,14 @@ model {
     link https://playwright.dev/docs/library 'docs'
   }
 
+  claudeAi = system 'claude.ai artifacts' {
+    description 'Hosts published review decks; stores reviewer feedback (db) and comment threads'
+    link https://claude.ai 'claude.ai'
+  }
+  vercel = system 'Vercel' {
+    description 'Optional host for review decks as preview deployments with Toolbar comments'
+    link https://vercel.com/docs/cli/comments 'docs'
+  }
   project = system 'Target project' {
     description 'Any repo where the harness plugins are enabled'
     link ../templates/project-settings.json 'settings template'

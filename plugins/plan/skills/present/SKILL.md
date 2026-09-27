@@ -61,4 +61,4 @@ Template bugs it reports are real bugs in `renderer/`: tell the user and don't w
 - Tell the user the path to `index.html` (on macOS, offer `open <path>`), the QA result, and
   that feedback typed into an unpublished deck stays in that browser. Reviewers can use
   **Export feedback (JSON)** in the review panel to send it back (`/feedback --from <file>`).
-  Publishing to reviewers comes from the publish adapters.
+  Suggest `/publish <slug>` to share it with reviewers.
