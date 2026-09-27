@@ -35,7 +35,7 @@ model {
 
       // Commands and skills
       breakdown = component '/breakdown' {
-        description 'Turns an idea or plan into task files with acceptance criteria'
+        description 'Turns an idea, plan, or approved spec into task files; spec tasks carry milestone R-IDs'
         technology 'command'
         link ../plugins/core/commands/breakdown.md 'code'
       }
@@ -43,6 +43,11 @@ model {
         description 'One git worktree per independent task: env copied, port slot, deps, mode=parallel'
         technology 'command, bash'
         link ../plugins/core/scripts/worktree.sh 'code'
+      }
+      ridCheck = component 'rid-check.sh' {
+        description 'Fails a task whose R-IDs no changed test cites'
+        technology 'bash, git'
+        link ../plugins/core/scripts/rid-check.sh 'code'
       }
       ship = component '/ship' {
         description 'Runs checks, dispatches reviewers, fixes blockers, commits, opens the PR'
@@ -72,7 +77,7 @@ model {
         link ../plugins/core/agents/explorer.md 'code'
       }
       reviewer = component 'reviewer' {
-        description 'Adversarial review of the diff against the task acceptance criteria'
+        description 'Adversarial review of the diff against acceptance criteria, R-ID tests, and the spec'
         technology 'subagent'
         link ../plugins/core/agents/reviewer.md 'code'
       }
@@ -121,5 +126,8 @@ model {
   harness.core.retro -> project.harnessState 'writes learnings.md'
   harness.core.architecture -> harness.core.explorer 'dispatches (init)'
   harness.core.reviewer -> project.tasks 'reads acceptance criteria' { style { line dashed } }
+  harness.core.reviewer -> harness.core.ridCheck 'runs for tasks with Requirements:'
+  harness.core.ridCheck -> project.workTree 'greps changed tests for R-IDs' { style { line dashed } }
+  harness.core.breakdown -> project.specs 'reads milestones, coverage table' { style { line dashed } }
   harness.core.reviewer -> project.workTree 'reads git diff' { style { line dashed } }
 }

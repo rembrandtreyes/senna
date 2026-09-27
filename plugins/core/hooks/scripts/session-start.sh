@@ -9,7 +9,7 @@ H="$root/.harness"
 
 echo "## Harness context"
 echo "- Mode: **${mode}** (change with HARNESS_MODE env var or .harness/mode). interactive = light checks; parallel/auto = strict stop checks, progress log."
-echo "- Harness scripts dir: ${CLAUDE_PLUGIN_ROOT:-unknown}/scripts (worktree.sh lives here)"
+echo "- Harness scripts dir: ${CLAUDE_PLUGIN_ROOT:-unknown}/scripts (worktree.sh, rid-check.sh)"
 
 # Stack detection (shallow, skips heavy dirs)
 stacks=""

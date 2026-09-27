@@ -5,6 +5,7 @@
 .harness/handoff*.md
 .harness/current-task
 .harness/.stop-attempts-*
+.harness/.deck-stale-*
 .claude/settings.local.json
 
 # Planning pipeline: deck QA screenshots are regenerated on every /present

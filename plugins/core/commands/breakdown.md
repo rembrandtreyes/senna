@@ -1,9 +1,21 @@
 ---
-description: Break an idea (or an approved plan-mode plan) into task files with testable acceptance criteria
-argument-hint: <what you want to build or change>
+description: Break an idea, an approved plan-mode plan, or an approved spec (specs/<slug>) into task files with testable acceptance criteria and requirement IDs
+argument-hint: <what you want to build or change | spec slug>
 ---
 
 Break this work into tasks: $ARGUMENTS
+
+**From a spec:** if the argument names a spec (a slug under `specs/`, or a `spec.md` path), the
+spec is the plan. Don't re-plan it:
+- If spec.md's Status isn't `approved`, say so (the review hasn't signed off) and ask whether to
+  continue anyway.
+- Make one or more tasks per milestone, in milestone order. Each gets `Spec:` (path and milestone)
+  and `Requirements:` (that milestone's R-IDs, split across its tasks). The Requirement coverage
+  table names the tests for each R-ID; turn them into acceptance criteria tagged with the R-ID.
+- Accepted feedback items in `feedback.md` that the spec now addresses are already in the spec;
+  don't add them again.
+- Before finishing, check every R-ID in each milestone is in some task's `Requirements:` line, and
+  list any that aren't.
 
 Tip: for big or fuzzy work, think it through first in Claude Code's built-in plan mode (`/plan`),
 then run this command to turn the approved plan into task files. If a plan from this session

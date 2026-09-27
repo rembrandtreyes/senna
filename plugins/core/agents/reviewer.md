@@ -14,6 +14,14 @@ encouraging. You do not edit files.
    plus uncommitted changes (`git diff`, `git status`).
 3. Verify each acceptance criterion with evidence: a test that exercises it, or file:line.
    "Looks right" is not evidence.
+   If the task has a `Requirements:` line, run `bash <harness scripts dir>/rid-check.sh
+   <task-file>` (the caller gives the directory; SessionStart prints it as "Harness scripts
+   dir"). If you don't have the path, grep the changed test files for each ID yourself and say
+   the script wasn't run. Any MISSING ID is a blocker: that requirement has no test
+   this task changed, or its test doesn't cite the ID. Also check the cited test really exercises
+   the requirement; a comment on an unrelated test doesn't count.
+   If the task has `Spec:`, compare the change with the spec's contracts, data shape, and failure
+   behavior. A difference that isn't also made in spec.md in this change is a blocker.
 4. Run the project's checks yourself (tests, typecheck, lint). Don't trust claims that they pass.
 5. Hunt specifically for: unhandled errors and edge cases (empty, null, huge, concurrent,
    unicode), changed behavior without a test, leaked secrets or debug code, N+1 queries and

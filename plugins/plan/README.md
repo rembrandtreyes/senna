@@ -16,6 +16,7 @@ Built in the order listed in HANDOFF.md (Phase 2). Components land here as they 
 | `scripts/model.mjs`: LikeC4 proposal → Mermaid flows in spec.md, deck diagram | script | 8 ✓ |
 | `/publish`, adapters (`artifact`, `static`; `vercel` on request, untested) | skill, docs | 9 ✓ |
 | `/feedback`, `scripts/feedback.mjs` | skill, script | 9 ✓ |
-| deck staleness hook | hook | 10 |
+| SessionStart spec report, deck staleness hook | hooks | 10 ✓ |
+| `/breakdown` from a spec, reviewer R-ID check (`rid-check.sh`) | in core | 10 ✓ |
 
 Depends on `core` (debugger agent, `/breakdown`, reviewer) and reuses `security-auditor` from `ops`.

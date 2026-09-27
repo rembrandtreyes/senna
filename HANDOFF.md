@@ -148,6 +148,12 @@ routing rules, stage gates, artifact layout, and verified facts about claude.ai 
 10. **Wire the build step:** `/breakdown` reads spec milestones and carries requirement IDs into
     tasks; the reviewer agent fails tasks whose tests don't reference their IDs. Add a hook that
     marks the deck stale when `spec.md` or `model/*.c4` changes, and have SessionStart report it.
+    Done 2026-09-26: /breakdown spec mode (`Spec:` + `Requirements:` per task, every milestone
+    R-ID placed), task criteria tagged `(R-n)`, core `scripts/rid-check.sh` (R-IDs cited by tests
+    the task changed; the reviewer blocks on MISSING, and on spec divergence not made in
+    spec.md), plan hooks: SessionStart spec report (status, deck stale/unpublished, open feedback,
+    sign-off) and a PostToolUse notice once per build when the deck goes stale. /present records
+    `modelHash`. Tested by piping JSON under macOS bash 3.2 in scratch repos.
 11. **End-to-end test** on one real feature from the owner's projects, from router to build.
 
 ## Open questions (Phase 2): answered 2026-09-24

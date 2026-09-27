@@ -90,6 +90,18 @@ model {
         link ../plugins/plan/agents/visual-qa.md 'code'
       }
 
+      // Hooks
+      planSessionStart = component 'plan session-start.sh' {
+        description 'Reports each spec in progress: status, deck stale or unpublished, open feedback, sign-off'
+        technology 'SessionStart hook, bash'
+        link ../plugins/plan/hooks/scripts/session-start.sh 'code'
+      }
+      deckStale = component 'deck-stale.sh' {
+        description 'After an edit to spec.md or model/*.c4, tells Claude once per build that the deck is stale'
+        technology 'PostToolUse hook, bash'
+        link ../plugins/plan/hooks/scripts/deck-stale.sh 'code'
+      }
+
       // Renderer
       build = component 'build.mjs' {
         description 'Merges deck JSON, lays out the diagram, validates the schema, renders index.html'
@@ -148,6 +160,10 @@ model {
   harness.plan.feedback -> harness.plan.feedbackScript 'runs pending'
   harness.plan.feedback -> project.specs 'writes feedback.md, sets spec approved'
   harness.plan.feedback -> harness.core.breakdown 'suggests after sign-off'
+  claudeCode -> harness.plan.planSessionStart 'SessionStart'
+  claudeCode -> harness.plan.deckStale 'PostToolUse (Edit, Write)'
+  harness.plan.planSessionStart -> project.specs 'reads spec, deck, feedback state' { style { line dashed } }
+  harness.plan.deckStale -> project.specs 'compares hashes with deck/build-info.json' { style { line dashed } }
   harness.plan.deckDiagrammer -> harness.plan.model 'runs views, deck'
   harness.plan.model -> project.specs 'reads model/, writes deck/diagram.src.json' 
   harness.plan.present -> harness.plan.visualQa 'dispatches'

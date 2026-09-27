@@ -17,6 +17,8 @@ Status: todo            # todo | in-progress | review | done | blocked
 Depends on: T-010       # or "none"
 Touches: services/api/middleware/*, services/api/config.go
 Stack: go
+Spec: specs/rate-limits/spec.md, milestone M2      # only for tasks from a spec
+Requirements: R-3, R-5                             # the PRD requirement IDs this task delivers
 
 ## Goal
 One or two sentences: the user-visible outcome, not the implementation.
@@ -25,7 +27,7 @@ One or two sentences: the user-visible outcome, not the implementation.
 Why now, links, constraints, and assumptions made during planning.
 
 ## Acceptance criteria
-- [ ] Observable and testable: "Requests over 100/min per key get 429 with Retry-After"
+- [ ] Observable and testable: "Requests over 100/min per key get 429 with Retry-After" (R-3)
 - [ ] Each criterion maps to at least one test
 
 ## Out of scope
@@ -49,3 +51,14 @@ Why now, links, constraints, and assumptions made during planning.
 - **Update as you go.** Set `Status: in-progress` when starting, append to `Log` at milestones, and
   set `Status: review` in /ship. Anything learned that changes the plan goes in `Context`.
 - If a task balloons, stop and split it. Don't silently expand scope.
+
+## Tasks from a spec (`Spec:` and `Requirements:`)
+- `Requirements:` lists the R-IDs this task delivers, from the spec milestone's list. Every R-ID
+  in a milestone belongs to at least one of its tasks.
+- Each acceptance criterion ends with the R-ID(s) it proves, e.g. `(R-3)`.
+- **Tests cite their R-IDs** in the test name or a comment on the test (`// R-3`,
+  `it("returns 429 over the limit (R-3)")`, `def test_limit_429():  # R-3`). The reviewer runs
+  `scripts/rid-check.sh <task>` (in the core plugin), which fails the task if a listed R-ID has no
+  test among the files the task changed.
+- If building it shows the spec is wrong (a contract, data shape, or failure behavior has to
+  differ), update spec.md in the same PR and say so in the Log. The spec is a living document.
