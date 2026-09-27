@@ -79,6 +79,11 @@ model {
         technology 'skill'
         link ../plugins/core/skills/testing/SKILL.md 'code'
       }
+      testAudit = component '/test-audit' {
+        description 'Classifies recent fix commits by cause and cheapest catching layer; recommends where to invest'
+        technology 'skill'
+        link ../plugins/core/skills/test-audit/SKILL.md 'code'
+      }
 
       // Subagents
       explorer = component 'explorer' {
@@ -117,6 +122,10 @@ model {
   claudeCode -> harness.core.retro '/retro'
   claudeCode -> harness.core.architecture '/architecture, or on cross-service questions'
   claudeCode -> harness.core.testing 'writing, fixing, or reviewing tests; every bug fix'
+  claudeCode -> harness.core.testAudit '/test-audit, or quarterly via /retro'
+  harness.core.testAudit -> harness.core.explorer 'dispatches (batches of commits)'
+  harness.core.testAudit -> project.harnessState 'writes test-audit-<date>.md'
+  harness.core.retro -> harness.core.testAudit 'suggests quarterly' { style { line dashed } }
   harness.core.reviewer -> harness.core.testing 'grades the diff\'s tests against the rubric'
   claudeCode -> harness.core.debugger 'bugs and failing tests'
 

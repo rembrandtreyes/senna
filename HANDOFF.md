@@ -258,6 +258,13 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
 6. **Fix-commit audit** as a skill (or folded into `/retro`): classify the last N fix commits by
    the cheapest layer that would have caught each one and report the pattern. Run it per project
    and quarterly; it's how the questions below get answered with data.
+   **Done 2026-09-26 (core 0.6.0):** `plugins/core/skills/test-audit/SKILL.md` (/test-audit):
+   find fix commits, classify cause + cheapest catching layer + tests at the time, write
+   `.harness/test-audit-<date>.md` with counts, pattern, ranked recommendations, and drafted
+   boundaries.txt rules; compares with the previous audit. /retro suggests it quarterly.
+   Tested headless on a synthetic repo with planted fixes: it dropped the non-bug commits,
+   flagged the mocked-DB bug and the weak dialog fix, and wrote the report.
+   **Phase 3 complete** (lang-py deferred).
 
 ## Decisions and open questions
 - **Enforcement:** checklist first, automate only what keeps getting flagged by hand. Decided:

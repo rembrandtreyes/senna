@@ -17,4 +17,6 @@ Run a short retro on this session.
    - a project-specific fact goes into the project **CLAUDE.md**
 
    Draft the exact change, but ask me before editing CLAUDE.md or anything in the harness repo.
-4. Keep it short. Skip anything that was a one-off.
+4. **Test audit.** If this session fixed a bug, and the newest `.harness/test-audit-*.md` is
+   missing or older than ~3 months, suggest running /test-audit (one line; don't run it).
+5. Keep it short. Skip anything that was a one-off.

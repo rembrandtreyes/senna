@@ -75,6 +75,7 @@ Set `HARNESS_NTFY_TOPIC=<topic>` to get "Claude needs you" alerts on your phone 
 /ship             checks, then reviewer + security-auditor in parallel, fix blockers, PR
 /handoff          before stopping mid-task (auto-loaded next session)
 /retro            capture lessons; anything recurring gets promoted to a skill or hook
+/test-audit       quarterly: classify recent fix commits by the test layer that would have caught them
 ```
 
 ## Adapting to any stack (without forking)
