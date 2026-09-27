@@ -34,7 +34,7 @@ model {
         link ../plugins/lang-ts/hooks/scripts/on-edit.sh 'code'
       }
       onStop = component 'on-stop.sh' {
-        description 'If TS/JS changed: tsc --noEmit per tsconfig; package tests in strict modes'
+        description 'If TS/JS changed: tsc --noEmit per tsconfig; package tests in strict modes; asks once when source changed and no test did'
         technology 'Stop hook'
         link ../plugins/lang-ts/hooks/scripts/on-stop.sh 'code'
       }
@@ -51,7 +51,7 @@ model {
         link ../plugins/lang-go/hooks/scripts/on-edit.sh 'code'
       }
       onStop = component 'on-stop.sh' {
-        description 'If .go changed: go build and go vet per module; go test in strict modes'
+        description 'If .go changed: go build and go vet per module; go test in strict modes; asks once when source changed and no test did'
         technology 'Stop hook'
         link ../plugins/lang-go/hooks/scripts/on-stop.sh 'code'
       }
@@ -68,7 +68,7 @@ model {
         link ../plugins/lang-rust/hooks/scripts/on-edit.sh 'code'
       }
       onStop = component 'on-stop.sh' {
-        description 'If .rs changed: cargo clippy (or cargo check); cargo test in strict modes'
+        description 'If .rs changed: cargo clippy (or cargo check); cargo test in strict modes; asks once when source changed and no test did'
         technology 'Stop hook'
         link ../plugins/lang-rust/hooks/scripts/on-stop.sh 'code'
       }

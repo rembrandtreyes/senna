@@ -9,6 +9,22 @@ changed="$(changed_files ts tsx js jsx mjs cjs mts cts)"
 [ -n "$changed" ] || { stop_passed ts; exit 0; }
 root="$(project_dir)"
 
+# Source changed with no test change: ask once (skipped if the project has no JS/TS tests yet).
+src=""; tst=""
+while IFS= read -r f; do
+  case "$f" in
+    */node_modules/*|*/dist/*|*/.next/*) ;;
+    */__tests__/*|*.test.*|*.spec.*|*/e2e/*|*/tests/*|*/test/*) tst="$tst$f
+" ;;
+    *.d.ts|*.config.*|*.stories.*|*/.*) ;;
+    *) src="$src$f
+" ;;
+  esac
+done <<< "$changed"
+has_tests="$(git -C "$root" ls-files 2>/dev/null | grep -m1 -E '(\.(test|spec)\.[cm]?[jt]sx?$|(^|/)(__tests__|e2e)/)')"
+test_nudge ts "${src%
+}" "$tst" "$has_tests"
+
 if run_override ts-stop; then finish_stop ts; fi
 
 pm_for() {

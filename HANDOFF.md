@@ -248,6 +248,13 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
    - Boundary (per project, `.harness/checks/`): the diff touches a project-defined boundary
      (migrations, queries, AI schemas) and only mocked tests changed → **warn only** until the
      noise level is known. Boundary patterns live in the project, never in the harness.
+   **Done 2026-09-26 (core 0.5.0, lang-* 0.2.0):** `test_nudge` in shared/common.sh, wired into
+   the ts/go/rust Stop hooks: asks once per distinct set of changed source files, in every mode,
+   skipped when the project has no tests yet (`HARNESS_TEST_NUDGE=off`). Rust counts a source
+   file whose diff adds `#[test]` as a test change. `core/hooks/scripts/boundary-check.sh` reads
+   `.harness/checks/boundaries.txt` (`<boundary glob> => <real-dependency test globs>`), warns
+   via `systemMessage`, once per set of boundary files. Tested by piping JSON (go/rust with
+   stubbed toolchains) and once in a headless session. Revisit warn vs. block after real use.
 6. **Fix-commit audit** as a skill (or folded into `/retro`): classify the last N fix commits by
    the cheapest layer that would have caught each one and report the pattern. Run it per project
    and quarterly; it's how the questions below get answered with data.

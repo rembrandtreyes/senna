@@ -32,6 +32,11 @@ model {
         technology 'Notification hook'
         link ../plugins/core/hooks/scripts/notify.sh 'code'
       }
+      boundaryCheck = component 'boundary-check.sh' {
+        description 'Warns (never blocks) when a project-defined boundary changed and no real-dependency test did'
+        technology 'Stop hook'
+        link ../plugins/core/hooks/scripts/boundary-check.sh 'code'
+      }
 
       // Commands and skills
       breakdown = component '/breakdown' {
@@ -100,6 +105,9 @@ model {
   claudeCode -> harness.core.progressLog 'PostToolUse' { style { line dashed } }
   claudeCode -> harness.core.preCompact 'PreCompact'
   claudeCode -> harness.core.notify 'Notification' { style { line dashed } }
+  claudeCode -> harness.core.boundaryCheck 'Stop'
+  harness.core.boundaryCheck -> project.harnessState 'reads checks/boundaries.txt' { style { line dashed } }
+  harness.core.boundaryCheck -> project.workTree 'reads changed files' { style { line dashed } }
 
   // Commands
   claudeCode -> harness.core.breakdown '/breakdown'

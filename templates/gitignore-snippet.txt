@@ -6,6 +6,8 @@
 .harness/current-task
 .harness/.stop-attempts-*
 .harness/.deck-stale-*
+.harness/.test-nudge-*
+.harness/.boundary-warned
 .claude/settings.local.json
 
 # Planning pipeline: deck QA screenshots are regenerated on every /present

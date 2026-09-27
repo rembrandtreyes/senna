@@ -56,7 +56,9 @@ agents. Skill edits apply immediately.
 | `auto` | `HARNESS_MODE=auto claude` | same | + tests, up to 3 retries | same as parallel |
 
 Stop hooks only run for languages whose files actually changed, so a TS-only change never waits
-on `cargo test`. After the retry budget is spent, the harness hands control back to you instead
+on `cargo test`. They also ask once, in every mode, when source files changed and no test did
+(skipped in projects with no tests yet; `HARNESS_TEST_NUDGE=off` turns it off). Claude either
+adds a test or says why none is needed. After the retry budget is spent, the harness hands control back to you instead
 of looping. Tune it with `HARNESS_MAX_STOP_RETRIES`, `HARNESS_GO_TEST_FLAGS=-race`, and
 `HARNESS_CLIPPY_FLAGS="-D warnings"`.
 
@@ -87,7 +89,12 @@ project:
 | `rust-edit.sh <file>` / `rust-stop.sh` | lang-rust hooks |
 
 A non-zero exit means the check failed, and the output goes to Claude. `HARNESS_MODE` is set for
-you. See `templates/harness-checks/ts-stop.sh` for an Nx example. Add project-specific command
+you. See `templates/harness-checks/ts-stop.sh` for an Nx example.
+
+`.harness/checks/boundaries.txt` (not a script) lists the project's boundaries, where mocks
+tend to disagree with reality, each with the tests that hit the real dependency:
+`supabase/migrations/* => tests/integration/*`. When a boundary changes and none of those tests
+did, the core Stop hook warns you (it never blocks). See `templates/harness-checks/boundaries.txt`. Add project-specific command
 bans (one regex per line) in `.harness/blocked-commands.txt`.
 
 For a new language, copy `plugins/lang-template`.

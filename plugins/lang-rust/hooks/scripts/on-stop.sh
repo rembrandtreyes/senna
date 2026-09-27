@@ -9,6 +9,28 @@ has cargo || exit 0
 changed="$(changed_files rs)"
 [ -n "$changed" ] || { stop_passed rust; exit 0; }
 
+# Source changed with no test change: ask once (skipped if the project has no Rust tests yet).
+# A test change is a file under tests/, or a source file whose change adds a #[test].
+src=""; tst=""
+while IFS= read -r f; do
+  case "$f" in
+    */target/*|*/build.rs) continue ;;
+    */tests/*) tst="$tst$f
+"; continue ;;
+  esac
+  if { git -C "$(project_dir)" diff HEAD -- "$f" 2>/dev/null | grep '^+' || cat "$f"; } \
+      | grep -qE '#\[(tokio::)?test'; then
+    tst="$tst$f
+"
+  else
+    src="$src$f
+"
+  fi
+done <<< "$changed"
+has_tests="$(git -C "$(project_dir)" grep -l -E '#\[(tokio::)?test' -- '*.rs' 2>/dev/null | head -n1)"
+test_nudge rust "${src%
+}" "$tst" "$has_tests"
+
 if run_override rust-stop; then finish_stop rust; fi
 
 crates=""

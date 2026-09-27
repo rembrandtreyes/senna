@@ -48,7 +48,8 @@ find_up() {
 }
 
 # changed_files ext1 ext2 ... : absolute paths of modified/untracked files with
-# those extensions. Stop hooks use this to skip languages you didn't touch.
+# those extensions (every changed file when no extension is given). Stop hooks use
+# this to skip languages you didn't touch.
 changed_files() {
   local root top
   root="$(project_dir)"
@@ -57,6 +58,7 @@ changed_files() {
     | sed -E 's/^.{3}//; s/.* -> //; s/^"//; s/"$//' \
     | while IFS= read -r f; do
         [ -e "$top/$f" ] || continue
+        [ $# -eq 0 ] && { printf '%s\n' "$top/$f"; continue; }
         for ext in "$@"; do
           case "$f" in *."$ext") printf '%s\n' "$top/$f"; break ;; esac
         done
@@ -108,6 +110,29 @@ finish_stop() {
   printf 'Harness: %s checks still failing after retries; handing back to you.%s\n' "$key" "$REPORT" \
     | head -n 60 >&2
   exit 1
+}
+
+# test_nudge <key> <sources> <tests> <project-has-tests> : when source files changed and no
+# test file did, add a note to REPORT asking for a test or a one-line reason there's none.
+# Asks once per distinct set of changed source files, so a stated reason isn't re-asked.
+# Skipped when the project has no tests of this kind yet, or with HARNESS_TEST_NUDGE=off.
+test_nudge() {
+  local key="$1" sources="$2" tests="$3" has_tests="$4" f sig list root
+  [ "${HARNESS_TEST_NUDGE:-on}" = off ] && return 0
+  [ -n "$sources" ] && [ -z "$tests" ] && [ -n "$has_tests" ] || return 0
+  f="$(project_dir)/.harness/.test-nudge-$key"
+  sig="$(printf '%s\n' "$sources" | sort | git hash-object --stdin 2>/dev/null)"
+  [ -f "$f" ] && [ "$(cat "$f" 2>/dev/null)" = "$sig" ] && return 0
+  mkdir -p "$(dirname "$f")" 2>/dev/null && echo "$sig" > "$f" 2>/dev/null
+  root="$(git -C "$(project_dir)" rev-parse --show-toplevel 2>/dev/null || project_dir)"
+  list="$(printf '%s\n' "$sources" | sed "s|^$root/||" | head -n 10 | sed 's/^/- /')"
+  REPORT="${REPORT}
+### no test changed (${key})
+Source files changed but no test did:
+${list}
+Add or update a test at the cheapest layer that would catch a regression (see the testing
+skill). If this change needs none (a refactor existing tests already cover, config, copy,
+types only), say why in one line in your final message instead. Asked once per set of files."
 }
 
 # run_override <name> [args...] : if the project ships .harness/checks/<name>.sh,

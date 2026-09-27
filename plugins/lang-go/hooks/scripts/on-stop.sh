@@ -9,6 +9,21 @@ has go || exit 0
 changed="$(changed_files go)"
 [ -n "$changed" ] || { stop_passed go; exit 0; }
 
+# Source changed with no test change: ask once (skipped if the project has no Go tests yet).
+src=""; tst=""
+while IFS= read -r f; do
+  case "$f" in
+    */vendor/*|*.pb.go|*_gen.go) ;;
+    *_test.go) tst="$tst$f
+" ;;
+    *) src="$src$f
+" ;;
+  esac
+done <<< "$changed"
+has_tests="$(git -C "$(project_dir)" ls-files '*_test.go' 2>/dev/null | head -n1)"
+test_nudge go "${src%
+}" "$tst" "$has_tests"
+
 if run_override go-stop; then finish_stop go; fi
 
 mods=""

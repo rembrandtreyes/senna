@@ -5,6 +5,9 @@ source "$(dirname "$0")/common.sh"
 changed="$(changed_files EXT)"          # TODO: extensions, e.g. py pyi
 [ -n "$changed" ] || { stop_passed LANG; exit 0; }
 
+# TODO: split $changed into source and test files, then ask once for a missing test:
+# test_nudge LANG "$src" "$tst" "$(git -C "$(project_dir)" ls-files 'test_*.py' | head -n1)"
+
 if run_override LANG-stop; then finish_stop LANG; fi
 
 root="$(project_dir)"

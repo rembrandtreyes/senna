@@ -1,6 +1,6 @@
 {
   "name": "ops",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Security audit agent, Sentry triage, cross-language API contracts.",
   "author": {
     "name": "YOUR_NAME"
