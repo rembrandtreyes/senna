@@ -40,7 +40,8 @@ For each commit record:
 - **Confidence:** high, or low with the one fact that would settle it.
 
 ## 3. Report
-Write `.harness/test-audit-<YYYY-MM-DD>.md` (commit it; the next audit compares against it):
+Write `.harness/test-audit-<YYYY-MM-DD>.md`. Don't commit it or create a branch: tell the user
+it's meant to be committed, since the next audit compares against it. It holds:
 1. **Table:** sha, date, subject, cause, cheapest layer, tests at the time, fix's test,
    confidence.
 2. **Counts** by cause and by cheapest layer. Call out the share of bugs that had passing tests.
@@ -54,5 +55,5 @@ Write `.harness/test-audit-<YYYY-MM-DD>.md` (commit it; the next audit compares 
 6. **Since last audit:** if an earlier `.harness/test-audit-*.md` exists, what moved.
 
 Then give the user the summary and ask before writing `boundaries.txt`, changing a lang skill,
-or creating tasks for the recommendations. A lesson that applies beyond this project (a stack
+creating tasks for the recommendations, or touching git. A lesson that applies beyond this project (a stack
 pattern) is a /retro promotion candidate for the harness.
