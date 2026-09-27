@@ -69,6 +69,11 @@ model {
         technology 'skill'
         link ../plugins/core/skills/architecture/SKILL.md 'code'
       }
+      testing = component 'testing skill' {
+        description 'Rubric for what to test, at which layer, and what verifies each mock'
+        technology 'skill'
+        link ../plugins/core/skills/testing/SKILL.md 'code'
+      }
 
       // Subagents
       explorer = component 'explorer' {
@@ -103,6 +108,7 @@ model {
   claudeCode -> harness.core.handoff '/handoff'
   claudeCode -> harness.core.retro '/retro'
   claudeCode -> harness.core.architecture '/architecture, or on cross-service questions'
+  claudeCode -> harness.core.testing 'writing, fixing, or reviewing tests; every bug fix'
   claudeCode -> harness.core.debugger 'bugs and failing tests'
 
   // State

@@ -230,9 +230,11 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
    layout; query by role; MSW at the network boundary). Fold into Phase 1 step 4's skill review.
    Python needs a `lang-py` plugin from `lang-template` first.
    **Done 2026-09-26 (lang-* 0.1.2)** for react-next, expo, go, rust, and the template's hint.
-   `lang-py` not built yet.
+   `lang-py` skipped for now (the owner mostly writes React/TS); build it when Python work starts.
 3. **`testing` skill in `core`** carrying the rubric above. Pushy description: triggers when
    writing, fixing, or reviewing tests, and on any bug fix.
+   **Done 2026-09-26 (core 0.4.0):** `plugins/core/skills/testing/SKILL.md` (rubric, layer ladder,
+   bug-fix and flaky-test rules, review output); in architecture/core.c4.
 4. **Testing lens on `core/agents/reviewer.md`**: check the diff's tests against the rubric,
    especially question 6. Split into its own agent only if the lens outgrows the reviewer. This
    pairs with Phase 2 step 10 (reviewer fails tasks whose tests don't reference requirement IDs).
