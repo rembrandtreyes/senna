@@ -14,7 +14,7 @@ this review needs.
 Goals map to PRD requirement IDs. Non-goals are prominent here, not buried.
 
 ### Requirement coverage
-| Req | Design section | Test(s) | Milestone |
+| Req | Design section | Test(s): layer and what it checks | Milestone |
 |---|---|---|---|
 | R-1 | | | |
 
@@ -55,8 +55,16 @@ Threat model: assets, entry points, trust boundaries, and the mitigations for ea
 ## Observability
 Metrics, logs, traces, dashboards, and alerts (with thresholds and who gets paged).
 
-## Test plan
-Unit, integration, contract, load, and failure-injection tests. Map tests to requirement IDs.
+## Test strategy
+Each requirement's test and its layer are in Requirement coverage ("integration: retries after a
+500"). Pick the cheapest layer that would catch the bug: static (types, schema) < unit <
+component < integration (real dependency) < contract < E2E. Here, only:
+- **Riskiest boundary:** where this feature's bugs will come from (a database schema or access
+  policy, a third-party API, a runtime) and what checks it against the real thing, not a mock:
+  an integration test on a real dependency, a contract test, or a static type check.
+- **Mocks:** each one that could disagree with reality, and what verifies it.
+- **E2E:** the critical journeys that get one, or "none" and why. Load and failure-injection
+  tests only where Performance or a flow's failure table calls for them.
 
 ## Rollout and rollback
 Stages with gates to advance and a rollback method for each. Feature flags named.

@@ -74,6 +74,9 @@ agents (`/breakdown`, reviewers, the deck narrator) read it whole, so shorter is
   something; fix the design, don't leave the row blank.
 - Cite R-IDs inline in the sections that satisfy them (`Satisfies R-3, R-5.`).
 - Every flow in Key flows lists its failure paths.
+- Test strategy: each coverage row's test names its layer, the cheapest that would catch the
+  failure. Name the riskiest boundary and how it's checked against the real thing; a mock of a
+  database or third-party API needs something that verifies it.
 - Milestones are ordered, each independently shippable, each listing the R-IDs it delivers.
   `/breakdown` turns each milestone into tasks later.
 - In spec-lite, these sections may say "N/A because <reason>": Data model and migrations, APIs and

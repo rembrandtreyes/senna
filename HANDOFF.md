@@ -222,6 +222,9 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
    requirement, which critical journeys (if any) get E2E. *Can be pulled into Phase 2 while the
    spec skill is being built.* The `route` skill sets the default depth: bug → regression test at
    the cheapest catching layer; feature → test strategy in the spec.
+   **Done 2026-09-26 (plan 0.11.0, core 0.3.1):** template "Test strategy" replaces "Test plan"
+   (layer per coverage row, riskiest boundary, mocks and what verifies them, E2E journeys);
+   spec-critic item 13; route and debugger say "regression test at the cheapest catching layer".
 2. **Per-language toolkit** in the existing lang skills (`react-next`, `go`, `rust`), only the
    non-default parts (for example: Browser Mode for anything layout-dependent, since jsdom has no
    layout; query by role; MSW at the network boundary). Fold into Phase 1 step 4's skill review.

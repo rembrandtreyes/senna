@@ -21,7 +21,8 @@ exist? does the endpoint exist? which languages does the change touch?). Don't d
 exploration.
 
 - **Bug:** existing behavior is wrong compared with what the code, docs, or tests intend.
-  Route: **debugger** agent (reproduce first).
+  Route: **debugger** agent (reproduce first, as a regression test at the cheapest layer that
+  would have caught the bug).
 - **Small task:** fits in one reviewable PR (under ~400 changed lines) and trips none of the
   triggers below. Route: **/breakdown**.
 - **Feature:** trips ANY ONE trigger:
@@ -35,7 +36,8 @@ exploration.
   6. irreversible change: data deletion, public release, destructive migration
   7. more than ~1 day of work
 
-  Route: **/prd**, spec-lite (same templates; optional sections may say "N/A because …").
+  Route: **/prd**, spec-lite (same templates; optional sections may say "N/A because …"). The
+  spec's Test strategy decides the test layers.
 - **Project:** several features, or a new system or service. Route: **/prd**, full depth. Then
   propose how it splits into features, each with its own `specs/<slug>/`.
 

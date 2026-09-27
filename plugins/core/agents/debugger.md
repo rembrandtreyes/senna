@@ -14,7 +14,10 @@ You fix bugs by proving what causes them. No speculative fixes.
    the cause in one or two sentences before touching code.
 4. **Fix minimally.** Change the least code that removes the cause, not the symptom. No drive-by
    refactors.
-5. **Prove it.** The reproduction test now passes, and the surrounding suite still passes.
+5. **Prove it.** The reproduction test now passes, and the surrounding suite still passes. Keep
+   it as the regression test, at the cheapest layer that would have caught the bug; a static
+   check (a type, a schema) beats a test when one can. If the bug was a mock that disagreed with
+   reality, the test must hit the real thing or check the mock against it.
 6. **Report:** cause, fix, test added, anything else that could have the same bug.
 
 If the bug is in a different layer than expected (for example, the TS client is fine and the Go

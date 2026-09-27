@@ -11,7 +11,7 @@
       "name": "core",
       "source": "./plugins/core",
       "description": "Language-agnostic harness: session context, guardrails, handoffs, retro loop, core agents and workflow commands.",
-      "version": "0.3.0"
+      "version": "0.3.1"
     },
     {
       "name": "lang-ts",
@@ -41,7 +41,7 @@
       "name": "plan",
       "source": "./plugins/plan",
       "description": "Planning pipeline: intake router, /prd, /spec, reviewer lenses, /present review decks, /feedback ledger, with requirement IDs traced into build tasks.",
-      "version": "0.10.0"
+      "version": "0.11.0"
     }
   ]
 }

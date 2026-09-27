@@ -44,6 +44,13 @@ and contracts, Performance and scale, Fallback plan, Cost. A bare "N/A" or "TBD"
     doesn't restate the PRD or repeat ADR reasoning. When it's over budget, name the sections to
     cut and what to move to an ADR or leave to the implementer.
 
+13. **Test strategy.** Every Test(s) cell in Requirement coverage names a layer, and it's the
+    cheapest one that would catch the failure: flag E2E where an integration or unit test
+    would do, and a unit test with mocks where the risk is the boundary itself. The riskiest
+    boundary is named with a check against the real thing; every mock that could disagree with
+    reality (database schema or policies, a third-party API's rules) names what verifies it.
+    E2E covers critical journeys only, or says "none" with a reason.
+
 ## Output
 ```
 VERDICT: PASS | FAIL
