@@ -14,7 +14,7 @@ Built in the order listed in HANDOFF.md (Phase 2). Components land here as they 
 | `/design-review`, architecture / sre / product reviewers | skill, agents | 5 ✓ |
 | `/present`, deck-narrator, deck-diagrammer, visual-qa, renderer | skill, agents, scripts | 6 ✓, 7 ✓ |
 | `scripts/model.mjs`: LikeC4 proposal → Mermaid flows in spec.md, deck diagram | script | 8 ✓ |
-| `/publish`, adapters (`artifact`, `static`, `vercel`) | skill, docs | 9 ✓ |
+| `/publish`, adapters (`artifact`, `static`; `vercel` on request, untested) | skill, docs | 9 ✓ |
 | `/feedback`, `scripts/feedback.mjs` | skill, script | 9 ✓ |
 | deck staleness hook | hook | 10 |
 

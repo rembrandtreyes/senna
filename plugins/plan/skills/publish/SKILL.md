@@ -1,7 +1,7 @@
 ---
 name: publish
-description: Publish a spec's review deck (specs/<slug>/deck/index.html) to reviewers through an adapter - artifact (claude.ai, feedback in the deck), static (committed file, feedback through the PR), or vercel (preview deployment, Toolbar comments). Use after /present builds a clean deck, when the user asks to share, send out, or publish a deck or spec for review, or to republish after a revision.
-argument-hint: <slug> [artifact | static | vercel]
+description: Publish a spec's review deck (specs/<slug>/deck/index.html) to reviewers through an adapter - artifact (claude.ai, feedback in the deck) or static (committed file, feedback through the PR); vercel (preview deployment, Toolbar comments) only when asked for by name. Use after /present builds a clean deck, when the user asks to share, send out, or publish a deck or spec for review, or to republish after a revision.
+argument-hint: <slug> [artifact | static]
 ---
 
 # /publish
@@ -23,7 +23,8 @@ same place, so reviewers keep their link and their feedback), else ask:
   claude.ai organization): feedback, decisions, and comments live in the deck.
 - **static** (works everywhere): the file is committed with the spec and feedback comes through
   the PR.
-- **vercel**: when reviewers already review Vercel previews.
+Don't offer **vercel**: use it only when the user names it. It needs reviewers in a paid Vercel
+team, and the adapter hasn't been tested against a real account yet.
 Check the adapter's "Available when" line before using it; if it fails, say why and offer static.
 
 ## 2. Publish

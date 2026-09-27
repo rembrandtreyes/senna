@@ -4,8 +4,10 @@ The deck is deployed as a Vercel preview. Reviewers comment on any element with 
 they need access to the owner's Vercel team. Best at a company that already reviews previews on
 Vercel.
 
-**Status: written from Vercel's docs (`vercel comments` is in beta), not yet tested against a real
-account.** Check each command's output the first time and fix this file if it differs.
+**Optional, used only when the user names it** (/publish doesn't offer it): Toolbar comments need
+reviewers in the owner's Vercel team, which is only practical on a paid plan. **Status: written
+from Vercel's docs (`vercel comments` is in beta) and checked against CLI 60.1.3's help, but not
+yet run against a real account.** Check each command's output the first time and fix this file if it differs.
 
 **Available when** `vercel --version` works and `vercel whoami` is logged in. Otherwise offer
 `static`.
@@ -24,7 +26,8 @@ can be filtered by it.
 
 ## Collect
 In the staging dir:
-`vercel comments list --json --status all --all-branches --page "/<slug>/*" --limit 100`, and again
+`vercel comments list --json --status all --all-branches --page-path "/<slug>/*" --limit 100`
+(`--page-path` in CLI 60.1.3; the docs call it `--page`), and again
 with `--next <pagination.nextCursor>` until there's no cursor. For each thread you need the full
 text: `vercel comments inspect <id> --json`.
 Records: `ref` = thread id, `source: "vercel comment"`, the author's name, the page path and
