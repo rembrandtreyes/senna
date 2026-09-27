@@ -34,8 +34,13 @@ and contracts, Performance and scale, Fallback plan, Cost. A bare "N/A" or "TBD"
     semantics, an unknown owner, or a security boundary. Implementation choices an engineer
     normally makes (query shape, indexes, function structure, naming) don't fail. The spec
     should leave them to the engineer.
-11. **Concise.** The spec is at most ~300 lines (spec-lite) or ~600 (project). It has no DDL,
-    SQL, or pseudo-code, and no code blocks except example payloads of about 15 lines or less. It
+11. **Model** (only if `specs/<slug>/model/` exists). `npx likec4 validate specs/<slug>/model`
+    passes; every Key flows subsection has a `<!-- flow:<id> -->` marker with a generated
+    Mermaid block; every component the spec says it adds is tagged `#new` in the model, and
+    every one it retires is tagged `#removed`.
+12. **Concise.** The spec is at most ~300 lines (spec-lite) or ~600 (project). It has no DDL,
+    SQL, or pseudo-code, and no code blocks except example payloads of about 15 lines or less and
+    the generated Mermaid blocks (which don't count toward the budget). It
     doesn't restate the PRD or repeat ADR reasoning. When it's over budget, name the sections to
     cut and what to move to an ADR or leave to the implementer.
 

@@ -131,7 +131,13 @@ routing rules, stage gates, artifact layout, and verified facts about claude.ai 
    dependency), `architecture` skill in core, SessionStart mentions it. 8a done: skill + senna's
    own model (bootstrapped by the skill). 8b: derive deck diagrams and flows from the model
    (keeping a grid placement file for layout), Mermaid sequence diagrams into spec.md, and
-   spec proposals as `specs/<slug>/model/*.c4`.
+   spec proposals as `specs/<slug>/model/*.c4`. 8b done: `plan/scripts/model.mjs` (`flows`,
+   `deck`, `views`); /spec writes the proposal (include + extend, `#new`/`#removed`, dynamic
+   views with `(R-n)` step titles and `notes`), spec-critic item 11 checks it, the diagrammer
+   writes `layout.json`, the deck shows removed nodes, edge tooltips, the hop in each step
+   header, and dims what a flow doesn't touch. Tested on the outbound-webhooks spec. Edge labels
+   drawn on the diagram collided with nodes on the grid, so they are tooltips instead.
+   Not built: embedding LikeC4's interactive views in the deck.
 9. **Publish and feedback adapters:** `artifact`, `vercel`, `static`. Then **`/feedback`**
    normalizes every source into `feedback.md`.
 10. **Wire the build step:** `/breakdown` reads spec milestones and carries requirement IDs into
@@ -164,3 +170,71 @@ Findings that change the build:
 - **Unverified:** whether these tools exist when Claude Code runs on API-key auth (typical at a
   company) instead of a claude.ai login. `/present` and `/feedback` must detect a missing
   `Artifact` tool and fall back to `static`.
+
+---
+
+# Phase 3: testing rubric and enforcement (start after Phase 2)
+
+Designed in a Claude Code session on 2026-09-24/25. Goal: make "are we testing the right things?"
+answerable per change, and enforce the parts that are mechanical.
+
+## Evidence it's built on
+- **Principles:** Kent Beck's Test Desiderata (trade properties off, never give one up for
+  nothing); Google's "test behavior, not implementation" and hermetic test sizes; Testing
+  Library's "tests should resemble how the software is used." The trophy/pyramid/honeycomb shape
+  debate is settled as "aim tests where your bugs actually come from."
+- **Tooling (2026):** Vitest + Vitest Browser Mode (stable since Vitest 4) + MSW + Playwright for
+  critical journeys; Go stdlib testing (table-driven, `cmp.Diff`, native fuzzing) + testcontainers;
+  Rust nextest + proptest + insta; Python pytest + Hypothesis + testcontainers.
+- **Owner's own data (timbre, 40 most recent fix commits):** roughly a third of real bugs were
+  mocks that disagreed with reality (Postgres schema/RLS, the Anthropic structured-output API),
+  and every one of them had passing mocked tests. About 6 were pure logic, 5 component, 5 runtime
+  (edge/`after()`), and only 3 truly needed E2E. The best fixes moved the check down to static
+  types (a column list that `satisfies` the generated DB types). Conclusion: a real-dependency
+  integration layer beats mutation testing or more E2E, *for that project*. Rerun the audit
+  (step 6) per project before generalizing.
+
+## The rubric (what the skill carries)
+For each test in a change:
+1. What user-visible behavior or contract does it protect?
+2. Would it survive a refactor that keeps that behavior?
+3. Would it fail if that behavior broke?
+4. Is it deterministic and hermetic?
+5. Does its failure message say what broke?
+6. **Does it mock something that could disagree with reality? If so, what verifies the mock?**
+
+Plus: test at the cheapest layer that catches the bug, and prefer a static check when one exists.
+
+## Build order
+1. **Spec template "Test strategy" section** (`plugins/plan/skills/spec/template.md`) and a
+   matching `spec-critic` checklist item: riskiest boundary, cheapest layer that proves each
+   requirement, which critical journeys (if any) get E2E. *Can be pulled into Phase 2 while the
+   spec skill is being built.* The `route` skill sets the default depth: bug → regression test at
+   the cheapest catching layer; feature → test strategy in the spec.
+2. **Per-language toolkit** in the existing lang skills (`react-next`, `go`, `rust`), only the
+   non-default parts (for example: Browser Mode for anything layout-dependent, since jsdom has no
+   layout; query by role; MSW at the network boundary). Fold into Phase 1 step 4's skill review.
+   Python needs a `lang-py` plugin from `lang-template` first.
+3. **`testing` skill in `core`** carrying the rubric above. Pushy description: triggers when
+   writing, fixing, or reviewing tests, and on any bug fix.
+4. **Testing lens on `core/agents/reviewer.md`**: check the diff's tests against the rubric,
+   especially question 6. Split into its own agent only if the lens outgrows the reviewer. This
+   pairs with Phase 2 step 10 (reviewer fails tasks whose tests don't reference requirement IDs).
+5. **Stop-hook checks**, gated on `changed_files`:
+   - Generic (lang plugins): source changed but no test files changed → block once in
+     interactive mode, like the existing checks.
+   - Boundary (per project, `.harness/checks/`): the diff touches a project-defined boundary
+     (migrations, queries, AI schemas) and only mocked tests changed → **warn only** until the
+     noise level is known. Boundary patterns live in the project, never in the harness.
+6. **Fix-commit audit** as a skill (or folded into `/retro`): classify the last N fix commits by
+   the cheapest layer that would have caught each one and report the pattern. Run it per project
+   and quarterly; it's how the questions below get answered with data.
+
+## Decisions and open questions
+- **Enforcement:** checklist first, automate only what keeps getting flagged by hand. Decided:
+  rubric skill + reviewer lens + warn-only boundary check, as above.
+- **Mutation testing:** not a default. Decide per project with a one-module experiment (Stryker,
+  mutmut, cargo-mutants): run time vs. how many surviving mutants are real gaps. If adopted, run
+  on changed files or nightly, never in an edit hook.
+- **E2E scope:** budget it (critical journeys only). The first win in timbre is running the
+  existing Playwright specs in CI, not writing new ones.

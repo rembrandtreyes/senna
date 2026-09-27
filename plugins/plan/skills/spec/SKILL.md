@@ -8,8 +8,9 @@ argument-hint: <slug>
 
 Input: $ARGUMENTS (a slug under `specs/`; if missing, use the only one, or ask).
 
-Files in this skill's directory: `template.md` (the spec) and `adr-template.md`. Output goes to
-`specs/<slug>/spec.md` and `specs/<slug>/adr/NNN-<decision>.md`. If `spec.md` already exists,
+Files in this skill's directory: `template.md` (the spec), `adr-template.md`, and
+`model-template.c4`. Output goes to `specs/<slug>/spec.md`, `specs/<slug>/adr/NNN-<decision>.md`,
+and `specs/<slug>/model/` (the proposal as LikeC4). If `spec.md` already exists,
 you are **revising**: see the end of this file.
 
 ## 0. Preconditions
@@ -19,7 +20,8 @@ you are **revising**: see the end of this file.
   with a recommendation, as in /prd). Carry the rest into the spec's Open questions.
 
 ## 1. Map the current system
-Dispatch the **explorer** agent (several in parallel if the feature spans areas). You need the
+If the repo has `architecture/` (see the core plugin's architecture skill), read it first and
+give it to the explorers, so they only need to check it and fill gaps. Dispatch the **explorer** agent (several in parallel if the feature spans areas). You need the
 components, data, and flows this feature touches, with file:line, for the Background section and
 for the designers. Designers get this map; they shouldn't each re-explore.
 
@@ -78,6 +80,28 @@ agents (`/breakdown`, reviewers, the deck narrator) read it whole, so shorter is
   contracts, Performance and scale, Fallback plan, Cost. No other section may.
 - If the ops plugin's api-contracts skill is available, use it for the contract section.
 
+### The proposal model (`specs/<slug>/model/`)
+The architecture and the key flows are written once, as LikeC4, and the spec's sequence diagrams
+and the deck's diagram are generated from it. Needs `likec4` as a dev dependency. If the repo has
+no `architecture/`, offer to bootstrap it first (architecture skill, `init`). If the user declines
+LikeC4 entirely, skip this section: the spec gets a component table, and /present falls back to a
+hand-placed diagram.
+- `likec4.config.json`: `{"name": "<slug>", "include": {"paths": ["../../../architecture"]},
+  "styles": {"defaults": {"relationship": {"line": "solid"}}}}`. Without `architecture/`, drop
+  `include` and model the parts of today's system the feature touches in the proposal itself.
+- `proposal.c4`, from `model-template.c4`: only the delta. New elements go inside `extend <parent>`
+  blocks tagged `#new`; new relationships are tagged `#new`. To remove something, tag it:
+  `extend <element> { #removed }`, or repeat an existing relationship with `#removed`. Declare
+  the `new` and `removed` tags in `architecture/spec.c4` if they aren't there.
+- One `dynamic view` per key flow, failure flows included. Step titles are short diagram labels
+  (≤ ~8 words) ending with the R-IDs they serve, e.g. `'POST signed event (R-2)'`. Add
+  `notes '<one sentence, ≤ 25 words>'` on a step when a reviewer needs the why; the deck shows it.
+- `npx likec4 validate specs/<slug>/model` until clean.
+- In spec.md, put `<!-- flow:<viewId> -->` under each Key flows subsection and run
+  `node ${CLAUDE_PLUGIN_ROOT}/scripts/model.mjs flows specs/<slug>`. It writes a Mermaid sequence
+  diagram between the markers (GitHub renders it) and warns about views without a marker. Re-run
+  it after every model change; never edit the generated block by hand.
+
 ## 4. ADRs
 Write `adr/001-<core-design>.md` for the design-round decision, from `adr-template.md`. Add one
 more ADR per decision that is expensive to reverse or that a reviewer is likely to question
@@ -95,4 +119,11 @@ two sentences, milestones with their R-IDs, open questions), and suggest `/prese
 Bump `Version`, add a dated changelog entry that summarizes what changed and why and cites the
 feedback IDs from `feedback.md` (for example, `F-7`). If a change reverses an ADR, set that ADR to
 `Superseded by NNN` and write the new one; never edit an accepted ADR's decision. Update the
-coverage table, re-run the critic, and tell the user the deck is stale until `/present` runs.
+coverage table and the model (then re-run `model.mjs flows`), re-run the critic, and tell the
+user the deck is stale until `/present` runs.
+
+## After it ships
+When the feature is implemented, fold `model/proposal.c4` into `architecture/` in the same change
+(architecture skill, `update`): move new elements into place without the `#new` tag, delete
+`#removed` elements and relationships, keep the dynamic views that still describe the system, and
+validate. Then delete `specs/<slug>/model/`, or keep it as a record with the include removed.

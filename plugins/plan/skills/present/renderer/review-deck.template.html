@@ -123,6 +123,8 @@ section.slide[hidden] { display: none; }
 .diagram .edge.ghost { stroke-dasharray: 2 6; opacity: .0; }
 .diagram.mode-before .after-only { opacity: 0; }
 .diagram.mode-before .node.new { opacity: 0; transform: scale(.88); }
+.diagram .node.removed rect { stroke-dasharray: 4 3; }
+.diagram.mode-after .node.removed { opacity: 0; transform: scale(.88); }
 .diagram.mode-after .before-only { opacity: 0; }
 .diagram .node.active rect { stroke-width: 2; }
 .diagram .node.active.t-allow rect { stroke: var(--allow); }
@@ -136,10 +138,11 @@ section.slide[hidden] { display: none; }
 .diagram .packet.t-allow { fill: var(--allow); }
 .diagram .packet.t-throttle { fill: var(--throttle); }
 .diagram .packet.t-reject { fill: var(--reject); }
-.diagram .dimmed { opacity: .35; }
+.diagram .dimmed { opacity: .3; }
 .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--ink-2); margin: 0 0 8px; }
 .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; border: 1px solid var(--line-2); background: var(--node); }
 .legend i.new { background: var(--accent-soft); border-color: var(--accent); }
+.legend i.removed { border-style: dashed; }
 
 .seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: 9px; padding: 3px; background: var(--surface); gap: 2px; flex-wrap: wrap; }
 .seg button { border: 0; background: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; color: var(--ink-2); }
@@ -376,7 +379,7 @@ function diagramSVG(idPrefix) {
   const edges = d.edges.map(e => {
     const cls = ["edge", e.dashed ? "dashed" : "", e.ghost ? "ghost" : "", e.mode === "before" ? "before-only" : e.mode === "after" ? "after-only" : ""].join(" ");
     const marker = e.ghost || e.dashed ? "" : ` marker-end="url(#${idPrefix}-arrow)"`;
-    return `<path id="${idPrefix}-${e.id}" class="${cls}" d="${e.d}"${marker}/>`;
+    return `<path id="${idPrefix}-${e.id}" class="${cls}" d="${e.d}"${marker}>${e.label ? `<title>${esc(e.label)}</title>` : ""}</path>`;
   }).join("");
   const nodes = d.nodes.map(n => {
     const h = 54, x = n.x - n.w / 2, y = n.y - h / 2;
@@ -433,7 +436,7 @@ const R = {
       <div class="section-actions"><div class="seg" role="group" aria-label="Architecture view">
         <button data-arch="before" aria-pressed="false">Today</button><button data-arch="after" aria-pressed="true">Proposed</button></div></div>
       <div class="diagram-wrap">${diagramSVG("arch")}</div><p class="scroll-hint">Swipe sideways to see the whole diagram.</p>
-      <div class="legend"><span><i></i>Existing</span><span><i class="new"></i>New in this spec</span></div>
+      <div class="legend"><span><i></i>Existing</span><span><i class="new"></i>New in this spec</span>${DATA.diagram.nodes.some(n => n.kind === "removed") ? `<span><i class="removed"></i>Removed by this spec</span>` : ""}</div>
       <p class="arch-note" id="arch-note" aria-live="polite">${esc(DATA.architecture.after)}</p>`;
   },
   flows() {
@@ -590,8 +593,17 @@ function setStep(i, animate) {
   const sc = scenario(); const steps = sc.steps;
   state.step = Math.max(-1, Math.min(steps.length - 1, i));
   const svg = $("#s-flows svg");
-  svg.querySelectorAll(".edge").forEach(e => e.classList.remove("lit", "t-allow", "t-throttle", "t-reject"));
-  svg.querySelectorAll(".node").forEach(n => n.classList.remove("active", "t-allow", "t-throttle", "t-reject", "dimmed"));
+  // Dim what this flow never touches, so the path stands out.
+  const touchedEdges = new Set(steps.map(st => st.path));
+  const touchedNodes = new Set([...touchedEdges].flatMap(edgeNodes));
+  svg.querySelectorAll(".edge").forEach(e => {
+    e.classList.remove("lit", "t-allow", "t-throttle", "t-reject");
+    e.classList.toggle("dimmed", !touchedEdges.has(e.id.slice("flow-".length)));
+  });
+  svg.querySelectorAll(".node").forEach(n => {
+    n.classList.remove("active", "t-allow", "t-throttle", "t-reject");
+    n.classList.toggle("dimmed", !touchedNodes.has(n.dataset.node));
+  });
   const pk = $("#flow-packet");
   if (anim) { cancelAnimationFrame(anim); anim = null; }
   $("#f-progress").innerHTML = steps.map((_, j) => `<i class="${j <= state.step ? "done" : ""}"></i>`).join("");
@@ -610,7 +622,9 @@ function setStep(i, animate) {
   const edge = $(`#flow-${st.path}`);
   edge.classList.add("lit", "t-" + tone);
   edgeNodes(st.path).forEach(n => { const el = $(`#flow-n-${n}`); el.classList.add("active", "t-" + tone); });
-  $("#stepno").textContent = `Step ${state.step + 1} of ${steps.length}` + (st.ref ? `, ${st.ref}` : "");
+  // Header: step count, the hop (sender to receiver), and the requirement it serves.
+  const [n1, n2] = edgeNodes(st.path).map(id => (DATA.diagram.nodes.find(n => n.id === id) || { label: id }).label);
+  $("#stepno").textContent = `Step ${state.step + 1} of ${steps.length}: ${st.reverse ? n2 : n1} → ${st.reverse ? n1 : n2}` + (st.ref ? `, ${st.ref}` : "");
   $("#narr").textContent = st.text;
   setState(st);
   pk.setAttribute("class", "packet t-" + tone);

@@ -33,8 +33,11 @@ specs/<slug>/
   prd.md            requirements with IDs (R-1…), metrics, non-goals
   spec.md           tech spec, versioned, dated changelog at the bottom
   adr/NNN-*.md      one per significant decision
-  model/*.c4        LikeC4 architecture model (source of truth for diagrams)
-  deck/narrative.json, diagram.src.json   agent-written sources (build.mjs merges them)
+  model/            LikeC4 proposal: includes architecture/, adds #new / #removed elements and a
+                    dynamic view per key flow (source of truth for spec and deck diagrams)
+  deck/narrative.json   agent-written story
+  deck/layout.json      grid cells + scenario choices (diagrammer); model.mjs derives
+  deck/diagram.src.json from it, or the diagrammer writes it directly when there's no model
   deck/deck.json    presentation data (schema: plugins/plan/skills/present/renderer/deck.schema.json)
   feedback.md       ledger: every comment gets a status and resolution
 ```
@@ -59,8 +62,13 @@ implementation diverges from the spec, update the spec (living doc) in the same 
 ## Presentation layer
 - **Claude writes data, not animations.** Agents produce `deck.json` plus diagram models; one fixed
   renderer produces the HTML: `plugins/plan/skills/present/renderer/`.
-- **Agents in /present:** narrative (spec → deck.json story), diagram (LikeC4 model + dynamic
-  views for flows), renderer (script, no LLM), visual QA (Playwright screenshots in light/dark,
+- **Diagrams come from the model.** `plugins/plan/scripts/model.mjs` exports the LikeC4 proposal:
+  `flows` writes a Mermaid sequence diagram per dynamic view into spec.md (between
+  `<!-- flow:<id> -->` markers), `deck` turns the model plus `layout.json` into the deck diagram
+  (nodes, new/removed, edges, labels, scenario steps with R-IDs). Layout stays a hand-picked grid:
+  automatic layouts lost the architectural intent in the step 8 comparison.
+- **Agents in /present:** narrative (spec → deck.json story), diagram (grid placement of model
+  elements, scenario tones), renderer (script, no LLM), visual QA (Playwright screenshots in light/dark,
   desktop/mobile; fix overflow, contrast, density), publisher (adapter).
 - **Publish adapters:** `artifact` (claude.ai: comments, db, user identity; best while solo or at a
   company on Claude Team/Enterprise), `vercel` (preview deploy; Vercel Toolbar comments, reviewers

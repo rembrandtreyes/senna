@@ -126,7 +126,8 @@
               "kind": {
                 "enum": [
                   "existing",
-                  "new"
+                  "new",
+                  "removed"
                 ]
               },
               "id": {
@@ -169,6 +170,10 @@
               },
               "to": {
                 "type": "string"
+              },
+              "label": {
+                "type": "string",
+                "description": "what flows over the edge (from the model's relationship title)"
               }
             }
           }

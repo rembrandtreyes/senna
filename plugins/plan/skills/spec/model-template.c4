@@ -1,0 +1,28 @@
+// Proposal for specs/<slug>: only what this spec adds, removes, or rewires.
+// Validate: npx likec4 validate specs/<slug>/model
+model {
+  extend shop {                        // an existing system or service from architecture/
+    dispatcher = service 'Dispatcher' {
+      #new
+      technology 'Go worker'
+      description 'Signs and delivers webhook events with retries'
+    }
+  }
+  extend shop.poller {                 // an existing element this spec retires
+    #removed
+  }
+  shop.api -> shop.dispatcher 'enqueue event' { #new }
+  shop.dispatcher -> partner 'POST signed event' { #new }
+  customer -> shop.poller 'polls for events' { #removed }   // repeats an existing relationship
+}
+views {
+  view proposal of shop { include *, partner, customer }
+  dynamic view deliver {
+    title 'Event delivered'
+    shop.api -> shop.dispatcher 'enqueue event (R-1)'
+    shop.dispatcher -> partner 'POST signed event (R-2)' {
+      notes 'Signed with the endpoint secret so the receiver can reject forgeries.'
+    }
+    partner -> shop.dispatcher '200 OK'
+  }
+}

@@ -32,4 +32,7 @@ Known limitations:
 - Scenario tones are `allow` / `throttle` / `reject`; deck-diagrammer maps them to success /
   degraded / failed.
 - A selected risk card sticks out ~10px on the right at some widths.
-- Diagram layout is a simple grid; LikeC4 may replace it (step 8).
+- Diagram layout is a hand-picked grid. With a LikeC4 proposal model, `../../scripts/model.mjs deck`
+  writes `diagram.src.json` from the model plus `deck/layout.json`; only placement is hand-picked.
+- Edge labels are hover tooltips, not drawn: the grid's gaps are too short for text. Each flow
+  step's header names the hop instead.

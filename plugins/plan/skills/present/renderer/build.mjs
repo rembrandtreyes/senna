@@ -78,6 +78,7 @@ function layout(src) {
       d = a.col === b.col && ax === bx ? `M${ax} ${sy} L${bx} ${ey}` : `M${ax} ${sy} C ${ax} ${(sy + ey) / 2}, ${bx} ${(sy + ey) / 2}, ${bx} ${ey}`;
     }
     const edge = { id: `${e.from}-${e.to}`, from: e.from, to: e.to, d, mode: e.mode || "after" };
+    if (e.label) edge.label = e.label;
     if (e.dashed) edge.dashed = true;
     if (e.ghost) edge.ghost = true;
     edges.push(edge);

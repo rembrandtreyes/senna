@@ -23,8 +23,9 @@ How it works today (brownfield first): components, data, flows, and the pain. Li
 
 ## Proposed design
 ### Architecture
-Every component: responsibility and owner, before and after. Reference LikeC4 views in `model/`
-when the project has them; otherwise a component table is enough.
+The proposal is `model/proposal.c4` (LikeC4; `npx likec4 start specs/<slug>/model` to browse).
+Here: a table of the components it adds, changes, or removes, each with its responsibility and
+owner. Without a model, the table covers every component, before and after.
 ### Data model and migrations
 A table: entity, key fields, invariants (uniqueness, lifecycle states, retention), owner. Then
 migration steps, backfill, and how old and new code coexist during rollout. No DDL; column
@@ -34,9 +35,12 @@ A table: endpoint or message, purpose, success and error codes, R-IDs. Link the 
 (OpenAPI, JSON Schema, proto) as the source of truth instead of pasting shapes (see the
 api-contracts skill). At most one short example payload per new message type.
 ### Key flows
-One subsection per flow: at most ~7 numbered steps, then a failure table (failure, what
-happens, what the user sees). No queries or pseudo-code.
-Each flow becomes a LikeC4 dynamic view and a deck scenario.
+One subsection per flow: the generated sequence diagram, at most ~7 numbered steps, then a
+failure table (failure, what happens, what the user sees). No queries or pseudo-code.
+Each flow is a dynamic view in `model/`; `<!-- flow:<viewId> -->` marks where
+`model.mjs flows` writes its diagram.
+#### <Flow name> (R-n)
+<!-- flow:<viewId> -->
 ### Performance and scale
 Expected load, limits, latency budget per hop, and capacity math: the numbers and the one-line
 reasoning behind each, not the derivation.

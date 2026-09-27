@@ -97,8 +97,11 @@ views {
     harness.plan.prd -> harness.plan.spec 'approved'
     harness.plan.spec -> harness.plan.designer 'arena: 2-3 stances'
     harness.plan.spec -> harness.plan.specCritic 'gate'
-    harness.plan.spec -> project.specs 'spec.md, adr/'
+    harness.plan.spec -> project.specs 'spec.md, adr/, model/'
+    harness.plan.spec -> harness.plan.model 'Mermaid flows into spec.md'
     harness.plan.spec -> harness.plan.present 'next'
+    harness.plan.present -> harness.plan.deckDiagrammer 'layout.json'
+    harness.plan.deckDiagrammer -> harness.plan.model 'derive deck diagram'
     harness.plan.present -> project.specs 'deck/index.html'
     claudeCode -> harness.plan.designReview '/design-review'
     parallel {

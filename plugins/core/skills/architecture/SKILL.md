@@ -99,6 +99,11 @@ Never leave the model invalid.
 
 ## update / check
 - **update:** after a change that touches architecture, edit the model, validate, and mention
-  the model change in the commit or PR description.
+  the model change in the commit or PR description. If the change implements a spec with a
+  proposal (`specs/<slug>/model/proposal.c4`, written by the plan plugin's /spec), fold it in:
+  new elements move into place without `#new`, `#removed` elements and relationships are
+  deleted, and dynamic views that still describe the system move to `views.c4`.
+- **Proposals** for unbuilt work never go in `architecture/`: it describes what's running. They
+  live in `specs/<slug>/model/`, which includes `architecture/` and extends it.
 - **check:** compare the model against the code (links resolve, no services or stores missing,
   no relationships to code that's gone) and report drift. Don't fix silently; list it.

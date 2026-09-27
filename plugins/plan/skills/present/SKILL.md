@@ -24,9 +24,18 @@ template to fix one deck.
 
 ## 1. Write the data (in parallel)
 Dispatch **deck-narrator** and **deck-diagrammer** in one message. Give both the spec path, the
-PRD path, the renderer directory, and their output path: `specs/<slug>/deck/narrative.json` and
-`specs/<slug>/deck/diagram.src.json`. Also tell the narrator the depth (spec-lite decks leave
-out sections the spec marks N/A).
+PRD path, and the renderer directory. Tell the narrator the depth (spec-lite decks leave out
+sections the spec marks N/A) and its output, `specs/<slug>/deck/narrative.json`.
+
+The diagrammer's job depends on whether the spec has a proposal model (`specs/<slug>/model/`):
+- **With a model:** give it the path to `${CLAUDE_PLUGIN_ROOT}/scripts/model.mjs`. It writes
+  `deck/layout.json` (which elements go in which grid cell, and which dynamic views become
+  scenarios) and runs the conversion itself. Afterwards, check it ran:
+  `node ${CLAUDE_PLUGIN_ROOT}/scripts/model.mjs deck specs/<slug>`, which derives nodes, new/removed
+  kinds, edges, labels, and scenario steps from the model into `deck/diagram.src.json`. On exit 2,
+  send the listed problems back to the diagrammer (layout problems) or fix the model (model
+  problems, then re-run `model.mjs flows` too). Exit 3 means likec4 isn't installed.
+- **Without one:** it writes `deck/diagram.src.json` directly from the spec.
 
 **Re-presenting after a revision:** if `deck/build-info.json` exists and its `specVersion` is
 older than the spec's, give the narrator that previous version so it writes `changes` (the
@@ -39,7 +48,8 @@ every `ref` is a PRD R-ID), and writes `index.html`. On exit 2, fix the listed p
 source JSON and re-run. Warnings about long labels go to visual-qa.
 
 ## 3. Visual QA
-Dispatch **visual-qa** with the deck directory and the renderer directory. It loops
+Dispatch **visual-qa** with the deck directory, the renderer directory, and (with a model) the
+path to `${CLAUDE_PLUGIN_ROOT}/scripts/model.mjs`. It loops
 build → `qa.mjs` → screenshots → fixes, at most 3 rounds, and reports CLEAN or what remains.
 Template bugs it reports are real bugs in `renderer/`: tell the user and don't work around them.
 

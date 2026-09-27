@@ -60,7 +60,7 @@ model {
         link ../plugins/plan/agents/deck-narrator.md 'code'
       }
       deckDiagrammer = component 'deck-diagrammer' {
-        description 'Writes components, edges, and flow scenarios (diagram.src.json)'
+        description 'Places model elements on a grid (layout.json), or writes diagram.src.json when there is no model'
         technology 'subagent'
         link ../plugins/plan/agents/deck-diagrammer.md 'code'
       }
@@ -75,6 +75,11 @@ model {
         description 'Merges deck JSON, lays out the diagram, validates the schema, renders index.html'
         technology 'Node, no dependencies'
         link ../plugins/plan/skills/present/renderer/build.mjs 'code'
+      }
+      model = component 'model.mjs' {
+        description 'Exports the LikeC4 proposal: Mermaid flows into spec.md, deck diagram from layout.json'
+        technology 'Node, likec4 CLI'
+        link ../plugins/plan/scripts/model.mjs 'code'
       }
       qa = component 'qa.mjs' {
         description 'Screenshots the deck in light/dark at 1440 and 390px and runs layout checks'
@@ -103,7 +108,8 @@ model {
   harness.plan.spec -> harness.plan.designer 'dispatches 2-3 in parallel'
   harness.plan.spec -> harness.plan.specCritic 'gates on (up to 3 rounds)'
   harness.plan.spec -> harness.ops.apiContracts 'uses for the API section' { style { line dashed } }
-  harness.plan.spec -> project.specs 'writes spec.md, adr/'
+  harness.plan.spec -> project.specs 'writes spec.md, adr/, model/'
+  harness.plan.spec -> harness.plan.model 'runs flows (Mermaid into spec.md)'
   harness.plan.spec -> harness.plan.present 'suggests next'
   harness.plan.spec -> harness.core.breakdown 'build stage, after approval'
 
@@ -111,6 +117,8 @@ model {
   harness.plan.present -> harness.plan.deckNarrator 'dispatches'
   harness.plan.present -> harness.plan.deckDiagrammer 'dispatches'
   harness.plan.present -> harness.plan.build 'runs'
+  harness.plan.deckDiagrammer -> harness.plan.model 'runs views, deck'
+  harness.plan.model -> project.specs 'reads model/, writes deck/diagram.src.json' 
   harness.plan.present -> harness.plan.visualQa 'dispatches'
   harness.plan.present -> project.specs 'writes deck/build-info.json'
   harness.plan.deckNarrator -> project.specs 'writes deck/narrative.json'
