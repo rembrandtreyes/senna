@@ -155,6 +155,15 @@ routing rules, stage gates, artifact layout, and verified facts about claude.ai 
     sign-off) and a PostToolUse notice once per build when the deck goes stale. /present records
     `modelHash`. Tested by piping JSON under macOS bash 3.2 in scratch repos.
 11. **End-to-end test** on one real feature from the owner's projects, from router to build.
+    **Run 1 (2026-09-27/28, a caching feature in one of the owner's web apps):** the session
+    started in Claude Code's plan mode (`/plan`), so the router never ran and the feature went
+    straight to a plan and a build: no PRD, spec, or deck. Hooks worked: the boundary check
+    warned on a new cron route, the missing-test check correctly stayed quiet (tests changed),
+    and the Bash guard produced a false positive (`process.env` in a heredoc read as `.env`).
+    Fixed: route works inside plan mode (plan 0.11.2), the `.env` guard needs `.env` to start a
+    path segment (core 0.6.3), and /test-audit no longer commits on its own. Re-tested the
+    router in plan mode headless: it proposed Feature → /prd. **Still to do:** a full run
+    through PRD → spec → present → publish → feedback → breakdown → build.
 
 ## Open questions (Phase 2): answered 2026-09-24
 Verified live in a Claude Code session (signed in to claude.ai) against the prototype artifact.

@@ -1,6 +1,6 @@
 ---
 name: route
-description: Intake router for new work. Use at the start of ANY new request to build, add, change, fix, migrate, or investigate something in a codebase, before planning, exploring in depth, or writing code. Classifies the request as bug, small task, feature, or project, proposes the route (debugger, /breakdown, /prd), and waits for the user to confirm. Also use when the user types /route or asks "how should we approach this?"
+description: Intake router for new work. Use at the start of ANY new request to build, add, change, fix, migrate, or investigate something in a codebase, before planning, exploring in depth, or writing code, and in plan mode too (route before writing the plan). Classifies the request as bug, small task, feature, or project, proposes the route (debugger, /breakdown, /prd), and waits for the user to confirm. Also use when the user types /route or asks "how should we approach this?"
 ---
 
 # Intake router
@@ -14,6 +14,12 @@ start the work in the same turn.
 - It's a question, not a change.
 - It's trivial: a typo, a rename in one file, a config value. Just do it.
 - The user already named the route ("run /prd on…", "just fix it", "just do it").
+
+## In plan mode
+Plan mode doesn't replace the router. Classify first, and put the route at the top of the plan.
+For a bug or small task, the rest of the plan is the fix or the task as usual. For a feature or
+project, the plan is the route itself (run /prd, with the slug and what you learned), not an
+implementation plan: the design belongs in the spec, where reviewers see it.
 
 ## Classify
 Spend at most a few quick searches confirming the facts that decide the class (does this table

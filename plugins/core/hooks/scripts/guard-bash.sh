@@ -45,7 +45,8 @@ fi
 m '(curl|wget)[^|]*\|[[:space:]]*(sudo[[:space:]]+)?(ba|z)?sh([[:space:]]|$)' && block "piping a download straight into a shell"
 
 # Reading secrets through the shell (the file guard covers Read/Edit/Write)
-if m '(cat|less|more|head|tail|bat|grep|rg|source|\.)[[:space:]][^;&|]*\.env([.[:space:]]|$)' \
+# `.env` must start a path segment, so `process.env.X` inside a heredoc doesn't count.
+if m '(cat|less|more|head|tail|bat|grep|rg|source|\.)[[:space:]]([^;&|]*[[:space:]/"'"'"'=])?\.env([.[:space:]"'"'"']|$)' \
    && ! m '\.env\.(example|sample|template)'; then
   block "reading .env secrets"
 fi

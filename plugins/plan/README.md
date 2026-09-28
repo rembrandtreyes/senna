@@ -19,4 +19,7 @@ Built in the order listed in HANDOFF.md (Phase 2). Components land here as they 
 | SessionStart spec report, deck staleness hook | hooks | 10 ✓ |
 | `/breakdown` from a spec, reviewer R-ID check (`rid-check.sh`) | in core | 10 ✓ |
 
+Start by describing the work in plain words; the router picks it up. There is no `/plan`
+command: that's Claude Code's built-in plan mode, which the router works inside.
+
 Depends on `core` (debugger agent, `/breakdown`, reviewer) and reuses `security-auditor` from `ops`.
