@@ -29,8 +29,10 @@ fi
 
 # Keep harness runtime files out of git for every worktree (shared info/exclude)
 ex="$common/info/exclude"; mkdir -p "$(dirname "$ex")"; touch "$ex"
+# Keep in step with templates/gitignore-snippet.txt.
 for pat in ".harness/mode" ".harness/ports.env" ".harness/progress.log" \
-           ".harness/handoff*.md" ".harness/.stop-attempts-*" ".harness/current-task"; do
+           ".harness/handoff*.md" ".harness/.stop-attempts-*" ".harness/current-task" \
+           ".harness/.deck-stale-*" ".harness/.test-nudge-*" ".harness/.boundary-warned"; do
   grep -qxF "$pat" "$ex" || echo "$pat" >> "$ex"
 done
 

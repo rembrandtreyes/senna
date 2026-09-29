@@ -13,6 +13,10 @@
       "Bash(git commit:*)",
       "Bash(git checkout -b:*)",
       "Bash(git switch:*)",
+      "Bash(git push -u origin HEAD)",
+      "Bash(git push origin HEAD)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr view:*)",
       "Bash(npm run:*)",
       "Bash(pnpm run:*)",
       "Bash(pnpm test:*)",
@@ -29,8 +33,7 @@
     ],
     "deny": [
       "Read(./.env)",
-      "Read(./.env.*)",
-      "Bash(git push:*)"
+      "Read(./.env.*)"
     ]
   }
 }

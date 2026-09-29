@@ -16,10 +16,11 @@ block() {
 }
 m() { printf '%s' "$c" | grep -Eq -- "$1"; }
 
-# Recursive delete aimed at root, home, parent dirs, or a bare wildcard
+# Recursive delete aimed at root, home, parent, or current dirs, or a bare wildcard, with or
+# without quotes or a trailing /*: rm -rf ~/*, "$HOME", ${HOME}/*, ../*, ./*, ., /, *
 if m '[;&|[:space:]]rm[[:space:]]+(-[^[:space:]]*[rR]|--recursive)' \
-   && m '[[:space:]](/|/\*|~|~/|\$HOME|\$HOME/|\.\.|\.\./|\*)([[:space:];&|]|$)'; then
-  block "recursive delete of root/home/parent/wildcard path"
+   && m '[[:space:]]["'"'"']?((~|\$HOME|\$\{HOME\}|\.\.|\.)(/\*?)?|/\*?|\*)["'"'"']?([[:space:];&|]|$)'; then
+  block "recursive delete of root/home/parent/current dir or a wildcard"
 fi
 
 # Discarding uncommitted work
@@ -27,27 +28,37 @@ m 'git[[:space:]]+reset[[:space:]]+[^;&|]*--hard' && block "git reset --hard dis
 m 'git[[:space:]]+clean[[:space:]]+-[^[:space:]]*f' && block "git clean -f deletes untracked files"
 m 'git[[:space:]]+checkout[[:space:]]+(--[[:space:]]+)?\.[[:space:]]' && block "git checkout . discards uncommitted work"
 
-# Pushes
-if m 'git[[:space:]]+push'; then
-  m '(--force([[:space:]=]|$)|[[:space:]]-f([[:space:]]|$)|[[:space:]]\+[^[:space:]]+)' \
-    && block "force push (use --force-with-lease on your own feature branch if you must)"
+# Pushes. Each `git push ...` segment (up to the next ; & |) is checked on its own, so flags
+# from other commands on the same line (rm -f) don't count.
+pushes="$(printf '%s' "$c" | grep -Eo 'git[[:space:]]+push[^;&|]*')"
+if [ -n "$pushes" ]; then
   prot="${HARNESS_PROTECTED_BRANCHES:-main master production release}"
   cur="$(git -C "$root" branch --show-current 2>/dev/null)"
-  for b in $prot; do
-    if m "[[:space:]:]${b}([[:space:]]|$)"; then
-      if m '--force-with-lease' || is_strict; then block "push to protected branch '$b'"; fi
-    fi
-    if [ "$cur" = "$b" ] && is_strict; then block "pushing while on protected branch '$b' in $(harness_mode) mode"; fi
-  done
+  while IFS= read -r seg; do
+    seg=" $seg "
+    ms() { printf '%s' "$seg" | grep -Eq -- "$1"; }
+    ms '(--force([[:space:]=]|$)|[[:space:]]-[a-zA-Z]*f[a-zA-Z]*([[:space:]]|$)|[[:space:]]\+[^[:space:]]+)' \
+      && block "force push (use --force-with-lease on your own feature branch if you must)"
+    for b in $prot; do
+      if ms "[[:space:]:]${b}([[:space:]]|$)"; then
+        if ms '--force-with-lease' || is_strict; then block "push to protected branch '$b'"; fi
+      fi
+      if [ "$cur" = "$b" ] && is_strict; then block "pushing while on protected branch '$b' in $(harness_mode) mode"; fi
+    done
+  done <<PUSHES
+$pushes
+PUSHES
 fi
 
 # Remote code execution
 m '(curl|wget)[^|]*\|[[:space:]]*(sudo[[:space:]]+)?(ba|z)?sh([[:space:]]|$)' && block "piping a download straight into a shell"
 
-# Reading secrets through the shell (the file guard covers Read/Edit/Write)
-# `.env` must start a path segment, so `process.env.X` inside a heredoc doesn't count.
-if m '(cat|less|more|head|tail|bat|grep|rg|source|\.)[[:space:]]([^;&|]*[[:space:]/"'"'"'=])?\.env([.[:space:]"'"'"']|$)' \
-   && ! m '\.env\.(example|sample|template)'; then
+# Reading secrets through the shell (the file guard covers Read/Edit/Write/Grep).
+# `.env` must start a path segment, so `process.env.X` inside a heredoc doesn't count. Example
+# files are fine, so their names are dropped before matching (not the whole command exempted).
+c_env="$(printf '%s' "$c" | sed -E 's/\.env\.(example|sample|template)//g')"
+if printf '%s' "$c_env" \
+   | grep -Eq -- '(cat|less|more|head|tail|bat|grep|rg|source|\.)[[:space:]]([^;&|]*[[:space:]/"'"'"'=])?\.env([.[:space:]"'"'"']|$)'; then
   block "reading .env secrets"
 fi
 

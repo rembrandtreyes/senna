@@ -69,6 +69,8 @@ of looping. Tune it with `HARNESS_MAX_STOP_RETRIES`, `HARNESS_GO_TEST_FLAGS=-rac
 
 For unattended runs, copy `templates/settings.local.auto.json` to
 `<project>/.claude/settings.local.json` so routine commands don't stall on permission prompts.
+It lets /ship push the current feature branch (`git push -u origin HEAD`) and open a PR; the
+guard still blocks force pushes and pushes to protected branches in those modes.
 Set `HARNESS_NTFY_TOPIC=<topic>` to get "Claude needs you" alerts on your phone via ntfy.sh.
 
 ## The workflow loop
