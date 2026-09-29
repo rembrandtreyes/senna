@@ -23,7 +23,8 @@ for spec in specs/*/spec.md; do
     fresh)
       pub="$d/deck/publish.json"
       if [ ! -f "$pub" ]; then parts="$parts; deck built, not published"
-      elif [ "$(jfield "$pub" specHash)" != "$(jfield "$d/deck/build-info.json" specHash)" ]; then
+      elif [ "$(jfield "$pub" specHash)" != "$(jfield "$d/deck/build-info.json" specHash)" ] \
+        || [ "$(jfield "$pub" modelHash)" != "$(jfield "$d/deck/build-info.json" modelHash)" ]; then
         parts="$parts; published deck is older than the built one (republish)"
       else parts="$parts; published ($(jfield "$pub" adapter))"; fi ;;
   esac

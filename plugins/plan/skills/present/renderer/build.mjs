@@ -190,5 +190,5 @@ if (!existsSync(tplPath)) { console.error("missing template: " + tplPath); proce
 // JSON inside <script> must not contain "</" or it can close the tag early.
 const json = JSON.stringify(deck, null, 2).replace(/<\//g, "<\\/");
 const title = String(deck.meta?.title || "Design review").replace(/[<>&"]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
-writeFileSync(htmlOut, readFileSync(tplPath, "utf8").replace("__DECK_DATA__", () => json).replaceAll("__DECK_TITLE__", title));
+writeFileSync(htmlOut, readFileSync(tplPath, "utf8").replace("__DECK_DATA__", () => json).replaceAll("__DECK_TITLE__", () => title));
 console.log(`built ${htmlOut}${deckOut ? ` and ${deckOut}` : ""}`);

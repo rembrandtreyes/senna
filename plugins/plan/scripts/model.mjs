@@ -133,7 +133,9 @@ function deck(specDir, m) {
 
 // ---- flows: dynamic views -> Mermaid sequence diagrams in spec.md -----------------------------------
 // Mermaid treats ; and # specially in message text; entity codes keep them literal.
-const mm = s => String(s).replace(/#/g, "#35;").replace(/;/g, "#59;").replace(/"/g, "#quot;").replace(/\s+/g, " ").trim();
+// One pass, so the ; inside a new #35; isn't escaped again.
+const MM = { "#": "#35;", ";": "#59;", '"': "#quot;" };
+const mm = s => String(s).replace(/[#;"]/g, c => MM[c]).replace(/\s+/g, " ").trim();
 
 function sequence(m, v) {
   const order = [];

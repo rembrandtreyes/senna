@@ -17,7 +17,7 @@
       "name": "lang-ts",
       "source": "./plugins/lang-ts",
       "description": "TypeScript/React/Next/Expo: format + lint on edit, typecheck + tests on stop, conventions.",
-      "version": "0.2.1"
+      "version": "0.2.2"
     },
     {
       "name": "lang-go",
@@ -41,7 +41,7 @@
       "name": "plan",
       "source": "./plugins/plan",
       "description": "Planning pipeline: intake router, /prd, /spec, reviewer lenses, /present review decks, /feedback ledger, with requirement IDs traced into build tasks.",
-      "version": "0.11.3"
+      "version": "0.11.4"
     }
   ]
 }

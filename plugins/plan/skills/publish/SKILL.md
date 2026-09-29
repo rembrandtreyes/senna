@@ -12,8 +12,10 @@ Adapters are in `${CLAUDE_PLUGIN_ROOT}/adapters/<name>.md`. Each has three parts
 Collect (used by /feedback), and Write back. Read only the one you use.
 
 ## 0. Preconditions
-- `deck/index.html` exists. If `deck/build-info.json`'s `specHash` differs from
-  `git hash-object specs/<slug>/spec.md`, the deck is stale: say so and offer `/present` first.
+- `deck/index.html` exists. The deck is stale if `deck/build-info.json`'s `specHash` differs
+  from `git hash-object specs/<slug>/spec.md`, or its `modelHash` (when recorded) differs from
+  `cat specs/<slug>/model/*.c4 | git hash-object --stdin`. If stale, say which and offer
+  `/present` first.
 - If the deck hasn't passed visual QA (the /present report said ISSUES REMAIN), say so.
 
 ## 1. Choose the adapter
@@ -36,7 +38,8 @@ ahead in this request.
 Write `deck/publish.json` (commit it with the spec, so /feedback knows where to look):
 ```json
 { "adapter": "artifact", "url": "<where reviewers open it>", "specVersion": "v2",
-  "specHash": "<git hash-object spec.md>", "publishedAt": "<ISO time>", "pr": 123 }
+  "specHash": "<from build-info.json>", "modelHash": "<from build-info.json, if any>",
+  "publishedAt": "<ISO time>", "pr": 123 }
 ```
 `pr` only for static (or whenever there's a PR); keep earlier fields the adapter needs (for
 vercel, `project`).

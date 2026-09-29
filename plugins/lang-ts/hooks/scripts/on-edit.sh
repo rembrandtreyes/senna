@@ -34,7 +34,8 @@ fi
 case "$file" in *.json|*.css|*.scss) exit 0 ;; esac
 out=""
 if b="$(nbin biome)"; then
-  out="$(cd "$pkg" && "$b" lint "$file" 2>&1)" || { printf 'Lint errors in %s:\n%s\n' "$file" "$(printf '%s' "$out" | tail -n 40)" >&2; exit 2; }
+  # --no-errors-on-unmatched: a file Biome's config ignores (generated, vendored) isn't an error.
+  out="$(cd "$pkg" && "$b" lint --no-errors-on-unmatched "$file" 2>&1)" || { printf 'Lint errors in %s:\n%s\n' "$file" "$(printf '%s' "$out" | tail -n 40)" >&2; exit 2; }
 elif b="$(nbin eslint)"; then
   out="$(cd "$pkg" && "$b" "$file" 2>&1)" || { printf 'Lint errors in %s:\n%s\n' "$file" "$(printf '%s' "$out" | tail -n 40)" >&2; exit 2; }
 fi

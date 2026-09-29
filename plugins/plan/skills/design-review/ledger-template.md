@@ -13,7 +13,9 @@ Severity: critical (blocks approval) | major (fix before build) | minor (optiona
 ## Items
 | ID | Ver | Source | Reviewer | Section | Kind | Sev | Summary | Status | Resolution | Addressed in |
 |---|---|---|---|---|---|---|---|---|---|---|
-| F-1 | v1 | agent:architecture | architecture-reviewer | Key flows › F2 | concern | major | | open | | |
+<!-- Example row (rows start at F-1):
+| F-n | v1 | agent:architecture | architecture-reviewer | Key flows › F2 | concern | major | <one line> | open | | |
+-->
 
 Source: `agent:<lens>`, or `<source> (<ref>)` for reviewer feedback, where source is `artifact db`,
 `artifact comment`, `vercel comment`, `PR review`, `PR comment`, or `deck export`, and ref is the
