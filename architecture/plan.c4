@@ -96,6 +96,11 @@ model {
         technology 'SessionStart hook, bash'
         link ../plugins/plan/hooks/scripts/session-start.sh 'code'
       }
+      stepGate = component 'step-gate.sh' {
+        description 'Blocks the stop once when a PRD or spec in review or approved has no critic PASS for its current content'
+        technology 'Stop hook, bash'
+        link ../plugins/plan/hooks/scripts/step-gate.sh 'code'
+      }
       deckStale = component 'deck-stale.sh' {
         description 'After an edit to spec.md or model/*.c4, tells Claude once per build that the deck is stale'
         technology 'PostToolUse hook, bash'
@@ -164,6 +169,9 @@ model {
   claudeCode -> harness.plan.deckStale 'PostToolUse (Edit, Write)'
   harness.plan.planSessionStart -> project.specs 'reads spec, deck, feedback state' { style { line dashed } }
   harness.plan.deckStale -> project.specs 'compares hashes with deck/build-info.json' { style { line dashed } }
+  claudeCode -> harness.plan.stepGate 'Stop'
+  harness.plan.stepGate -> project.specs 'hashes prd.md, spec.md, model' { style { line dashed } }
+  harness.plan.stepGate -> harness.core.recordVerdict 'reads the verdicts it wrote' { style { line dashed } }
   harness.plan.deckDiagrammer -> harness.plan.model 'runs views, deck'
   harness.plan.model -> project.specs 'reads model/, writes deck/diagram.src.json' 
   harness.plan.present -> harness.plan.visualQa 'dispatches'

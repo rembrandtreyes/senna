@@ -1,6 +1,6 @@
 {
   "name": "lang-LANG",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "TEMPLATE: copy to plugins/lang-<name>, rename, and add to marketplace.json.",
   "author": { "name": "Rembrandt Reyes" }
 }

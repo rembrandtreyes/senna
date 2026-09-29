@@ -54,7 +54,8 @@ Run the **prd-critic** agent on the file (tell it the depth: project or spec-lit
 fix what you can from what you already know, ask the user (one question at a time) only for
 missing facts, and re-run. After 3 failed rounds, stop and show the user the remaining failures.
 
-On PASS: set `Status: in review`, show the user a short summary (problem, R-IDs in one line
+A Stop hook checks this: a PRD marked in review or approved without a prd-critic PASS for its
+current content blocks the turn once. On PASS: set `Status: in review`, show the user a short summary (problem, R-IDs in one line
 each, non-goals, open questions), and ask them to approve. On approval set `Status: approved`
 and suggest `/spec`. The critic passing is not approval; only the user approves.
 

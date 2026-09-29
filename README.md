@@ -73,6 +73,13 @@ It lets /ship push the current feature branch (`git push -u origin HEAD`) and op
 guard still blocks force pushes and pushes to protected branches in those modes.
 Set `HARNESS_NTFY_TOPIC=<topic>` to get "Claude needs you" alerts on your phone via ntfy.sh.
 
+**Review gates.** Critics and the reviewer end their output with `REVIEWED: <path>` and
+`VERDICT: ...`; a SubagentStop hook records each verdict in `.harness/verdicts/` with the hash
+of what was reviewed. Stop hooks then block once (per version) when a step finished without its
+check: a PRD or spec marked `in review` or `approved` with no critic PASS for its current
+content (plan), or a task marked `review` or `done` with no reviewer verdict (core). Turn them
+off with `HARNESS_STEP_GATE=off` / `HARNESS_REVIEW_GATE=off`.
+
 ## The workflow loop
 
 ```

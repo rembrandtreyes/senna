@@ -115,7 +115,7 @@ choices. Link each ADR from the spec section it affects.
 Run the **spec-critic** agent with the spec path and the depth. On FAIL, fix and re-run; ask the
 user only for facts you don't have. After 3 failed rounds, stop and show the remaining failures.
 
-On PASS: set `Status: in review`, give the user a short summary (the ask, the chosen design in
+A Stop hook checks this (spec and model together), like the PRD's. On PASS: set `Status: in review`, give the user a short summary (the ask, the chosen design in
 two sentences, milestones with their R-IDs, open questions), and suggest `/present` next.
 
 ## Revising after feedback

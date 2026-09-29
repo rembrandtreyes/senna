@@ -52,7 +52,10 @@ and contracts, Performance and scale, Fallback plan, Cost. A bare "N/A" or "TBD"
     E2E covers critical journeys only, or says "none" with a reason.
 
 ## Output
+Start with the `REVIEWED:` and `VERDICT:` lines exactly as shown, as plain text: a hook records
+the verdict from them, and the harness's Stop gate checks it.
 ```
+REVIEWED: specs/<slug>/spec.md
 VERDICT: PASS | FAIL
 
 1 Traceability: ✗ R-8 has no test; R-9 is in no milestone

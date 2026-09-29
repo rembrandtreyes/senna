@@ -33,7 +33,10 @@ Risks. A bare "N/A" or "TBD" fails.
    specific implementation, not for a passing mention).
 
 ## Output
+Start with the `REVIEWED:` and `VERDICT:` lines exactly as shown, as plain text: a hook records
+the verdict from them, and the harness's Stop gate checks it.
 ```
+REVIEWED: specs/<slug>/prd.md
 VERDICT: PASS | FAIL
 
 1 Problem ≠ solution: ✓

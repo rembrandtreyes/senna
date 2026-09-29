@@ -32,6 +32,16 @@ model {
         technology 'Notification hook'
         link ../plugins/core/hooks/scripts/notify.sh 'code'
       }
+      recordVerdict = component 'record-verdict.sh' {
+        description 'When a critic or reviewer finishes, records its VERDICT with the hash of what it reviewed'
+        technology 'SubagentStop hook'
+        link ../plugins/core/hooks/scripts/record-verdict.sh 'code'
+      }
+      reviewGate = component 'review-gate.sh' {
+        description 'Blocks the stop once when the current task is in review or done without a reviewer verdict'
+        technology 'Stop hook'
+        link ../plugins/core/hooks/scripts/review-gate.sh 'code'
+      }
       boundaryCheck = component 'boundary-check.sh' {
         description 'Warns (never blocks) when a project-defined boundary changed and no real-dependency test did'
         technology 'Stop hook'
@@ -111,6 +121,11 @@ model {
   claudeCode -> harness.core.preCompact 'PreCompact'
   claudeCode -> harness.core.notify 'Notification' { style { line dashed } }
   claudeCode -> harness.core.boundaryCheck 'Stop'
+  claudeCode -> harness.core.recordVerdict 'SubagentStop'
+  claudeCode -> harness.core.reviewGate 'Stop'
+  harness.core.recordVerdict -> project.harnessState 'writes verdicts/<subject>'
+  harness.core.reviewGate -> project.harnessState 'reads current-task and verdicts' { style { line dashed } }
+  harness.core.reviewGate -> harness.core.reviewer 'asks Claude to run' { style { line dashed } }
   harness.core.boundaryCheck -> project.harnessState 'reads checks/boundaries.txt' { style { line dashed } }
   harness.core.boundaryCheck -> project.workTree 'reads changed files' { style { line dashed } }
 

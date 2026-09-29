@@ -17,6 +17,7 @@ Built in the order listed in HANDOFF.md (Phase 2). Components land here as they 
 | `/publish`, adapters (`artifact`, `static`; `vercel` on request, untested) | skill, docs | 9 ✓ |
 | `/feedback`, `scripts/feedback.mjs` | skill, script | 9 ✓ |
 | SessionStart spec report, deck staleness hook | hooks | 10 ✓ |
+| Step gate: a PRD or spec in review needs a critic PASS for its current content | hook | later ✓ |
 | `/breakdown` from a spec, reviewer R-ID check (`rid-check.sh`) | in core | 10 ✓ |
 
 Start by describing the work in plain words; the router picks it up. There is no `/plan`

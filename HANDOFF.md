@@ -275,6 +275,17 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
    flagged the mocked-DB bug and the weak dialog fix, and wrote the report.
    **Phase 3 complete** (lang-py deferred).
 
+## After Phase 3 (2026-09-28)
+- **Harness review:** a full code review found 12 issues (guard gaps in rm/.env/Grep, force-push
+  false positive, /ship vs. the auto template, Mermaid escaping, Biome on ignored files,
+  model-only staleness, ledger sample row); all fixed with tests (core 0.7.0, plan 0.11.4).
+  /ship now pushes the feature branch and opens the PR in parallel/auto modes.
+- **Review gates:** critics and the reviewer print `REVIEWED:` + `VERDICT:`; core's SubagentStop
+  hook records verdicts with a content hash; Stop gates (plan `step-gate.sh`, core
+  `review-gate.sh`) block once per version when a step finished without its check. Tested by
+  piping JSON (20 cases) and in a headless session, where the gate made Claude run the reviewer
+  on its own. Not yet seen: the step gate in a real /prd or /spec run.
+
 ## Decisions and open questions
 - **Enforcement:** checklist first, automate only what keeps getting flagged by hand. Decided:
   rubric skill + reviewer lens + warn-only boundary check, as above.

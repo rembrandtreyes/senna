@@ -11,25 +11,25 @@
       "name": "core",
       "source": "./plugins/core",
       "description": "Language-agnostic harness: session context, guardrails, handoffs, retro loop, core agents and workflow commands.",
-      "version": "0.7.0"
+      "version": "0.8.0"
     },
     {
       "name": "lang-ts",
       "source": "./plugins/lang-ts",
       "description": "TypeScript/React/Next/Expo: format + lint on edit, typecheck + tests on stop, conventions.",
-      "version": "0.2.2"
+      "version": "0.2.3"
     },
     {
       "name": "lang-go",
       "source": "./plugins/lang-go",
       "description": "Go: gofmt on edit, build + vet + tests on stop, conventions.",
-      "version": "0.2.1"
+      "version": "0.2.2"
     },
     {
       "name": "lang-rust",
       "source": "./plugins/lang-rust",
       "description": "Rust: rustfmt on edit, clippy + tests on stop, conventions and perf workflow.",
-      "version": "0.2.1"
+      "version": "0.2.2"
     },
     {
       "name": "ops",
@@ -41,7 +41,7 @@
       "name": "plan",
       "source": "./plugins/plan",
       "description": "Planning pipeline: intake router, /prd, /spec, reviewer lenses, /present review decks, /feedback ledger, with requirement IDs traced into build tasks.",
-      "version": "0.11.4"
+      "version": "0.12.0"
     }
   ]
 }

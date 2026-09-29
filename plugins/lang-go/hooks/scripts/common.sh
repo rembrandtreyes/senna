@@ -147,3 +147,50 @@ run_override() {
   run_check "project override ${name}" "$(project_dir)" env HARNESS_MODE="$(harness_mode)" "$script" "$@"
   return 0
 }
+
+# ---- Review verdicts: recorded by core's SubagentStop hook, checked by the Stop gates ----------
+# A critic or reviewer ends its output with `REVIEWED: <path>` and `VERDICT: <word>`. The verdict
+# is stored with the hash of what it reviewed, so a later edit makes it stale.
+
+# doc_hash <file> : hash of a doc without the Status line in its header, so moving it from draft
+# to in review to approved isn't a content change.
+doc_hash() { awk 'NR<=6 && /Status:/ {next} {print}' "$1" 2>/dev/null | git hash-object --stdin 2>/dev/null; }
+
+# spec_bundle_hash <spec-dir> : spec.md (without its Status line) plus the proposal model
+spec_bundle_hash() {
+  { awk 'NR<=6 && /Status:/ {next} {print}' "$1/spec.md" 2>/dev/null
+    cat "$1"/model/*.c4 2>/dev/null; } | git hash-object --stdin 2>/dev/null
+}
+
+# work_hash : the change under review: HEAD, the uncommitted diff, and untracked files' contents,
+# leaving out .harness/ (the hooks' own state would otherwise change it on every run)
+work_hash() {
+  local r; r="$(project_dir)"
+  { git -C "$r" rev-parse HEAD
+    git -C "$r" diff HEAD -- . ':(exclude).harness'
+    git -C "$r" ls-files --others --exclude-standard -- . ':(exclude).harness' \
+      | while IFS= read -r f; do printf '%s %s\n' "$f" "$(git hash-object "$r/$f" 2>/dev/null)"; done
+  } 2>/dev/null | git hash-object --stdin 2>/dev/null
+}
+
+# subject_hash <repo-relative path> : the hash a verdict on that path is checked against
+subject_hash() {
+  local r; r="$(project_dir)"
+  case "$1" in
+    */prd.md) doc_hash "$r/$1" ;;
+    */spec.md) spec_bundle_hash "$r/$(dirname "$1")" ;;
+    *) work_hash ;;
+  esac
+}
+
+# verdict_file <repo-relative path> : where the latest verdict on it is kept
+verdict_file() { printf '%s/.harness/verdicts/%s' "$(project_dir)" "$(printf '%s' "$1" | sed 's|/|__|g')"; }
+
+# gate_once <key> <hash> : succeed (ask) only the first time a gate fires for this hash, so a
+# user who chose to skip a review isn't asked again until the subject changes.
+gate_once() {
+  local f; f="$(project_dir)/.harness/.gate-$1"
+  [ -f "$f" ] && [ "$(cat "$f" 2>/dev/null)" = "$2" ] && return 1
+  mkdir -p "$(dirname "$f")" 2>/dev/null && echo "$2" > "$f" 2>/dev/null
+  return 0
+}

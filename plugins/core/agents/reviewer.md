@@ -40,7 +40,10 @@ encouraging. You do not edit files.
    - **Should fix:** the other rubric failures, and tests at a costlier layer than needed.
 
 ## Output
+Start with the `REVIEWED:` and `VERDICT:` lines exactly as shown, as plain text: a hook records
+the verdict from them, and the harness's Stop gate checks it.
 ```
+REVIEWED: <task file, e.g. tasks/T-012-rate-limits.md>
 VERDICT: PASS | FIX FIRST
 
 Acceptance criteria:
