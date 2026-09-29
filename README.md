@@ -27,25 +27,30 @@ for PRs, `lsof` for port checks, and the usual toolchains (`node`, `go`, `cargo`
 
 ## Install
 
-1. Replace `YOUR_NAME` / `YOUR_GITHUB_USER` everywhere, then push this repo to GitHub (private
-   is fine).
-2. In Claude Code:
+1. The repo is `rembrandtreyes/senna` on GitHub; the marketplace inside it is named `my-harness`.
+   (Forking it? Change the repo in `templates/project-settings.json` and the author names.)
+2. In Claude Code, once per machine:
    ```
-   /plugin marketplace add YOUR_GITHUB_USER/my-harness
+   /plugin marketplace add rembrandtreyes/senna
    /plugin install core@my-harness
+   /plugin install plan@my-harness
+   /plugin install lang-ts@my-harness
    ```
+   Installed plugins are a cached copy: after pushing harness changes, run
+   `/plugin marketplace update my-harness`.
 3. Global setup: copy `templates/global-CLAUDE.md` to `~/.claude/CLAUDE.md` and make it yours.
 4. Per project:
    - copy `templates/project-settings.json` to `<project>/.claude/settings.json` and flip on the
-     language plugins that project uses. Committing this makes the plugins install automatically
+     language plugins that project uses (and `plan` if it uses the planning pipeline). Committing this makes the plugins install automatically
      for anyone who trusts the repo.
    - copy `templates/project-CLAUDE.md` to `<project>/CLAUDE.md` and fill it in
    - append `templates/gitignore-snippet.txt` to `.gitignore`
    - `mkdir tasks .harness`
 
-While developing the harness itself, test locally with
-`/plugin marketplace add /path/to/my-harness`, and run `/reload-plugins` after editing hooks or
-agents. Skill edits apply immediately.
+While developing the harness itself, skip the install and load the plugins straight from this
+checkout: `claude --plugin-dir /path/to/senna/plugins/core --plugin-dir /path/to/senna/plugins/plan`
+(one flag per plugin). Run `/reload-plugins` after editing hooks or agents; skill edits apply
+immediately.
 
 ## Modes
 

@@ -1,6 +1,6 @@
 {
   "name": "lang-rust",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Rust: rustfmt on edit, clippy + tests on stop, conventions and perf workflow.",
-  "author": { "name": "YOUR_NAME" }
+  "author": { "name": "Rembrandt Reyes" }
 }

@@ -1,11 +1,12 @@
 {
   "extraKnownMarketplaces": {
     "my-harness": {
-      "source": { "source": "github", "repo": "YOUR_GITHUB_USER/my-harness" }
+      "source": { "source": "github", "repo": "rembrandtreyes/senna" }
     }
   },
   "enabledPlugins": {
     "core@my-harness": true,
+    "plan@my-harness": true,
     "lang-ts@my-harness": true,
     "lang-go@my-harness": false,
     "lang-rust@my-harness": false,

@@ -59,7 +59,7 @@ subagents, slash commands) and fix anything that's drifted:
    bash 3.2 or BSD tool issues.
 3. **Personalize:** interview the owner (max ~8 questions) and fill in
    `templates/global-CLAUDE.md`, then install it to `~/.claude/CLAUDE.md` (ask before overwriting
-   an existing one). Replace `YOUR_NAME` / `YOUR_GITHUB_USER` everywhere.
+   an existing one). Placeholders replaced 2026-09-28 (repo `rembrandtreyes/senna`).
 4. **Review skills with the owner:** walk through react-next, expo, go, and rust, and cut or
    change anything that doesn't match how they actually work.
 5. **Publish:** `git init`, commit, and create a GitHub repo (`gh repo create`). Done: public, MIT. Ask
