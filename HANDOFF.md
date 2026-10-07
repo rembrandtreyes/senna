@@ -1,4 +1,4 @@
-# Handoff: finish setting up my-harness
+# Handoff: finish setting up senna
 
 Scaffolded in a claude.ai chat on 2026-09-24. Claude Code picks it up from here.
 

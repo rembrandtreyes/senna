@@ -1,5 +1,5 @@
 {
-  "name": "my-harness",
+  "name": "senna",
   "private": true,
   "description": "Dev tooling for the harness repo (architecture model). The plugins themselves have no npm dependencies.",
   "scripts": {

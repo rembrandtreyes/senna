@@ -1,4 +1,4 @@
-# my-harness (the harness repo itself)
+# senna (the harness repo itself)
 
 This repo is a Claude Code plugin marketplace: a personal harness of hooks, agents, commands, and
 skills shared across all of the owner's projects. You are working **on** the harness, not **with**

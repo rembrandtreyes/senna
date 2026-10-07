@@ -6,7 +6,7 @@ views {
   }
 
   view harnessView of harness {
-    title 'my-harness: plugins'
+    title 'senna: plugins'
     include *
   }
 

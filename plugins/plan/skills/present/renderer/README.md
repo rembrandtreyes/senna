@@ -13,7 +13,7 @@ Original prototype: https://claude.ai/artifact/FZzEbydpqj2QVX4LLD8QLp
   No dependencies.
 - `qa.mjs`: `node qa.mjs <index.html> <out-dir>` screenshots every section in light/dark at
   1440px and 390px and checks page overflow, off-screen and clipped text, diagram labels, WCAG
-  contrast, density, and JS errors. Needs `playwright-core` in `~/.cache/my-harness/present`
+  contrast, density, and JS errors. Needs `playwright-core` in `~/.cache/senna/present`
   and Chrome or Chromium.
 - `example-deck.json`: the rate-limiting example (`node build.mjs example-deck.json out.html`).
 

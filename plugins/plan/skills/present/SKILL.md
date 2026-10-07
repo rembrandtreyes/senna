@@ -17,9 +17,9 @@ template to fix one deck.
 - `specs/<slug>/spec.md` exists. If its Status is `draft` (the critic hasn't passed), say so and
   ask whether to continue anyway.
 - `node --version` is 18 or later.
-- QA needs `playwright-core` in `~/.cache/my-harness/present` (about 13 MB, one time) and Google
+- QA needs `playwright-core` in `~/.cache/senna/present` (about 13 MB, one time) and Google
   Chrome or Chromium. If `node <renderer>/qa.mjs` exits 3, ask the user before running
-  `npm install --prefix ~/.cache/my-harness/present playwright-core`. If they decline, build
+  `npm install --prefix ~/.cache/senna/present playwright-core`. If they decline, build
   without QA and say that it wasn't checked.
 
 ## 1. Write the data (in parallel)

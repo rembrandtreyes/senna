@@ -1,16 +1,16 @@
 {
   "extraKnownMarketplaces": {
-    "my-harness": {
+    "senna": {
       "source": { "source": "github", "repo": "rembrandtreyes/senna" }
     }
   },
   "enabledPlugins": {
-    "core@my-harness": true,
-    "plan@my-harness": true,
-    "lang-ts@my-harness": true,
-    "lang-go@my-harness": false,
-    "lang-rust@my-harness": false,
-    "ops@my-harness": false
+    "core@senna": true,
+    "plan@senna": true,
+    "lang-ts@senna": true,
+    "lang-go@senna": false,
+    "lang-rust@senna": false,
+    "ops@senna": false
   },
   "permissions": {
     "allow": [

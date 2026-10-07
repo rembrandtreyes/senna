@@ -1,4 +1,4 @@
-# my-harness
+# senna
 
 A personal Claude Code harness, packaged as a plugin marketplace so every project gets the same
 guardrails, verification, and workflow, and improves in one place.
@@ -27,17 +27,20 @@ for PRs, `lsof` for port checks, and the usual toolchains (`node`, `go`, `cargo`
 
 ## Install
 
-1. The repo is `rembrandtreyes/senna` on GitHub; the marketplace inside it is named `my-harness`.
-   (Forking it? Change the repo in `templates/project-settings.json` and the author names.)
+1. The repo is `rembrandtreyes/senna` on GitHub, and the marketplace inside it is also named
+   `senna`, so plugins install as `core@senna`. (Forking it? Change the repo in
+   `templates/project-settings.json` and the author names.)
 2. In Claude Code, once per machine:
    ```
    /plugin marketplace add rembrandtreyes/senna
-   /plugin install core@my-harness
-   /plugin install plan@my-harness
-   /plugin install lang-ts@my-harness
+   /plugin install core@senna
+   /plugin install plan@senna
+   /plugin install lang-ts@senna
    ```
    Installed plugins are a cached copy: after pushing harness changes, run
-   `/plugin marketplace update my-harness`.
+   `/plugin marketplace update senna`.
+   Installed under the old marketplace name `my-harness`? Remove it and add it again:
+   `/plugin marketplace remove my-harness`, then the four commands above.
 3. Global setup: copy `templates/global-CLAUDE.md` to `~/.claude/CLAUDE.md` and make it yours.
 4. Per project:
    - copy `templates/project-settings.json` to `<project>/.claude/settings.json` and flip on the

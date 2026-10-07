@@ -74,7 +74,7 @@ model {
     }
   }
 
-  harness = system 'my-harness' {
+  harness = system 'senna' {
     description 'Claude Code plugin marketplace: hooks, agents, commands, and skills shared across projects'
     link ../.claude-plugin/marketplace.json 'marketplace'
 

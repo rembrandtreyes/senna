@@ -4,8 +4,8 @@
 //   node qa.mjs <index.html> <out-dir>
 // Writes <out-dir>/<variant>/<nn>-<section>.png and <out-dir>/qa-report.json.
 // Exit 0 = no issues, 4 = issues found, 3 = playwright-core missing, 1 = other error.
-// Needs playwright-core in $HARNESS_PW_DIR (default ~/.cache/my-harness/present) and a Chrome
-// or Chromium install. Setup: npm install --prefix ~/.cache/my-harness/present playwright-core
+// Needs playwright-core in $HARNESS_PW_DIR (default ~/.cache/senna/present) and a Chrome
+// or Chromium install. Setup: npm install --prefix ~/.cache/senna/present playwright-core
 import { mkdirSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { homedir } from "node:os";
@@ -14,7 +14,7 @@ import { pathToFileURL } from "node:url";
 
 const [htmlArg, outArg] = process.argv.slice(2);
 if (!htmlArg || !outArg) { console.error("usage: qa.mjs <index.html> <out-dir>"); process.exit(1); }
-const pwDir = process.env.HARNESS_PW_DIR || join(homedir(), ".cache", "my-harness", "present");
+const pwDir = process.env.HARNESS_PW_DIR || join(homedir(), ".cache", "senna", "present");
 
 let chromium;
 try { ({ chromium } = createRequire(join(pwDir, "package.json"))("playwright-core")); }
