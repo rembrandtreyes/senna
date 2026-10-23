@@ -1,0 +1,8 @@
+{
+  "name": "pr-story",
+  "version": "0.1.0",
+  "description": "PR stories: author and reviewer modes, a per-change-type checklist with evidence for every claim, a careful/skim reading order, and a size check.",
+  "author": {
+    "name": "Rembrandt Reyes"
+  }
+}

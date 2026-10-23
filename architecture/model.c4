@@ -84,7 +84,7 @@ model {
       link ../scripts 'code'
 
       marketplace = component 'Marketplace manifest' {
-        description 'Lists installable plugins (core, lang-ts, lang-go, lang-rust, ops, plan) with versions'
+        description 'Lists installable plugins (core, lang-ts, lang-go, lang-rust, ops, plan, pr-story) with versions'
         technology 'JSON'
         link ../.claude-plugin/marketplace.json 'code'
       }

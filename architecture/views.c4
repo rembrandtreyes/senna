@@ -30,6 +30,11 @@ views {
     include *
   }
 
+  view prStoryView of harness.prStory {
+    title 'pr-story plugin'
+    include *
+  }
+
   view langTsView of harness.langTs {
     title 'lang-ts plugin (lang-go and lang-rust have the same shape)'
     include *
@@ -72,6 +77,7 @@ views {
     harness.core.reviewer -> project.tasks 'reads acceptance criteria'
     harness.core.ship -> project.tasks 'status: done'
     harness.core.ship -> project.workTree 'commit'
+    harness.core.ship -> harness.prStory.skill 'write the PR story (if installed)'
     harness.core.ship -> github 'gh pr create (auto mode, or after OK)'
   }
 

@@ -10,7 +10,8 @@
     "lang-ts@senna": true,
     "lang-go@senna": false,
     "lang-rust@senna": false,
-    "ops@senna": false
+    "ops@senna": false,
+    "pr-story@senna": false
   },
   "permissions": {
     "allow": [

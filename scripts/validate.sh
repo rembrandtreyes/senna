@@ -33,6 +33,13 @@ while IFS= read -r f; do
   grep -q '^description:' "$f" || err "missing description: $f"
 done < <(find plugins \( -path '*/agents/*.md' -o -path '*/commands/*.md' -o -name SKILL.md \))
 
+# Script tests: each builds its own scratch repo and exits non-zero on failure.
+for t in scripts/tests/*.sh; do
+  [ -f "$t" ] || continue
+  out="$(bash "$t" 2>&1)" || err "test failed: $t
+$out"
+done
+
 # Architecture model (only when the likec4 dev dependency is installed).
 if [ -d architecture ] && [ -x node_modules/.bin/likec4 ]; then
   node_modules/.bin/likec4 validate architecture >/dev/null 2>&1 || err "architecture model invalid (run: npm run arch:validate)"

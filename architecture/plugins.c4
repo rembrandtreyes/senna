@@ -1,4 +1,5 @@
-// plugins/ops and plugins/lang-*: security, Sentry triage, and per-language verification
+// plugins/ops, plugins/pr-story, and plugins/lang-*: security, Sentry triage, PR stories, and
+// per-language verification
 model {
   extend harness {
     ops = service 'ops plugin' {
@@ -20,6 +21,23 @@ model {
         description 'Contract-first rules for endpoints shared across TS, Go, and Rust'
         technology 'skill'
         link ../plugins/ops/skills/api-contracts/SKILL.md 'code'
+      }
+    }
+
+    prStory = service 'pr-story plugin' {
+      description 'Tells the story of a PR for human review: author and reviewer modes, evidence for every claim'
+      technology 'markdown, bash'
+      link ../plugins/pr-story 'code'
+
+      skill = component 'pr-story' {
+        description 'Writes the PR description (author) or retells a PR and verifies its claims (reviewer), from checklists picked by change type'
+        technology 'skill'
+        link ../plugins/pr-story/skills/pr-story/SKILL.md 'code'
+      }
+      prFacts = component 'pr-facts.sh' {
+        description 'Deterministic facts: base, commits, size vs the 400-line limit, change tags, refs, fix history, task/spec/ADR paths'
+        technology 'bash'
+        link ../plugins/pr-story/skills/pr-story/scripts/pr-facts.sh 'code'
       }
     }
 
@@ -88,6 +106,16 @@ model {
   harness.ops.triage -> harness.core.debugger 'hands off root cause'
   harness.ops.triage -> project.tasks 'writes a task if non-trivial'
   harness.ops.securityAuditor -> project.workTree 'reads diff vs main' { style { line dashed } }
+
+  // pr-story
+  claudeCode -> harness.prStory.skill 'write or retell a PR'
+  harness.core.ship -> harness.prStory.skill 'writes the PR body (if installed)'
+  harness.prStory.skill -> harness.prStory.prFacts 'runs'
+  harness.prStory.prFacts -> project.workTree 'reads git diff, log, status' { style { line dashed } }
+  harness.prStory.prFacts -> project.tasks 'finds the current task' { style { line dashed } }
+  harness.prStory.prFacts -> project.specs 'finds the spec and ADRs' { style { line dashed } }
+  harness.prStory.skill -> project.harnessState 'reads [review] lessons, proposes new ones'
+  harness.prStory.skill -> github 'gh pr view, gh pr diff (reviewer mode)'
 
   // lang-ts
   claudeCode -> harness.langTs.onEdit 'PostToolUse (Edit/Write)'
