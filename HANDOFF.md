@@ -300,8 +300,11 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
   checklists, flavours) and `pr-facts.sh`, which gathers the facts a script can get right. Four
   adversarial reviews (script breaker, claims audit, dogfood on PR #1 and a7bbacc, design
   fidelity) ran before the PR; their confirmed findings are fixed.
-- **decision-log:** `.harness/decisions/<branch>.md` (gitignored), loaded by a SessionStart hook
-  (also after compaction, and archived once the branch is deleted), written by Claude or
+- **decision-log:** one file per decision, `.harness/decisions/<branch>/NNN-<slug>.md`
+  (gitignored), so a new decision never rewrites old ones and a reason is one small read. A
+  reversal is a new file with `Replaces:`. There's no hand-kept index: the SessionStart hook
+  builds one from the files and adds the newest decisions in full (also after compaction), and
+  archives the folder once no local branch maps to it. Decisions are written by Claude or
   `/decide`, and enforced by a prompt-type Stop hook. Checked live with `claude -p
   --plugin-dir`: the prompt's model sees the conversation transcript plus the Stop input, it
   blocks a turn that settled a decision it didn't log, passes a turn that logged one or settled

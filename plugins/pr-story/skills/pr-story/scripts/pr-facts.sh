@@ -2,7 +2,7 @@
 # pr-facts.sh [base-ref] [head-ref] [head-branch-name]
 # The deterministic half of a PR story: base, commits, size, files with change tags, the
 # checklists those tags select, ticket refs, fix history of the touched files, and the
-# task/spec/ADR/lessons/decision-log files that exist. Committed changes only (merge-base..head).
+# task/spec/ADR/lessons files and decision-log folder that exist. Committed changes only (merge-base..head).
 # Run it from the project root. Base defaults to origin/HEAD, then origin/main, origin/master,
 # main, master. Head defaults to HEAD; for a PR that isn't checked out, pass its head SHA and
 # its branch name (the branch name carries ticket and task refs).
@@ -49,7 +49,8 @@ trap 'rm -rf "$tmp"' EXIT
 if [ -n "${3:-}" ]; then
   branch="$3"
 elif [ "$head" = HEAD ]; then
-  branch="$(git symbolic-ref -q --short HEAD 2>/dev/null || echo '(detached)')"
+  # Not --short: with a tag of the same name, that gives heads/<branch>.
+  branch="$(git symbolic-ref -q HEAD 2>/dev/null | sed 's|^refs/heads/||' || echo '(detached)')"
 else
   branch="$head"
 fi
@@ -267,15 +268,17 @@ lessons="$(rd .harness/learnings.md)"
 if [ -n "$lessons" ]; then
   echo "  lessons: .harness/learnings.md, $(printf '%s\n' "$lessons" | grep -c '\[review\]') [review] of $(printf '%s\n' "$lessons" | grep -c '^- ') entries"
 fi
-# The decision-log plugin's branch log is local and untracked: it describes head only when the
-# local branch of that name points at head (a fork's "main" isn't ours). Then the Decision:
-# trailers /ship copies from it into commits, counted once each.
+# The decision-log plugin's branch folder (one NNN-<slug>.md per decision) is local and
+# untracked: it describes head only when the local branch of that name points at head (a fork's
+# "main" isn't ours). Then the Decision: trailers /ship copies from it into commits, counted
+# once each.
 case "$branch" in
   '(detached)') ;;
-  *) dlog=".harness/decisions/$(printf '%s' "$branch" | sed 's|/|__|g').md"
-     if [ -f "$dlog" ] &&
+  *) ddir=".harness/decisions/$(printf '%s' "$branch" | sed 's|/|__|g')"
+     if [ -d "$ddir" ] &&
         [ "$(git rev-parse -q --verify "refs/heads/$branch^{commit}" 2>/dev/null)" = "$(git rev-parse "$head^{commit}")" ]; then
-       echo "  decisions: $dlog, $(grep -c '^## ' "$dlog") logged"
+       nd=0; for f in "$ddir"/[0-9]*.md; do [ -f "$f" ] && nd=$((nd + 1)); done
+       [ "$nd" -gt 0 ] && echo "  decisions: $ddir/, $nd logged"
      fi ;;
 esac
 ntr="$(g log --no-merges --format='%(trailers:key=Decision,valueonly,unfold)' "$mb..$head" | grep . | sort -u | grep -c .)"

@@ -8,10 +8,10 @@ Ship the current task (`.harness/current-task`). Notes: $ARGUMENTS
 1. Run the full checks for every stack this change touches (tests, typecheck, lint). Fix any
    failures first.
 2. Commit with a conventional commit message (`feat:`, `fix:`, `refactor:`...) that references
-   the task ID. If the branch has a decision log (`.harness/decisions/<branch>.md`, `/` as
-   `__`), end the message with a `Decision: <chosen> over <alternatives>: <why>` trailer for
-   each entry that no earlier commit on the branch carries and no later entry reverses, so the
-   why outlives the log. Pass the message through a quoted heredoc (`git commit -F - <<'EOF'`)
+   the task ID. If the branch has a decision folder (`.harness/decisions/<branch>/`, `/` as
+   `__`, a file per decision), end the message with a `Decision: <chosen> over <alternatives>:
+   <why>` trailer for each decision there that no earlier commit on the branch carries and no
+   other decision replaces (its `Replaces:` line), so the why outlives the folder. Pass the message through a quoted heredoc (`git commit -F - <<'EOF'`)
    so backticks and `$` stay literal. Every commit below follows the same rule.
 3. Write the PR description: what changed, why, how it was verified, and the task link. If the
    `pr-story` skill is listed, invoke it in author mode to write it instead, with this run's

@@ -157,7 +157,7 @@ model {
   harness.core.worktree -> project.workTree 'git worktree add'
   harness.core.worktree -> project.harnessState 'writes mode=parallel, ports.env, current-task'
   harness.core.ship -> harness.core.reviewer 'dispatches, with the PR description to check'
-  harness.core.ship -> project.harnessState 'copies the decision log into commit trailers' { style { line dashed } }
+  harness.core.ship -> project.harnessState 'copies the branch\'s decisions into commit trailers' { style { line dashed } }
   harness.core.ship -> harness.ops.securityAuditor 'dispatches (if installed)'
   harness.core.ship -> project.tasks 'updates status'
   harness.core.ship -> project.workTree 'commits'

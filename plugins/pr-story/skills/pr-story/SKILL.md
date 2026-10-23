@@ -21,14 +21,14 @@ From the project root, run `bash ${CLAUDE_PLUGIN_ROOT}/skills/pr-story/scripts/p
 don't cd there, since it describes whatever repo it's run in). It prints the base, commits,
 size by kind against the 400-line limit, each file with change tags, the checklists those tags
 select, ticket refs, recent fix commits on the touched files, and the task, spec, ADRs, lessons,
-and decision log that exist. Use its output instead of recomputing any of that. Then read:
+and decision folder that exist. Use its output instead of recomputing any of that. Then read:
 - the diff (`git diff <merge-base> <head>`), hunk by hunk, in the order the story will tell it
 - the task file: acceptance criteria, `Requirements:`, and its Context and Log, plus the spec
   sections and ADRs it names
 - each `#<n>` ref's issue (`gh issue view <n>`), for the problem as the reporter saw it
-- **the why.** First the branch's decision log and the `Decision:` trailers pr-facts counts
-  (`git log --format='%(trailers:key=Decision,valueonly,unfold)' <merge-base>..<head>`): each
-  records a choice when it was made. Then, in the author's own session, the conversation: what was
+- **the why.** First the branch's decision folder (a file per decision) and the `Decision:`
+  trailers pr-facts counts (`git log --format='%(trailers:key=Decision,valueonly,unfold)'
+  <merge-base>..<head>`): each records a choice when it was made. Then, in the author's own session, the conversation: what was
   decided, what was tried and dropped. Otherwise, commit bodies, the task's Log, the dead ends
   in `.harness/handoff*.md`, the ADRs, and PR comments. A decision you can see in the code
   with no recorded reason is listed as "reason not recorded". Never infer one.
@@ -73,8 +73,8 @@ Write the description from the author template in `references/templates.md`.
   public contract, or a revert won't undo it; medium if it changes behaviour users see; low
   otherwise.
 - **Decisions:** each choice with the alternative it beat and why, from the sources in step 1.
-  A log entry that a later one reverses is dropped. Link the ADR when there is one. No
-  decisions in the code or the record? Omit the section.
+  A decision another one replaces (by its `Replaces:` line) is dropped. Link the ADR when there
+  is one. No decisions in the code or the record? Omit the section.
 - **Proof of behaviour:** when the change is visible (UI, API, CLI output), show it: a request
   and response, before/after output, or a screenshot path. If you can't produce it, say what
   the reviewer should run.

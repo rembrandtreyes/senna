@@ -65,8 +65,10 @@ sign=""; if command -v ssh-keygen >/dev/null && ssh-keygen -q -t ed25519 -N "" -
 fi
 git add -A && git commit -q ${sign:+"$sign"} -m "feat: invites (T-12)" -m "Follows T-13." \
   -m "Decision: fetch over axios: no new dependency"
-mkdir -p .harness/decisions
-printf '# Decisions: feat/T-12-invites\n\n## 2026-10-20: fetch over axios\n- Why: no new dependency\n\n## 2026-10-21: one table\n- Why: simpler\n' > .harness/decisions/feat__T-12-invites.md
+dd=.harness/decisions/feat__T-12-invites; mkdir -p "$dd"
+printf '# fetch over axios\n- Why: no new dependency\n' > "$dd/001-fetch-over-axios.md"
+printf '# one table\n- Why: simpler\n' > "$dd/002-one-table.md"
+printf 'scratch\n' > "$dd/notes.md"
 idx_before="$(cksum < .git/index)"
 echo dirty > untracked.txt
 
@@ -90,12 +92,18 @@ has "branch T-number beats a body ref; CRLF stripped" "task: tasks/T-012-invites
 has "spec from the task" "spec: specs/inv/spec.md"
 has "ADRs next to the spec" "adrs: specs/inv/adr/0001-pick.md"
 has "lessons counted" "lessons: .harness/learnings.md, 1 [review] of 2 entries"
-has "branch decision log" "decisions: .harness/decisions/feat__T-12-invites.md, 2 logged"
+has "branch decision folder, decisions only" "decisions: .harness/decisions/feat__T-12-invites/, 2 logged"
 has "decision trailers" "decision trailers: 1 in this branch's commits"
 has "uncommitted counted" "uncommitted: 1 file(s)"
 has "branch name" "branch: feat/T-12-invites"
 lacks "no signature lines" "No signature"
 checks=$((checks + 1)); [ "$(cksum < .git/index)" = "$idx_before" ] || { echo "FAIL: read-only: .git/index changed"; fails=$((fails + 1)); }
+
+git tag feat/T-12-invites
+out="$(run main)"
+has "a tag named like the branch: the branch name" "branch: feat/T-12-invites"
+has "a tag named like the branch: its decision folder" "decisions: .harness/decisions/feat__T-12-invites/, 2 logged"
+git tag -d feat/T-12-invites >/dev/null
 
 out="$(PR_STORY_MAX_LINES=3 run main)"
 has "size limit" "limit 3: OVER"
@@ -103,10 +111,10 @@ out="$(PR_STORY_MAX_LINES=abc run main)"
 has "bad limit falls back" "limit 400: ok"
 
 head_sha="$(git rev-parse HEAD)"
-git checkout -q -b feat/t-13-lower
+git checkout -q -b feat/t-13-lower && mkdir -p .harness/decisions/feat__t-13-lower
 out="$(run main)"
 has "lowercase branch T-number" "task: tasks/T-013-other.md"
-lacks "another branch's decision log isn't used" "decisions: .harness/"
+lacks "another branch's decision folder isn't used" "decisions: .harness/"
 printf ' tasks/T-012-invites.md \r\n' > .harness/current-task
 out="$(run main)"
 has "current-task wins, trimmed" "task: tasks/T-012-invites.md"
@@ -122,11 +130,11 @@ has "head argument finds the task in the commit" "task: tasks/T-012-invites.md"
 lacks "no uncommitted line for another head" "uncommitted:"
 out="$(run main "$head_sha" feat/T-12-invites)"
 has "branch name argument" "branch: feat/T-12-invites"
-has "branch name argument finds its decision log" "decisions: .harness/decisions/feat__T-12-invites.md"
-printf '# Decisions: main\n\n## 2026-10-23: ours\n' > .harness/decisions/main.md
+has "branch name argument finds its decision folder" "decisions: .harness/decisions/feat__T-12-invites/"
+mkdir -p .harness/decisions/main && printf '# ours\n' > .harness/decisions/main/001-ours.md
 out="$(run main "$head_sha" main)"
-lacks "a fork's branch named main doesn't get our log" "decisions: .harness/decisions/main.md"
-rm -f .harness/decisions/main.md
+lacks "a fork's branch named main doesn't get our folder" "decisions: .harness/decisions/main/"
+rm -rf .harness/decisions/main
 
 git checkout -q -b noop main && echo x >> z.sql && commit "x" && git revert --no-edit HEAD >/dev/null
 out="$(run main)"

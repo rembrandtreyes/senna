@@ -4,7 +4,7 @@
 # your Claude account). Not run by validate.sh. Exit 0 = all pass, 1 = a check failed.
 #   1. Stop hook alone, a turn that settles a decision: the hook must make Claude log it.
 #   2. Stop hook alone, a turn that settles none: nothing is logged.
-#   3. The whole plugin, a turn that settles a decision: it ends up in the branch log.
+#   3. The whole plugin, a turn that settles a decision: it gets its own file in the folder.
 set -uo pipefail
 command -v claude >/dev/null || { echo "live decision-log: claude not on PATH, skipped"; exit 0; }
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES \
@@ -34,9 +34,9 @@ ask="What does greet('Ann') in greet.js return? Answer in one sentence and don't
 repo a && repo b && repo c || exit 1
 session a "$s" "$decide" & session b "$s" "$ask" & session c "$plugin" "$decide" & wait
 
-log=.harness/decisions/feat__greeting.md
-check "Stop hook alone: the decision was logged" '[ -f "$tmp/a/$log" ]' a
+dd=.harness/decisions/feat__greeting
+check "Stop hook alone: the decision was logged" 'ls "$tmp/a/$dd"/[0-9]*.md >/dev/null 2>&1' a
 check "no decision: nothing logged" '[ ! -d "$tmp/b/.harness/decisions" ]' b
-check "whole plugin: the decision was logged" 'grep -q "^## " "$tmp/c/$log" 2>/dev/null' c
+check "whole plugin: the decision was logged, one file" 'ls "$tmp/c/$dd"/001-*.md >/dev/null 2>&1 && grep -q "^- Why:" "$tmp/c/$dd"/001-*.md' c
 if [ "$fails" -gt 0 ]; then echo "live decision-log: $fails of 3 checks failed"; exit 1; fi
 echo "live decision-log: 3 checks passed"

@@ -47,17 +47,17 @@ model {
       link ../plugins/decision-log 'code'
 
       sessionStart = component 'session-start.sh' {
-        description 'Loads the branch log into context, also after compaction; archives the logs of deleted branches'
+        description 'Lists the branch\'s decisions (an index built from the files) and the newest in full, also after compaction; archives the folders of deleted branches'
         technology 'SessionStart hook'
         link ../plugins/decision-log/hooks/scripts/session-start.sh 'code'
       }
       stopCheck = component 'unlogged-decision check' {
-        description 'A small model reads the turn\'s last message; a decision it settled but didn\'t log keeps the turn going to log it'
+        description 'A small model reads the turn; a decision it settled but didn\'t log keeps the turn going to log it'
         technology 'Stop hook (prompt)'
         link ../plugins/decision-log/hooks/hooks.json 'code'
       }
       decide = component '/decide' {
-        description 'Appends a decision (what was chosen, over what, why, files) to the branch log'
+        description 'Writes a decision (what was chosen, over what, why, files) to a new file in the branch folder'
         technology 'command'
         link ../plugins/decision-log/commands/decide.md 'code'
       }
@@ -138,15 +138,15 @@ model {
   harness.prStory.prFacts -> project.specs 'finds the spec and ADRs' { style { line dashed } }
   harness.prStory.skill -> project.harnessState 'reads [review] lessons, proposes new ones'
   harness.prStory.skill -> github 'gh pr view, gh issue view, git fetch (PRs not checked out)'
-  harness.prStory.prFacts -> project.harnessState 'finds the branch decision log' { style { line dashed } }
+  harness.prStory.prFacts -> project.harnessState 'finds the branch decision folder' { style { line dashed } }
 
   // decision-log
   claudeCode -> harness.decisionLog.sessionStart 'SessionStart (startup, resume, clear, compact)'
   claudeCode -> harness.decisionLog.stopCheck 'Stop'
   claudeCode -> harness.decisionLog.decide '/decide'
-  harness.decisionLog.sessionStart -> project.harnessState 'reads decisions/<branch>.md, archives deleted branches\' logs'
+  harness.decisionLog.sessionStart -> project.harnessState 'reads decisions/<branch>/, archives deleted branches\' folders'
   harness.decisionLog.stopCheck -> harness.decisionLog.decide 'asks Claude to log the decision' { style { line dashed } }
-  harness.decisionLog.decide -> project.harnessState 'appends to decisions/<branch>.md'
+  harness.decisionLog.decide -> project.harnessState 'writes decisions/<branch>/NNN-<slug>.md'
 
   // lang-ts
   claudeCode -> harness.langTs.onEdit 'PostToolUse (Edit/Write)'

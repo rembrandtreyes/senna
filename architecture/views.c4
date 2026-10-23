@@ -75,7 +75,7 @@ views {
     developer -> claudeCode '/ship'
     claudeCode -> harness.core.ship 'runs'
     harness.core.ship -> toolchains 'stack checks'
-    harness.core.ship -> project.harnessState 'decision log (if any)'
+    harness.core.ship -> project.harnessState 'decision folder (if any)'
     harness.core.ship -> project.workTree 'commit, with Decision: trailers'
     harness.core.ship -> harness.prStory.skill 'write the PR story (if installed)'
     parallel {
