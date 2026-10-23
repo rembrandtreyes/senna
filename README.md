@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="#install"><img alt="Claude Code plugin marketplace" src="https://img.shields.io/badge/Claude_Code-plugin_marketplace-17a387?style=flat-square&labelColor=0b2c28"></a>
-  <a href="#the-plugins"><img alt="6 plugins" src="https://img.shields.io/badge/plugins-6-17a387?style=flat-square&labelColor=0b2c28"></a>
+  <a href="#the-plugins"><img alt="8 plugins" src="https://img.shields.io/badge/plugins-8-17a387?style=flat-square&labelColor=0b2c28"></a>
   <a href="#maintaining"><img alt="Portable bash 3.2+" src="https://img.shields.io/badge/bash-3.2%2B_portable-17a387?style=flat-square&labelColor=0b2c28"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-17a387?style=flat-square&labelColor=0b2c28"></a>
 </p>
@@ -50,6 +50,9 @@ with you, so you never ship alone.
   reviewer verdict.
 - **`/worktree`** gives each task its own worktree, ports, env, and deps, so parallel agents
   never collide.
+- **PR stories** explain each change to its reviewer: the problem, the decisions and what they
+  beat, and evidence for every claim. `/ship` has the reviewer check each claim against the code,
+  and the decision log records each choice as it's made, so the why outlives the session.
 - **`/retro`** turns each session's lessons into hooks and skills. Anything that goes wrong twice
   becomes a rule, so the harness gets stronger with every project.
 
@@ -66,6 +69,8 @@ and debugger agents, and an optional phone alert when Claude needs you.
 | `lang-go` | Go | gofmt on edit, build + vet (+ tests) on stop |
 | `lang-rust` | Rust | rustfmt on edit, clippy (+ tests) on stop, perf workflow skill |
 | `ops` | services | security-auditor agent, `/triage` via Sentry MCP, API contracts skill |
+| `pr-story` | pull requests (opt-in) | PR descriptions and reviews told as a story, with evidence for every claim; author and reviewer modes, per-change checklists, and a facts script for size, tags, and refs |
+| `decision-log` | any branch (opt-in) | each decision in its own file as it's settled, reloaded every session and after compaction; a check at each stop for one that wasn't logged (about 3s); `/decide` |
 | `lang-template` | other stacks | copy it to add Python, Java, Kotlin, Swift... (not listed in the marketplace) |
 
 ## Install
@@ -92,8 +97,9 @@ Then set up your machine and each project:
 1. **Global:** copy `templates/global-CLAUDE.md` to `~/.claude/CLAUDE.md` and make it yours.
 2. **Per project:**
    - copy `templates/project-settings.json` to `<project>/.claude/settings.json` and turn on the
-     language plugins that project uses (and `plan` if it uses the planning pipeline). Commit it,
-     and the plugins install automatically for anyone who trusts the repo.
+     language plugins that project uses (and `plan` if it uses the planning pipeline, and
+     `pr-story` or `decision-log` if you want them). Commit it, and the plugins install
+     automatically for anyone who trusts the repo.
    - copy `templates/project-CLAUDE.md` to `<project>/CLAUDE.md` and fill it in
    - append `templates/gitignore-snippet.txt` to `.gitignore`
    - `mkdir tasks .harness`
@@ -200,7 +206,7 @@ The parts that are *you* travel, and the parts that are *theirs* plug in.
 
 - Edit hook helpers in `shared/common.sh`, then run `scripts/sync-common.sh`.
 - Run `scripts/validate.sh` before pushing. It checks JSON, bash syntax, executability, synced
-  copies, versions, and frontmatter.
+  copies, versions, and frontmatter, and runs the fixture tests in `scripts/tests/`.
 - Bump `version` in both `plugin.json` and `marketplace.json` when you change a plugin.
 - Grow the harness from failures: when something goes wrong twice, `/retro` should turn it into
   a hook (must always happen) or a skill (knowledge).
@@ -227,12 +233,14 @@ plugins/
   lang-go/        gofmt on edit, build+vet(+tests) on stop
   lang-rust/      rustfmt on edit, clippy(+tests) on stop, perf workflow skill
   ops/            security-auditor agent, /triage via Sentry MCP, api-contracts skill
+  pr-story/       PR descriptions and reviews told as a story, evidence for every claim (opt-in)
+  decision-log/   a file per decision, reloaded each session, checked at each stop (opt-in)
   lang-template/  copy to add Python, Java, Kotlin, Swift... (not listed in marketplace)
 shared/common.sh  canonical hook library (synced into each plugin)
 architecture/     LikeC4 model of this repo (npm run arch to browse, arch:validate to check)
 docs/             planning-pipeline.md: the planning design (PRD → spec → present → review → build)
 templates/        global + project CLAUDE.md, settings, gitignore, override examples
-scripts/          sync-common.sh, validate.sh
+scripts/          sync-common.sh, validate.sh, tests/ (the fixture tests validate.sh runs)
 assets/           README banner and diagram (light + dark), social-preview.png
 ```
 
