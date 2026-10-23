@@ -35,6 +35,11 @@ views {
     include *
   }
 
+  view decisionLogView of harness.decisionLog {
+    title 'decision-log plugin'
+    include *
+  }
+
   view langTsView of harness.langTs {
     title 'lang-ts plugin (lang-go and lang-rust have the same shape)'
     include *
@@ -70,14 +75,15 @@ views {
     developer -> claudeCode '/ship'
     claudeCode -> harness.core.ship 'runs'
     harness.core.ship -> toolchains 'stack checks'
+    harness.core.ship -> project.harnessState 'decision log (if any)'
+    harness.core.ship -> project.workTree 'commit, with Decision: trailers'
+    harness.core.ship -> harness.prStory.skill 'write the PR story (if installed)'
     parallel {
-      harness.core.ship -> harness.core.reviewer 'review diff vs acceptance criteria'
+      harness.core.ship -> harness.core.reviewer 'review the diff and the story\'s claims'
       harness.core.ship -> harness.ops.securityAuditor 'security audit (if installed)'
     }
     harness.core.reviewer -> project.tasks 'reads acceptance criteria'
-    harness.core.ship -> project.tasks 'status: done'
-    harness.core.ship -> project.workTree 'commit'
-    harness.core.ship -> harness.prStory.skill 'write the PR story (if installed)'
+    harness.core.ship -> project.tasks 'status: review, once reviewed'
     harness.core.ship -> github 'gh pr create (auto mode, or after OK)'
   }
 

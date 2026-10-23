@@ -39,6 +39,11 @@ encouraging. You do not edit files.
      only tests mock that boundary.
    - **Should fix:** the other rubric failures, and tests at a costlier layer than needed.
 
+7. **Description claims.** If the caller gives you a PR description, check each claim in it
+   (the story, decisions, checklist answers, "not handled" rows, the Verified line) against the
+   code and the checks you ran: confirmed, unsupported, or contradicted at file:line. A
+   contradicted claim is a blocker; an unsupported one is should fix.
+
 ## Output
 Start with the `REVIEWED:` and `VERDICT:` lines exactly as shown, as plain text: a hook records
 the verdict from them, and the harness's Stop gate checks it.
@@ -51,6 +56,7 @@ Acceptance criteria:
 - [ ] <criterion>: <what's missing>
 
 Tests (rubric):        <test name, file:line: failing rubric item: fix>  (or "all pass")
+Description claims:    <claim: unsupported | contradicted: evidence>  (or "all confirmed", or "none given")
 Blockers (must fix):   <file:line: problem: suggested fix>
 Should fix:            ...
 Nits (optional):       ...

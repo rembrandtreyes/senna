@@ -20,16 +20,18 @@ From the project root, run `bash ${CLAUDE_PLUGIN_ROOT}/skills/pr-story/scripts/p
 [base-ref] [head-ref] [head-branch]` (it's `scripts/pr-facts.sh` in this skill's directory;
 don't cd there, since it describes whatever repo it's run in). It prints the base, commits,
 size by kind against the 400-line limit, each file with change tags, the checklists those tags
-select, ticket refs, recent fix commits on the touched files, and the task, spec, ADRs, and
-lessons that exist. Use its output instead of recomputing any of that. Then read:
+select, ticket refs, recent fix commits on the touched files, and the task, spec, ADRs, lessons,
+and decision log that exist. Use its output instead of recomputing any of that. Then read:
 - the diff (`git diff <merge-base> <head>`), hunk by hunk, in the order the story will tell it
 - the task file: acceptance criteria, `Requirements:`, and its Context and Log, plus the spec
   sections and ADRs it names
 - each `#<n>` ref's issue (`gh issue view <n>`), for the problem as the reporter saw it
-- **the why.** In the author's own session, the conversation: what was decided, what was tried
-  and dropped. Otherwise, commit bodies, the task's Log, the dead ends in `.harness/handoff*.md`,
-  the ADRs, and PR comments. A decision you can see in the code with no recorded reason is
-  listed as "reason not recorded". Never infer one.
+- **the why.** First the branch's decision log and the `Decision:` trailers pr-facts counts
+  (`git log --format='%(trailers:key=Decision,valueonly,unfold)' <merge-base>..<head>`): each
+  records a choice when it was made. Then, in the author's own session, the conversation: what was
+  decided, what was tried and dropped. Otherwise, commit bodies, the task's Log, the dead ends
+  in `.harness/handoff*.md`, the ADRs, and PR comments. A decision you can see in the code
+  with no recorded reason is listed as "reason not recorded". Never infer one.
 - callers of changed functions, types, endpoints, and config keys outside the diff
   (`git grep -n -w <symbol>`), for the blast radius
 - the fix commits pr-facts lists (`git show --stat <sha>`). A past bug in the same spot is a
@@ -71,7 +73,8 @@ Write the description from the author template in `references/templates.md`.
   public contract, or a revert won't undo it; medium if it changes behaviour users see; low
   otherwise.
 - **Decisions:** each choice with the alternative it beat and why, from the sources in step 1.
-  Link the ADR when there is one. No decisions in the code or the record? Omit the section.
+  A log entry that a later one reverses is dropped. Link the ADR when there is one. No
+  decisions in the code or the record? Omit the section.
 - **Proof of behaviour:** when the change is visible (UI, API, CLI output), show it: a request
   and response, before/after output, or a screenshot path. If you can't produce it, say what
   the reviewer should run.
@@ -80,9 +83,10 @@ Write the description from the author template in `references/templates.md`.
   writing the body, and wait. If they keep it whole, or in auto mode, the Size line gives the
   split you'd suggest. When most of the size is docs, copies, or assets, the Size line says so
   and nothing is split.
-- **In /ship:** this is the PR body. The Verified line carries the run's checks with their
-  results, and should-fix items the user declined go in the checklist as "not handled".
-  Interactive mode still shows the body to the user before opening.
+- **In /ship:** this is the PR body, written before the review. The Verified line carries the
+  run's checks with their results. The reviewer then checks every claim against the code, so
+  write only what it can confirm, and /ship adds should-fix items the user declines as "not
+  handled". Interactive mode still shows the body to the user before opening.
 
 ## 3b. Reviewer mode
 Use the reviewer template in `references/templates.md`.

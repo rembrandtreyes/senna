@@ -13,6 +13,7 @@ plugins/
   lang-rust/   rustfmt on edit, clippy(+tests) on stop, perf workflow skill
   ops/         security-auditor agent, /triage via Sentry MCP, api-contracts skill
   pr-story/    PR descriptions and reviews told as a story, with evidence for every claim (opt-in)
+  decision-log/  per-branch log of decisions, reloaded each session, checked at each stop (opt-in)
   plan/        planning pipeline: router, /prd, /spec, reviewers, /present, /feedback
   lang-template/  copy to add Python, Java, Kotlin, Swift... (not listed in marketplace)
 shared/common.sh  canonical hook library (synced into each plugin)

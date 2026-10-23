@@ -2,7 +2,7 @@
 # pr-facts.sh [base-ref] [head-ref] [head-branch-name]
 # The deterministic half of a PR story: base, commits, size, files with change tags, the
 # checklists those tags select, ticket refs, fix history of the touched files, and the
-# task/spec/ADR/lessons files that exist. Committed changes only (merge-base..head).
+# task/spec/ADR/lessons/decision-log files that exist. Committed changes only (merge-base..head).
 # Run it from the project root. Base defaults to origin/HEAD, then origin/main, origin/master,
 # main, master. Head defaults to HEAD; for a PR that isn't checked out, pass its head SHA and
 # its branch name (the branch name carries ticket and task refs).
@@ -267,5 +267,18 @@ lessons="$(rd .harness/learnings.md)"
 if [ -n "$lessons" ]; then
   echo "  lessons: .harness/learnings.md, $(printf '%s\n' "$lessons" | grep -c '\[review\]') [review] of $(printf '%s\n' "$lessons" | grep -c '^- ') entries"
 fi
+# The decision-log plugin's branch log is local and untracked: it describes head only when the
+# local branch of that name points at head (a fork's "main" isn't ours). Then the Decision:
+# trailers /ship copies from it into commits, counted once each.
+case "$branch" in
+  '(detached)') ;;
+  *) dlog=".harness/decisions/$(printf '%s' "$branch" | sed 's|/|__|g').md"
+     if [ -f "$dlog" ] &&
+        [ "$(git rev-parse -q --verify "refs/heads/$branch^{commit}" 2>/dev/null)" = "$(git rev-parse "$head^{commit}")" ]; then
+       echo "  decisions: $dlog, $(grep -c '^## ' "$dlog") logged"
+     fi ;;
+esac
+ntr="$(g log --no-merges --format='%(trailers:key=Decision,valueonly,unfold)' "$mb..$head" | grep . | sort -u | grep -c .)"
+[ "$ntr" -gt 0 ] && echo "  decision trailers: $ntr in this branch's commits"
 [ "$dirty" -gt 0 ] && echo "uncommitted: $dirty file(s) changed but not committed; they are not part of this story"
 exit 0

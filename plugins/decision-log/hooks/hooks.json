@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-start.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Stopping condition for the decision-log plugin. Hook input: $ARGUMENTS\n\nThe condition is met (ok: true) when stop_hook_active in the hook input is true, when permission_mode is \"plan\" (nothing can be written yet), or when the latest turn (the user's last message and everything the assistant did after it) settled no decision that is missing from the branch's decision log. A decision is recorded when the turn wrote it to a file under .harness/decisions/, an ADR, a spec, PRD or interview file, or the task's Log, or when the log loaded earlier in the session already has it.\n\nA decision is a choice between real alternatives that a code reviewer would ask \"why this and not that?\" about: design, behaviour, an interface or data format, a dependency, or what is in or out of scope. It counts when the assistant made it and when the user stated it in their message (\"do X rather than Y, because Z\"). Not decisions: answering a question, laying out options and waiting for the user to pick, routine steps, following the existing pattern, fixing a typo or a failing check, naming.\n\nWhen the condition is not met (ok: false), the reason is the instruction the assistant gets, so write it as: \"Decision log: this turn settled <each decision, in under 12 words> but didn't log it. Append it to this branch's log, .harness/decisions/<branch name with each / as __>.md (the format is in the session context; /decide does it too), then finish. If it is already logged or isn't a real decision, say so in one line and finish.\" When unsure, the condition is met.",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

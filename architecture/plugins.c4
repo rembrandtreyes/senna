@@ -1,5 +1,5 @@
-// plugins/ops, plugins/pr-story, and plugins/lang-*: security, Sentry triage, PR stories, and
-// per-language verification
+// plugins/ops, plugins/pr-story, plugins/decision-log, and plugins/lang-*: security, Sentry
+// triage, PR stories, the decision log, and per-language verification
 model {
   extend harness {
     ops = service 'ops plugin' {
@@ -38,6 +38,28 @@ model {
         description 'Deterministic facts: base, commits, size vs the 400-line limit, change tags, refs, fix history, task/spec/ADR paths'
         technology 'bash'
         link ../plugins/pr-story/skills/pr-story/scripts/pr-facts.sh 'code'
+      }
+    }
+
+    decisionLog = service 'decision-log plugin' {
+      description 'Keeps the why: a per-branch log of decisions, reloaded every session and checked at every stop'
+      technology 'bash hook, prompt hook, markdown'
+      link ../plugins/decision-log 'code'
+
+      sessionStart = component 'session-start.sh' {
+        description 'Loads the branch log into context, also after compaction; archives the logs of deleted branches'
+        technology 'SessionStart hook'
+        link ../plugins/decision-log/hooks/scripts/session-start.sh 'code'
+      }
+      stopCheck = component 'unlogged-decision check' {
+        description 'A small model reads the turn\'s last message; a decision it settled but didn\'t log keeps the turn going to log it'
+        technology 'Stop hook (prompt)'
+        link ../plugins/decision-log/hooks/hooks.json 'code'
+      }
+      decide = component '/decide' {
+        description 'Appends a decision (what was chosen, over what, why, files) to the branch log'
+        technology 'command'
+        link ../plugins/decision-log/commands/decide.md 'code'
       }
     }
 
@@ -116,6 +138,15 @@ model {
   harness.prStory.prFacts -> project.specs 'finds the spec and ADRs' { style { line dashed } }
   harness.prStory.skill -> project.harnessState 'reads [review] lessons, proposes new ones'
   harness.prStory.skill -> github 'gh pr view, gh issue view, git fetch (PRs not checked out)'
+  harness.prStory.prFacts -> project.harnessState 'finds the branch decision log' { style { line dashed } }
+
+  // decision-log
+  claudeCode -> harness.decisionLog.sessionStart 'SessionStart (startup, resume, clear, compact)'
+  claudeCode -> harness.decisionLog.stopCheck 'Stop'
+  claudeCode -> harness.decisionLog.decide '/decide'
+  harness.decisionLog.sessionStart -> project.harnessState 'reads decisions/<branch>.md, archives deleted branches\' logs'
+  harness.decisionLog.stopCheck -> harness.decisionLog.decide 'asks Claude to log the decision' { style { line dashed } }
+  harness.decisionLog.decide -> project.harnessState 'appends to decisions/<branch>.md'
 
   // lang-ts
   claudeCode -> harness.langTs.onEdit 'PostToolUse (Edit/Write)'

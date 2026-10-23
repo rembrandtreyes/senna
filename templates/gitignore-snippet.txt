@@ -10,6 +10,7 @@
 .harness/.boundary-warned
 .harness/.gate-*
 .harness/verdicts/
+.harness/decisions/
 .claude/settings.local.json
 
 # Planning pipeline: deck QA screenshots are regenerated on every /present

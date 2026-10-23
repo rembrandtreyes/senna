@@ -40,6 +40,7 @@ printf '# T-012: invites\n\nStatus: review   # todo\r\nRequirements: R-3\r\nSpec
 printf 'Status: todo\n' > tasks/T-013-other.md
 printf '# spec\n' > specs/inv/spec.md; printf '# ADR\n' > specs/inv/adr/0001-pick.md
 printf -- '- 2026-10-01 [review] z.sql: who runs the migration?\n- 2026-10-02 [testing] use the real db\n' > .harness/learnings.md
+printf '.harness/decisions/\n' > .gitignore
 commit "init"
 echo '// a' >> lib.go; commit "fix: lib panics on empty input"
 echo '// b' >> lib.go; commit "Revert \"feat: lib cache\""
@@ -62,7 +63,10 @@ cp plugins/a/common.sh shared/common.sh
 sign=""; if command -v ssh-keygen >/dev/null && ssh-keygen -q -t ed25519 -N "" -f "$tmp/key" >/dev/null 2>&1; then
   git config gpg.format ssh; git config user.signingkey "$tmp/key.pub"; sign=-S
 fi
-git add -A && git commit -q ${sign:+"$sign"} -m "feat: invites (T-12)" -m "Follows T-13."
+git add -A && git commit -q ${sign:+"$sign"} -m "feat: invites (T-12)" -m "Follows T-13." \
+  -m "Decision: fetch over axios: no new dependency"
+mkdir -p .harness/decisions
+printf '# Decisions: feat/T-12-invites\n\n## 2026-10-20: fetch over axios\n- Why: no new dependency\n\n## 2026-10-21: one table\n- Why: simpler\n' > .harness/decisions/feat__T-12-invites.md
 idx_before="$(cksum < .git/index)"
 echo dirty > untracked.txt
 
@@ -86,6 +90,8 @@ has "branch T-number beats a body ref; CRLF stripped" "task: tasks/T-012-invites
 has "spec from the task" "spec: specs/inv/spec.md"
 has "ADRs next to the spec" "adrs: specs/inv/adr/0001-pick.md"
 has "lessons counted" "lessons: .harness/learnings.md, 1 [review] of 2 entries"
+has "branch decision log" "decisions: .harness/decisions/feat__T-12-invites.md, 2 logged"
+has "decision trailers" "decision trailers: 1 in this branch's commits"
 has "uncommitted counted" "uncommitted: 1 file(s)"
 has "branch name" "branch: feat/T-12-invites"
 lacks "no signature lines" "No signature"
@@ -100,6 +106,7 @@ head_sha="$(git rev-parse HEAD)"
 git checkout -q -b feat/t-13-lower
 out="$(run main)"
 has "lowercase branch T-number" "task: tasks/T-013-other.md"
+lacks "another branch's decision log isn't used" "decisions: .harness/"
 printf ' tasks/T-012-invites.md \r\n' > .harness/current-task
 out="$(run main)"
 has "current-task wins, trimmed" "task: tasks/T-012-invites.md"
@@ -115,6 +122,11 @@ has "head argument finds the task in the commit" "task: tasks/T-012-invites.md"
 lacks "no uncommitted line for another head" "uncommitted:"
 out="$(run main "$head_sha" feat/T-12-invites)"
 has "branch name argument" "branch: feat/T-12-invites"
+has "branch name argument finds its decision log" "decisions: .harness/decisions/feat__T-12-invites.md"
+printf '# Decisions: main\n\n## 2026-10-23: ours\n' > .harness/decisions/main.md
+out="$(run main "$head_sha" main)"
+lacks "a fork's branch named main doesn't get our log" "decisions: .harness/decisions/main.md"
+rm -f .harness/decisions/main.md
 
 git checkout -q -b noop main && echo x >> z.sql && commit "x" && git revert --no-edit HEAD >/dev/null
 out="$(run main)"
@@ -128,6 +140,12 @@ has "merge-only change still described" "evil.go"
 git checkout -q --detach "$head_sha"
 out="$(run main)"
 has "detached head" "branch: (detached)"
+
+git checkout -q -b trailers main
+echo t1 >> z.sql && git commit -qam "t1" -m "Decision: a over b: c"
+echo t2 >> z.sql && git commit -qam "t2" -m "$(printf 'Decision: a over b: c\nDecision: d over e:\n  because f')"
+out="$(run main)"
+has "trailers unfolded and counted once" "decision trailers: 2 in this branch's commits"
 
 git clone -q --depth 1 --no-single-branch "file://$r" "$tmp/shallow" 2>/dev/null
 out="$(cd "$tmp/shallow" && git checkout -q feat/T-12-invites && run origin/main)"; code=$?

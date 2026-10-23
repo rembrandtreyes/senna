@@ -48,6 +48,12 @@
       "source": "./plugins/pr-story",
       "description": "PR stories: author and reviewer modes, a per-change-type checklist with evidence for every claim, a careful/skim reading order, and a size check.",
       "version": "0.1.0"
+    },
+    {
+      "name": "decision-log",
+      "source": "./plugins/decision-log",
+      "description": "Keeps the why: a per-branch log of decisions, reloaded every session and after compaction, with a check at each stop for a decision that wasn't logged. pr-story and /ship read it.",
+      "version": "0.1.0"
     }
   ]
 }

@@ -295,15 +295,30 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
 - **E2E scope:** budget it (critical journeys only). The first win in timbre is running the
   existing Playwright specs in CI, not writing new ones.
 
-## pr-story plugin (2026-10-22)
-- **Built (0.1.0, opt-in):** the `pr-story` skill (author and reviewer modes, per-change-type
-  checklists, flavours) and `pr-facts.sh`, which gathers the facts a script can get right.
-  /ship's PR step invokes it when it's installed. The fixture test, `scripts/tests/pr-facts.sh`,
-  runs from validate.sh. Four adversarial reviews (script breaker, claims audit, dogfood on
-  PR #1 and a7bbacc, design fidelity) ran before the PR; their confirmed findings are fixed.
-- **Not built, from the design doc:** the decision log (hooks that capture decisions as a
-  session makes them), test runs attached as evidence, review metrics, the GitHub app, and
-  learning from past review comments.
+## pr-story and decision-log plugins (2026-10-23)
+- **Built (0.1.0 each, opt-in):** the `pr-story` skill (author and reviewer modes, per-change-type
+  checklists, flavours) and `pr-facts.sh`, which gathers the facts a script can get right. Four
+  adversarial reviews (script breaker, claims audit, dogfood on PR #1 and a7bbacc, design
+  fidelity) ran before the PR; their confirmed findings are fixed.
+- **decision-log:** `.harness/decisions/<branch>.md` (gitignored), loaded by a SessionStart hook
+  (also after compaction, and archived once the branch is deleted), written by Claude or
+  `/decide`, and enforced by a prompt-type Stop hook. Checked live with `claude -p
+  --plugin-dir`: the prompt's model sees the conversation transcript plus the Stop input, it
+  blocks a turn that settled a decision it didn't log, passes a turn that logged one or settled
+  none, and adds about 3s to every stop, in any folder where the plugin is enabled. It always
+  passes once a Stop hook has already continued the turn (`stop_hook_active`), so it can't loop. A PreCompact hook can't add to the summary (Claude Code
+  discards its output), so the after-compaction SessionStart asks for anything the summary has
+  that the log doesn't.
+- **/ship reordered:** commit (decision log copied in as `Decision:` trailers, so the why
+  outlives the gitignored log), write the PR description, have the reviewer check the code and
+  the description's claims (again after fixes), then set the task to review and push. The status
+  changes last because core's review gate fires as soon as a task is in review. pr-facts counts the trailers, so reviewer mode on another
+  machine still finds the why.
+- **Tests:** `scripts/tests/pr-facts.sh` and `scripts/tests/decision-log.sh` run from validate.sh;
+  each fix was mutation-checked (reverted on a copy, and a check failed).
+- **Not built, from the design doc:** grill-me answers seeding the decision log (the frontier
+  interview is still on the unmerged prd-frontier-interview branch), test runs attached as
+  evidence, review metrics, the GitHub app, and learning from past review comments.
 - **Open:** `allowed-tools` in the skill's frontmatter, so auto mode doesn't prompt for
-  pr-facts.sh (confirm with one headless auto run); whether /ship's reviewer should verify the
-  story's claims (today it runs before the story exists).
+  pr-facts.sh (confirm with one headless auto run); PR #1's README rewrite needs pr-story and
+  decision-log in its plugin table once this merges.
