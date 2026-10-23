@@ -323,5 +323,5 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
   interview is still on the unmerged prd-frontier-interview branch), test runs attached as
   evidence, review metrics, the GitHub app, and learning from past review comments.
 - **Open:** `allowed-tools` in the skill's frontmatter, so auto mode doesn't prompt for
-  pr-facts.sh (confirm with one headless auto run); PR #1's README rewrite needs pr-story and
-  decision-log in its plugin table once this merges.
+  pr-facts.sh (confirm with one headless auto run); the README lines for pr-story and decision-log
+  are in PR #1 (the README rewrite), so only one PR touches the README; merge this one first.

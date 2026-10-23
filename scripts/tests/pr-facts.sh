@@ -29,7 +29,8 @@ has() { checks=$((checks + 1)); printf '%s\n' "$out" | grep -qF -- "$2" || { ech
 lacks() { checks=$((checks + 1)); printf '%s\n' "$out" | grep -qF -- "$2" && { echo "FAIL: $1: unexpected: $2"; fails=$((fails + 1)); }; }
 code_is() { checks=$((checks + 1)); [ "$code" -eq "$2" ] || { echo "FAIL: $1: exit $code, expected $2"; fails=$((fails + 1)); }; }
 
-mkdir -p tasks "my lib" "{{t}}" specs/inv/adr .harness plugins/a shared
+mkdir -p tasks "my lib" "{{t}}" specs/inv/adr .harness plugins/a plugins/b shared tools
+for i in 1 2 3 4 5 6 7 8 9 10 11; do echo "tool $i"; done > tools/lib.sh
 printf 'package lib\n' > lib.go
 printf -- '-- rotate the secret\nselect 1;\n' > z.sql
 printf 'flask==2.0\n' > requirements.txt
@@ -59,6 +60,7 @@ printf 'package roles\n' > src/authorization/roles.go
 printf -- '---\nname: demo\n---\n' > skills/demo/SKILL.md
 for i in 1 2 3 4 5 6 7 8 9 10 11 12; do echo "line $i"; done > plugins/a/common.sh
 cp plugins/a/common.sh shared/common.sh
+cp tools/lib.sh plugins/b/lib.sh
 # Sign it when ssh-keygen exists: with log.showSignature, git prints signature lines to stdout.
 sign=""; if command -v ssh-keygen >/dev/null && ssh-keygen -q -t ed25519 -N "" -f "$tmp/key" >/dev/null 2>&1; then
   git config gpg.format ssh; git config user.signingkey "$tmp/key.pub"; sign=-S
@@ -76,7 +78,8 @@ out="$(run main)"
 has "space in path keeps content tags (after a non-UTF-8 line)" "my lib/client.ts  [http]"
 has "manifest before docs rule" "requirements.txt  [config]"
 lacks "lockfile gets no content tags" "package-lock.json  ["
-has "lockfile and copy not counted" "not counted: 2 lockfile/generated/asset/duplicate file(s), 14 lines"
+has "lockfile and copies not counted" "not counted: 3 lockfile/generated/asset/duplicate file(s), 25 lines"
+has "copy of a file at the base named" "plugins/b/lib.sh (same content as tools/lib.sh)"
 has "synced copy named" "shared/common.sh (same content as plugins/a/common.sh)"
 has "removed -- line is content, not a header" "z.sql  [data security]"
 has "rename keeps fix history" "pkg/lib.go: 2 fix commits (1 revert)"

@@ -28,10 +28,11 @@ and decision folder that exist. Use its output instead of recomputing any of tha
 - each `#<n>` ref's issue (`gh issue view <n>`), for the problem as the reporter saw it
 - **the why.** First the branch's decision folder (a file per decision) and the `Decision:`
   trailers pr-facts counts (`git log --format='%(trailers:key=Decision,valueonly,unfold)'
-  <merge-base>..<head>`): each records a choice when it was made. Then, in the author's own session, the conversation: what was
-  decided, what was tried and dropped. Otherwise, commit bodies, the task's Log, the dead ends
-  in `.harness/handoff*.md`, the ADRs, and PR comments. A decision you can see in the code
-  with no recorded reason is listed as "reason not recorded". Never infer one.
+  <merge-base>..<head>`): each records a choice when it was made. Then, in the author's own
+  session, the conversation: what was decided, what was tried and dropped. Otherwise, commit
+  bodies, the task's Log, the dead ends in `.harness/handoff*.md`, the ADRs, and PR comments. A
+  decision you can see in the code with no recorded reason is listed as "reason not recorded".
+  Never infer one.
 - callers of changed functions, types, endpoints, and config keys outside the diff
   (`git grep -n -w <symbol>`), for the blast radius
 - the fix commits pr-facts lists (`git show --stat <sha>`). A past bug in the same spot is a

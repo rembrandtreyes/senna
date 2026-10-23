@@ -78,6 +78,8 @@ awk -F'\t' '/^:/ { print $NF }' "$tmp/diff" | {
   if [ "$head" = HEAD ]; then git check-attr --stdin linguist-generated linguist-vendored
   else git check-attr --source="$head" --stdin linguist-generated linguist-vendored 2>/dev/null; fi
 } | sed -nE 's/: linguist-(generated|vendored): (set|true)$//p' > "$tmp/attrs"
+# Every blob at the base, so a file identical to one already there (a synced copy) is named.
+g ls-tree -r "$mb" 2>/dev/null | awk -F'\t' '{ split($1, m, " "); if (m[2] == "blob") print m[3] "\t" $2 }' > "$tmp/baseblobs"
 
 # Content tags: scan changed lines (not context) of each file once. ---/+++ are headers only
 # right after "diff --git" (later, "--- x" is a removed line starting with "--"). git appends
@@ -153,6 +155,7 @@ awk -F'\t' -v limit="$limit" '
     next
   }
   FILENAME == ARGV[3] { gen[$0] = 1; next }
+  FILENAME == ARGV[4] { if (!($1 in baseb)) baseb[$1] = $2; next }
   /^:/ {
     nraw++; split($1, m, " "); st[nraw] = substr(m[5], 1, 1); blob[nraw] = m[4]
     if (NF >= 3) { op[nraw] = $2; np[nraw] = $3 } else { op[nraw] = ""; np[nraw] = $2 }
@@ -167,10 +170,14 @@ awk -F'\t' -v limit="$limit" '
       if (!skipsize(path) && !isasset(path) && tags[path] !~ /docs|tests|prompt/ && ct[path] != "") { k = split(ct[path], arr, " "); for (j = 1; j <= k; j++) addtag(path, arr[j]) }
       k = split(tags[path], arr, " "); for (j = 1; j <= k; j++) { cnt[arr[j]]++; if (!(arr[j] in seen)) { seen[arr[j]] = 1; order[++norder] = arr[j] } }
       if (tags[path] !~ /docs|tests/) code++
-      # Identical new content in several files (synced copies) is reviewed once. Small files
-      # (an __init__.py, a one-line stub) are often identical by chance, so they always count.
+      # Identical new content in several files, or in a file already at the base (synced
+      # copies), is reviewed once. Small files (an __init__.py, a one-line stub) are often
+      # identical by chance, so they always count.
       dup = ""
-      if (st[i] != "D" && a != "-" && a + d >= 10) { if (blob[i] in firstb) dup = firstb[blob[i]]; else firstb[blob[i]] = path }
+      if (st[i] != "D" && a != "-" && a + d >= 10) {
+        if (blob[i] in firstb) dup = firstb[blob[i]]
+        else { firstb[blob[i]] = path; if (blob[i] in baseb) dup = baseb[blob[i]] }
+      }
       if (a == "-") { bin++; shown = "bin" }
       else if (skipsize(path) || (path in gen) || isasset(path) || dup != "") { skipf++; skipl += a + d; shown = "+" a " -" d " (not counted)" }
       else {
@@ -210,7 +217,7 @@ awk -F'\t' -v limit="$limit" '
       for (i = 1; i <= nhist && i <= 8; i++) print hl[i]
       if (nhist > 8) print "  ... and " (nhist - 8) " more files with fix history"
     }
-  }' "$tmp/ctags" "$tmp/history" "$tmp/attrs" "$tmp/diff"
+  }' "$tmp/ctags" "$tmp/history" "$tmp/attrs" "$tmp/baseblobs" "$tmp/diff"
 
 refs="$(tr '\n' ' ' < "$tmp/refs" | sed 's/ $//')"
 echo "refs: ${refs:-none}"
