@@ -7,7 +7,7 @@
    submission; a dependency that is down or slow. For each, what happens and what the user sees.
 3. **Tests.** Does a test cover the failure paths, not only the happy one? Would it fail if the
    behaviour broke? If the testing skill (core plugin) is installed, grade new tests against its
-   rubric. Behaviour with no test goes in the Untested section.
+   rubric. Behaviour with no test is a checklist row marked "not verified".
 4. **Operability.** When this fails in production, how would anyone know: a log line, a metric,
    an alert? How do you roll it back: a revert, a flag, a down migration? Anything to do before
    or after deploy?

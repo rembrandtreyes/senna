@@ -14,8 +14,8 @@ Ship the current task (`.harness/current-task`). Notes: $ARGUMENTS
 4. Commit with a conventional commit message (`feat:`, `fix:`, `refactor:`...) that references the
    task ID.
 5. Push and open the PR (`gh pr create`) with what changed, why, how it was verified, and the
-   task link. If the pr-story skill is available, write the description with it (author mode),
-   citing this run's checks and review verdicts as evidence.
+   task link. If the `pr-story` skill is listed, invoke it in author mode to write the body
+   instead: its template covers these, with this run's checks on its Verified line.
    - **Interactive:** show me the branch and the PR description, and wait for my OK first.
    - **Parallel or auto:** push the feature branch (`git push -u origin HEAD`) and open the PR
      without asking. If the push or `gh` is refused (permissions, no remote, not signed in),

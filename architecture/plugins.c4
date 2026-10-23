@@ -115,7 +115,7 @@ model {
   harness.prStory.prFacts -> project.tasks 'finds the current task' { style { line dashed } }
   harness.prStory.prFacts -> project.specs 'finds the spec and ADRs' { style { line dashed } }
   harness.prStory.skill -> project.harnessState 'reads [review] lessons, proposes new ones'
-  harness.prStory.skill -> github 'gh pr view, gh pr diff (reviewer mode)'
+  harness.prStory.skill -> github 'gh pr view, gh issue view, git fetch (PRs not checked out)'
 
   // lang-ts
   claudeCode -> harness.langTs.onEdit 'PostToolUse (Edit/Write)'

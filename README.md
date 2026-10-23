@@ -19,7 +19,7 @@ shared/common.sh  canonical hook library (synced into each plugin)
 architecture/     LikeC4 model of this repo (npm run arch to browse, arch:validate to check)
 docs/             planning-pipeline.md: the Phase 2 design (PRD → spec → present → review → build)
 templates/        global + project CLAUDE.md, settings, gitignore, override examples
-scripts/          sync-common.sh, validate.sh
+scripts/          sync-common.sh, validate.sh, tests/ (fixture tests validate.sh runs)
 ```
 
 ## Prerequisites
@@ -138,7 +138,7 @@ The harness is built so the parts that are *you* travel, and the parts that are 
 ## Maintaining
 - Edit hook helpers in `shared/common.sh`, then run `scripts/sync-common.sh`.
 - Run `scripts/validate.sh` before pushing. It checks JSON, bash syntax, executability, synced
-  copies, versions, and frontmatter.
+  copies, versions, and frontmatter, and runs the fixture tests in `scripts/tests/`.
 - Bump `version` in both `plugin.json` and `marketplace.json` when you change a plugin.
 - Grow the harness from failures: when something goes wrong twice, `/retro` should turn it into
   a hook (must always happen) or a skill (knowledge).

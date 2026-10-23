@@ -99,7 +99,7 @@ model {
         link ../scripts/sync-common.sh 'code'
       }
       validate = component 'validate.sh' {
-        description 'Checks JSON, bash syntax, executability, synced copies, versions, and frontmatter'
+        description 'Checks JSON, bash syntax, executability, synced copies, versions, and frontmatter, and runs scripts/tests'
         technology 'bash, jq'
         link ../scripts/validate.sh 'code'
       }
