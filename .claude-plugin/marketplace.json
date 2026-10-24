@@ -11,7 +11,7 @@
       "name": "core",
       "source": "./plugins/core",
       "description": "Language-agnostic harness: session context, guardrails, handoffs, retro loop, core agents and workflow commands.",
-      "version": "0.8.0"
+      "version": "0.8.2"
     },
     {
       "name": "lang-ts",
@@ -42,6 +42,18 @@
       "source": "./plugins/plan",
       "description": "Planning pipeline: intake router, /prd, /spec, reviewer lenses, /present review decks, /feedback ledger, with requirement IDs traced into build tasks.",
       "version": "0.12.1"
+    },
+    {
+      "name": "pr-story",
+      "source": "./plugins/pr-story",
+      "description": "PR stories: author and reviewer modes, a per-change-type checklist with evidence for every claim, a careful/skim reading order, and a size check.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "decision-log",
+      "source": "./plugins/decision-log",
+      "description": "Keeps the why: a per-branch log of decisions, reloaded every session and after compaction, with a check at each stop for a decision that wasn't logged. pr-story and /ship read it.",
+      "version": "0.1.0"
     }
   ]
 }

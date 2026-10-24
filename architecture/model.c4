@@ -58,7 +58,7 @@ model {
       link ../shared/common.sh 'changed_files()'
     }
     harnessState = store '.harness/' {
-      description 'Runtime state: mode, current-task, handoffs, learnings, progress.log, stop-attempt counters, checks/ overrides, blocked-commands.txt'
+      description 'Runtime state: mode, current-task, handoffs, learnings, decisions/, progress.log, stop-attempt counters, checks/ overrides, blocked-commands.txt'
       technology 'files'
       link ../templates/gitignore-snippet.txt 'ignored files'
     }
@@ -84,7 +84,7 @@ model {
       link ../scripts 'code'
 
       marketplace = component 'Marketplace manifest' {
-        description 'Lists installable plugins (core, lang-ts, lang-go, lang-rust, ops, plan) with versions'
+        description 'Lists installable plugins (core, lang-ts, lang-go, lang-rust, ops, plan, pr-story, decision-log) with versions'
         technology 'JSON'
         link ../.claude-plugin/marketplace.json 'code'
       }
@@ -99,7 +99,7 @@ model {
         link ../scripts/sync-common.sh 'code'
       }
       validate = component 'validate.sh' {
-        description 'Checks JSON, bash syntax, executability, synced copies, versions, and frontmatter'
+        description 'Checks JSON, bash syntax, executability, synced copies, versions, and frontmatter, and runs scripts/tests'
         technology 'bash, jq'
         link ../scripts/validate.sh 'code'
       }

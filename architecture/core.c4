@@ -65,7 +65,7 @@ model {
         link ../plugins/core/scripts/rid-check.sh 'code'
       }
       ship = component '/ship' {
-        description 'Runs checks, dispatches reviewers, fixes blockers, commits, opens the PR'
+        description 'Runs checks, commits (decision log as trailers), writes the PR description, has reviewers check the code and its claims, opens the PR'
         technology 'command'
         link ../plugins/core/commands/ship.md 'code'
       }
@@ -102,7 +102,7 @@ model {
         link ../plugins/core/agents/explorer.md 'code'
       }
       reviewer = component 'reviewer' {
-        description 'Adversarial review of the diff against acceptance criteria, R-ID tests, and the spec'
+        description 'Adversarial review of the diff against acceptance criteria, R-ID tests, the spec, and the PR description\'s claims'
         technology 'subagent'
         link ../plugins/core/agents/reviewer.md 'code'
       }
@@ -156,7 +156,8 @@ model {
   harness.core.breakdown -> harness.core.explorer 'dispatches'
   harness.core.worktree -> project.workTree 'git worktree add'
   harness.core.worktree -> project.harnessState 'writes mode=parallel, ports.env, current-task'
-  harness.core.ship -> harness.core.reviewer 'dispatches'
+  harness.core.ship -> harness.core.reviewer 'dispatches, with the PR description to check'
+  harness.core.ship -> project.harnessState 'copies the branch\'s decisions into commit trailers' { style { line dashed } }
   harness.core.ship -> harness.ops.securityAuditor 'dispatches (if installed)'
   harness.core.ship -> project.tasks 'updates status'
   harness.core.ship -> project.workTree 'commits'
