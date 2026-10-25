@@ -323,5 +323,27 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
   interview is still on the unmerged prd-frontier-interview branch), test runs attached as
   evidence, review metrics, the GitHub app, and learning from past review comments.
 - **Open:** `allowed-tools` in the skill's frontmatter, so auto mode doesn't prompt for
-  pr-facts.sh (confirm with one headless auto run); the README lines for pr-story and decision-log
-  are in PR #1 (the README rewrite), so only one PR touches the README; merge this one first.
+  pr-facts.sh (confirm with one headless auto run).
+
+## /vet, decision records, and best-practices (2026-10-25)
+- **`/vet [PR | base] [focus]`** (core): one review report. It starts the reviewer, the new
+  best-practices agent, and security-auditor (if installed) in the background, and meanwhile
+  runs pr-story's reviewer mode (if installed) so the story is told from the code first. Not
+  `/review`: that's a Claude Code built-in.
+- **Decision records** in `docs/adr/` are standing project rules, each with `Applies to:` and a
+  `Check:` line saying what a reviewer would see in a diff that breaks it. `/adr` writes one,
+  `/retro` suggests one for a recurring `[review]` lesson, core's SessionStart lists the
+  accepted ones (within 2,000 bytes, before the task and handoff), and the reviewer treats
+  breaking one as a blocker, so `/ship` enforces them too. It reads the common formats (ours,
+  adr-tools' `## Status` heading, MADR front matter). This repo has three, from decisions it
+  already follows or made in this change.
+- **best-practices agent:** checks the diff against the docs, changelogs, and migration guides
+  of the dependency versions it uses and of their latest releases, found live on the web; every
+  finding cites a URL it opened. It has web and read tools only (ADR-003), so `/vet` writes the
+  diff to `.harness/vet/<id>.diff` for it. Only `/vet` runs it: research takes minutes, too slow
+  for every `/ship`.
+- **Tests:** `scripts/tests/core-session-start.sh` (the record list), mutation-checked.
+  `scripts/tests/live/vet.sh` runs `/vet` headless on a throwaway repo with a known ADR break and
+  a known removed API (not run by validate.sh).
+- **Open:** caching best-practices research per package version; pr-facts listing `docs/adr/`;
+  auto mode's allow list has no `git fetch` or web tools, so `/vet` there would prompt.

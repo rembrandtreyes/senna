@@ -53,6 +53,9 @@ with you, so you never ship alone.
 - **PR stories** explain each change to its reviewer: the problem, the decisions and what they
   beat, and evidence for every claim. `/ship` has the reviewer check each claim against the code,
   and the decision log records each choice as it's made, so the why outlives the session.
+- **`/vet`** reviews a PR or branch in one report: its story, bugs and tests, the project's
+  decision records (`docs/adr/`, standing rules every session sees), and whether the code
+  follows what its dependencies' docs say today, for the versions it uses and the latest ones.
 - **`/retro`** turns each session's lessons into hooks and skills. Anything that goes wrong twice
   becomes a rule, so the harness gets stronger with every project.
 
@@ -63,7 +66,7 @@ and debugger agents, and an optional phone alert when Claude needs you.
 
 | Plugin | For | What it brings |
 |---|---|---|
-| `core` | every project | session context, guardrails, review gates, handoffs, the retro loop; explorer, reviewer, and debugger agents; `/breakdown` `/worktree` `/ship` `/handoff` `/retro` `/test-audit` |
+| `core` | every project | session context, guardrails, review gates, handoffs, the retro loop, decision records; explorer, reviewer, best-practices, and debugger agents; `/breakdown` `/worktree` `/ship` `/vet` `/adr` `/handoff` `/retro` `/test-audit` |
 | `plan` | features, projects | intake router, `/prd`, `/spec` with competing designs, reviewer lenses, `/present` review decks, `/feedback`; requirement IDs traced from PRD to task to test |
 | `lang-ts` | React, Next, Expo | format + lint on edit, typecheck (+ tests) on stop |
 | `lang-go` | Go | gofmt on edit, build + vet (+ tests) on stop |
@@ -124,8 +127,9 @@ Forking it? Change the repo in `templates/project-settings.json` and the author 
 /worktree T-3 T-4 one worktree per independent task (unique ports, env copied, deps installed)
   ...implement... hooks format and lint every edit and verify at every stop
 /ship             checks, then reviewer + security-auditor in parallel, fix blockers, open the PR
+/vet 42           review a PR (or a branch): story, bugs, decision records, current practice
 /handoff          before stopping mid-task (loaded automatically next session)
-/retro            capture lessons; anything recurring becomes a skill or a hook
+/retro            capture lessons; anything recurring becomes a skill, a hook, or an /adr record
 /test-audit       quarterly: classify recent fix commits by the test layer that would have caught them
 ```
 
@@ -227,7 +231,8 @@ Run `/reload-plugins` after editing hooks or agents. Skill edits apply immediate
 .claude-plugin/marketplace.json   lists the plugins
 plugins/
   core/           every project: session context, guardrails, handoffs, retro loop,
-                  explorer/reviewer/debugger agents, /breakdown /ship /retro /handoff /worktree
+                  explorer/reviewer/best-practices/debugger agents, /breakdown /ship /vet
+                  /adr /retro /handoff /worktree
   plan/           planning pipeline: router, /prd, /spec, reviewers, /present, /feedback
   lang-ts/        React/Next/Expo: format+lint on edit, typecheck(+tests) on stop
   lang-go/        gofmt on edit, build+vet(+tests) on stop
@@ -238,7 +243,8 @@ plugins/
   lang-template/  copy to add Python, Java, Kotlin, Swift... (not listed in marketplace)
 shared/common.sh  canonical hook library (synced into each plugin)
 architecture/     LikeC4 model of this repo (npm run arch to browse, arch:validate to check)
-docs/             planning-pipeline.md: the planning design (PRD → spec → present → review → build)
+docs/             planning-pipeline.md: the planning design (PRD → spec → present → review → build);
+                  adr/: this repo's decision records
 templates/        global + project CLAUDE.md, settings, gitignore, override examples
 scripts/          sync-common.sh, validate.sh, tests/ (the fixture tests validate.sh runs)
 assets/           README banner and diagram (light + dark), social-preview.png

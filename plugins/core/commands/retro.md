@@ -17,8 +17,11 @@ Run a short retro on this session.
    - behavior that **must** always happen goes into a **hook** (in the harness repo)
    - how-to knowledge for a stack or workflow goes into a **skill**
    - a project-specific fact goes into the project **CLAUDE.md**
+   - a rule for how this project's code is written, one a reviewer could spot broken in a diff
+     (often a recurring `[review]` line), goes into a **decision record** (`docs/adr/`, /adr)
 
-   Draft the exact change, but ask me before editing CLAUDE.md or anything in the harness repo.
+   Draft the exact change, but ask me before editing CLAUDE.md, a decision record, or anything
+   in the harness repo.
 4. **Test audit.** If this session fixed a bug, and the newest `.harness/test-audit-*.md` is
    missing or older than ~3 months, suggest running /test-audit (one line; don't run it).
 5. Keep it short. Skip anything that was a one-off.

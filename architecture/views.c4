@@ -2,7 +2,7 @@ views {
 
   view index {
     title 'Landscape'
-    include developer, claudeCode, harness, project, github, sentry, ntfy, toolchains, chromium, claudeAi, vercel
+    include developer, claudeCode, harness, project, github, sentry, ntfy, toolchains, chromium, claudeAi, vercel, webDocs
   }
 
   view harnessView of harness {
