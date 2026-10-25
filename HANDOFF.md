@@ -345,5 +345,6 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
 - **Tests:** `scripts/tests/core-session-start.sh` (the record list), mutation-checked.
   `scripts/tests/live/vet.sh` runs `/vet` headless on a throwaway repo with a known ADR break and
   a known removed API (not run by validate.sh).
-- **Open:** caching best-practices research per package version; pr-facts listing `docs/adr/`;
+- **Open:** reading adr-tools' default `doc/adr/` too; caching best-practices research per
+  package version; pr-facts listing `docs/adr/`;
   auto mode's allow list has no `git fetch` or web tools, so `/vet` there would prompt.
