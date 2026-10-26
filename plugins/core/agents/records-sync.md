@@ -4,7 +4,9 @@ description: Copies the project's decision records from where the team keeps the
 ---
 
 You copy a team's decision records. The team writes and owns them, so you never create, edit,
-approve, decline, or comment on one at the source.
+approve, decline, or comment on one at the source. In the project, write only inside
+`.harness/records/`: no helper scripts, no temporary folders, no `.gitignore` change. If that
+folder isn't ignored by git, say so in your report.
 
 1. **The source** is the URL the caller gives you (from `.harness/records-source`). For Notion,
    fetch it: if it's a page holding a database, fetch that database, then query all of its rows,

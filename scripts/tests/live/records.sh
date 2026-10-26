@@ -32,8 +32,12 @@ check "an index with the source and sync time" 'grep -q "^Source: " "$R/index.md
 check "record files, each with a status and a source link" 'n=0; for f in "$R"/*.md; do [ "$(basename "$f")" = index.md ] && continue; grep -qE "^Status: (accepted|proposed|declined|superseded)" "$f" && grep -q "^Source: " "$f" || { n=-1; break; }; n=$((n + 1)); done; [ "$n" -gt 0 ]'
 log="$HOME/.claude/projects/$(cd "$r" && pwd -P | sed 's|[^A-Za-z0-9]|-|g')"
 check "the session log was found" '[ -n "$(find "$log" -name "*.jsonl" 2>/dev/null | head -n 1)" ]'
-check "nothing was written to the source" '! find "$log" -name "*.jsonl" -exec grep -hoE "\"name\":\"mcp__[^\"]*(create|update|delete|move|comment|duplicate)[^\"]*\"" {} + 2>/dev/null | grep -q .'
+calls() { find "$log" -name "*.jsonl" -exec jq -r 'select(.type == "assistant") | .message.content[]?
+  | select(.type == "tool_use") | "\(.name) \(.input.file_path // .input.command // "")"' {} + 2>/dev/null; }
+check "nothing was written to the source" '! calls | grep -qE "^mcp__[^ ]*(create|update|delete|move|comment|duplicate)"'
+check "the project changed only in .harness/records/" '[ -z "$(git -C "$r" status --porcelain --untracked-files=all | grep -v " \.harness/records/")" ]'
+check "nothing written outside the project" '! calls | grep -E "^(Write|Edit) " | grep -vq "/\.harness/records/" && ! calls | grep -E "^Bash " | grep -qE "(^| |>)/tmp/"'
 out="$(printf '{"source":"startup"}' | CLAUDE_PROJECT_DIR="$r" bash "$plugin/hooks/scripts/session-start.sh" 2>&1)"
 check "session start lists the copy" 'printf "%s\n" "$out" | grep -q "^## Decision records (.harness/records/: [1-9]"'
-if [ "$fails" -gt 0 ]; then echo "live records: $fails of 5 checks failed (reply: $tmp/reply.txt; rerun with KEEP=1)"; exit 1; fi
-echo "live records: 5 checks passed"
+if [ "$fails" -gt 0 ]; then echo "live records: $fails of 7 checks failed (reply: $tmp/reply.txt; rerun with KEEP=1)"; exit 1; fi
+echo "live records: 7 checks passed"
