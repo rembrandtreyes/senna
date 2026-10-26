@@ -325,26 +325,32 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
 - **Open:** `allowed-tools` in the skill's frontmatter, so auto mode doesn't prompt for
   pr-facts.sh (confirm with one headless auto run).
 
-## /vet, decision records, and best-practices (2026-10-25)
+## /vet, team decision records, and best-practices (2026-10-26)
 - **`/vet [PR | base] [focus]`** (core): one review report. It starts the reviewer, the new
   best-practices agent, and security-auditor (if installed) in the background, and meanwhile
   runs pr-story's reviewer mode (if installed) so the story is told from the code first. Not
   `/review`: that's a Claude Code built-in.
-- **Decision records** in `docs/adr/` are standing project rules, each with `Applies to:` and a
-  `Check:` line saying what a reviewer would see in a diff that breaks it. `/adr` writes one,
-  `/retro` suggests one for a recurring `[review]` lesson, core's SessionStart lists the
-  accepted ones (within 2,000 bytes, before the task and handoff), and the reviewer treats
-  breaking one as a blocker, so `/ship` enforces them too. It reads the common formats (ours,
-  adr-tools' `## Status` heading, MADR front matter). This repo has three, from decisions it
-  already follows or made in this change.
+- **Decision records are the team's, never the harness's.** Teams write them where they already
+  do (a Notion database, say); the harness reads and enforces them and never creates or edits
+  one. `.harness/records-source` (committed, one line) names a URL or a folder in the repo; with
+  none, `docs/adr/` is used. For a URL, `/records` runs the records-sync agent, which writes a
+  read-only copy to `.harness/records/` (gitignored), fetching only what may have changed, since
+  teams treat accepted records as final. When the connector can't read a status field (a
+  formula), it works the status out from the approved, declined, and superseded fields.
+- **Enforcement:** core's SessionStart lists accepted and proposed records (within 3,000 bytes,
+  before the task and handoff) and says when the copy is missing or over a week old. The
+  reviewer picks the records that bear on the diff: breaking an accepted one is a blocker, a
+  proposed one should fix (teams often let authors go ahead on a proposed record). `/vet` syncs
+  first when the copy is over a day old. `/ship` uses whatever copy there is.
 - **best-practices agent:** checks the diff against the docs, changelogs, and migration guides
   of the dependency versions it uses and of their latest releases, found live on the web; every
-  finding cites a URL it opened. It has web and read tools only (ADR-003), so `/vet` writes the
-  diff to `.harness/vet/<id>.diff` for it. Only `/vet` runs it: research takes minutes, too slow
-  for every `/ship`.
-- **Tests:** `scripts/tests/core-session-start.sh` (the record list), mutation-checked.
-  `scripts/tests/live/vet.sh` runs `/vet` headless on a throwaway repo with a known ADR break and
-  a known removed API (not run by validate.sh).
-- **Open:** reading adr-tools' default `doc/adr/` too; caching best-practices research per
-  package version; pr-facts listing `docs/adr/`;
-  auto mode's allow list has no `git fetch` or web tools, so `/vet` there would prompt.
+  finding cites a URL it opened. It has web and read tools only, so a page can't steer it into
+  running anything, and `/vet` writes the diff to `.harness/vet/<id>.diff` for it. Only `/vet`
+  runs it: research takes minutes, too slow for every `/ship`.
+- **Tests:** `scripts/tests/core-session-start.sh` (the record list, every source kind),
+  mutation-checked. `scripts/tests/live/vet.sh` runs `/vet` headless on a throwaway repo with a
+  broken record and a removed React API. `scripts/tests/live/records.sh` syncs a real source when
+  `RECORDS_SOURCE` is set (it never is in this repo: a team's URL doesn't belong here).
+- **Open:** caching best-practices research per package version; pr-facts listing the records;
+  auto mode's allow list has no `git fetch`, web, or connector tools, so `/vet` there would
+  prompt.

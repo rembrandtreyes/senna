@@ -12,6 +12,7 @@
 .harness/verdicts/
 .harness/decisions/
 .harness/vet/
+.harness/records/
 .claude/settings.local.json
 
 # Planning pipeline: deck QA screenshots are regenerated on every /present

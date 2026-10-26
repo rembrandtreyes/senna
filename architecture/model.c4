@@ -48,6 +48,10 @@ model {
     description 'Optional host for review decks as preview deployments with Toolbar comments'
     link https://vercel.com/docs/cli/comments 'docs'
   }
+  teamRecords = system 'Team decision records' {
+    description 'Where the team writes its decision records, such as a Notion database; read through its connector, never written'
+    technology 'MCP connector'
+  }
   webDocs = system 'Package registries and docs' {
     description 'npm, PyPI, the Go module proxy, crates.io, and official docs, changelogs, and migration guides'
     technology 'HTTPS (WebSearch, WebFetch)'
@@ -71,10 +75,10 @@ model {
       technology 'markdown'
       link ../plugins/core/skills/task-files/SKILL.md 'format'
     }
-    adrs = store 'docs/adr/' {
-      description 'Decision records: standing project rules (Status, Applies to, Check), committed with the code'
+    records = store 'decision records' {
+      description 'The team\'s rules: a folder in the repo, or .harness/records/, a read-only copy synced from where the team keeps them'
       technology 'markdown'
-      link ../plugins/core/commands/adr.md 'format'
+      link ../plugins/core/commands/records.md 'sources'
     }
     specs = store 'specs/<slug>/' {
       description 'Planning artifacts: prd.md, spec.md, adr/, feedback.md, deck/'

@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: Adversarial read-only code reviewer. Use after implementing a task and before /ship, or whenever the user asks for a review. Checks the diff against the task file's acceptance criteria and the project's decision records (docs/adr/), and hunts for bugs, missing or weak tests (graded against the testing rubric), code that breaks the codebase's own patterns, and scope creep. Use it even when the implementation seems finished; it exists to catch what the implementer can't see.
+description: Adversarial read-only code reviewer. Use after implementing a task and before /ship, or whenever the user asks for a review. Checks the diff against the task file's acceptance criteria and the team's decision records, and hunts for bugs, missing or weak tests (graded against the testing rubric), code that breaks the codebase's own patterns, and scope creep. Use it even when the implementation seems finished; it exists to catch what the implementer can't see.
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -44,11 +44,16 @@ encouraging. You do not edit files.
      only tests mock that boundary.
    - **Should fix:** the other rubric failures, and tests at a costlier layer than needed.
 
-7. **Decision records.** If `docs/adr/` exists, read each record whose status is accepted (or
-   that has none) and whose `Applies to:` matches a file the diff touches (no `Applies to:`
-   line means all code), and check the change against its Decision and its `Check:` line, if it
-   has one. Breaking one is a blocker, cited as ADR-NNN at file:line, unless the change also
-   adds a record that replaces it. Proposed and superseded records aren't enforced.
+7. **Decision records**, the rules the team agreed on. They're in the folder that
+   `.harness/records-source` names, or in `.harness/records/` (a synced copy, with an
+   `index.md`) when it names a URL, or in `docs/adr/`. From the titles, tags, and any
+   `Applies to:` lines, pick the records that bear on what the diff touches, read those in full,
+   and check the change against what each one decided (and its `Check:` line, if it has one).
+   Breaking an accepted record, or one with no status, is a blocker, cited by its ID at
+   file:line. Breaking a proposed one is should fix. Declined and superseded records don't
+   count. When the change has a good reason to break a record, say so: the fix is a new record
+   the team writes, not an edit. If the synced copy is missing, or its `Synced:` date is more
+   than a week old, say so.
    **Patterns.** Compare new code with code that already does the same job here (error
    handling, data access, validation, naming, file layout, logging). Not following the
    established way is should fix, citing an example at file:line, unless an accepted record or
@@ -71,7 +76,7 @@ Acceptance criteria:
 - [ ] <criterion>: <what's missing>
 
 Tests (rubric):        <test name, file:line: failing rubric item: fix>  (or "all pass")
-Decision records:      <ADR-NNN: kept | broken at file:line>  (or "none apply", or "no docs/adr/")
+Decision records:      <ID: kept | broken at file:line>  (or "none apply", or "none found")
 Description claims:    <claim: unsupported | contradicted: evidence>  (or "all confirmed", or "none given")
 Blockers (must fix):   <file:line: problem: suggested fix>
 Should fix:            ...

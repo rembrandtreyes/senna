@@ -70,14 +70,14 @@ model {
         link ../plugins/core/commands/ship.md 'code'
       }
       vet = component '/vet' {
-        description 'Reviews a PR or branch as one report: its story, bugs and tests, the decision records, and current practice for its dependencies'
+        description 'Reviews a PR or branch as one report: its story, bugs and tests, the team\'s decision records, and current practice for its dependencies'
         technology 'command'
         link ../plugins/core/commands/vet.md 'code'
       }
-      adr = component '/adr' {
-        description 'Writes a standing decision record to docs/adr/, with what a reviewer checks'
+      records = component '/records' {
+        description 'Syncs the team\'s decision records into a read-only copy, or shows one'
         technology 'command'
-        link ../plugins/core/commands/adr.md 'code'
+        link ../plugins/core/commands/records.md 'code'
       }
       handoff = component '/handoff' {
         description 'Writes a human-readable handoff for the next session'
@@ -121,6 +121,11 @@ model {
         technology 'subagent'
         link ../plugins/core/agents/best-practices.md 'code'
       }
+      recordsSync = component 'records-sync' {
+        description 'Copies decision records from the team\'s source into .harness/records/, fetching only what may have changed; never writes to the source'
+        technology 'subagent'
+        link ../plugins/core/agents/records-sync.md 'code'
+      }
       debugger = component 'debugger' {
         description 'Reproduces, fixes minimally, and leaves a regression test'
         technology 'subagent'
@@ -151,7 +156,7 @@ model {
   claudeCode -> harness.core.handoff '/handoff'
   claudeCode -> harness.core.retro '/retro'
   claudeCode -> harness.core.vet '/vet <PR or base>'
-  claudeCode -> harness.core.adr '/adr'
+  claudeCode -> harness.core.records '/records'
   claudeCode -> harness.core.architecture '/architecture, or on cross-service questions'
   claudeCode -> harness.core.testing 'writing, fixing, or reviewing tests; every bug fix'
   claudeCode -> harness.core.testAudit '/test-audit, or quarterly via /retro'
@@ -189,10 +194,12 @@ model {
   harness.core.bestPractices -> project.harnessState 'reads the diff' { style { line dashed } }
   harness.core.bestPractices -> project.workTree 'reads lockfiles and manifests' { style { line dashed } }
   harness.core.bestPractices -> webDocs 'latest versions, docs, changelogs'
-  harness.core.adr -> project.adrs 'writes NNN-<slug>.md'
-  harness.core.reviewer -> project.adrs 'checks the diff against accepted records' { style { line dashed } }
-  harness.core.sessionStart -> project.adrs 'lists accepted records' { style { line dashed } }
-  harness.core.retro -> harness.core.adr 'suggests for a recurring review lesson' { style { line dashed } }
+  harness.core.records -> harness.core.recordsSync 'dispatches, for a source outside the repo'
+  harness.core.vet -> harness.core.recordsSync 'dispatches when the copy is over a day old'
+  harness.core.recordsSync -> teamRecords 'reads records (never writes)'
+  harness.core.recordsSync -> project.records 'writes the copy and index.md'
+  harness.core.reviewer -> project.records 'checks the diff against the records that bear on it' { style { line dashed } }
+  harness.core.sessionStart -> project.records 'lists accepted and proposed records, flags a stale copy' { style { line dashed } }
   harness.core.retro -> project.harnessState 'writes learnings.md'
   harness.core.architecture -> harness.core.explorer 'dispatches (init)'
   harness.core.reviewer -> project.tasks 'reads acceptance criteria' { style { line dashed } }

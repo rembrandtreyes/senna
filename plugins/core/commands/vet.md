@@ -1,5 +1,5 @@
 ---
-description: Review a PR or branch - its story (pr-story), bugs and tests, the project's decision records (docs/adr/), and current best practice for the dependencies it uses - as one report
+description: Review a PR or branch - its story (pr-story), bugs and tests, the team's decision records, and current best practice for the dependencies it uses - as one report
 argument-hint: [PR number | base branch] [focus, e.g. security]
 ---
 
@@ -18,6 +18,10 @@ Review a change for a human reviewer. Input: $ARGUMENTS
 2. **The diff, for the research agent** (it has no shell): write
    `git diff -U10 <merge-base> <head>` (or against the working tree, for the current branch) to
    `.harness/vet/<pr-N or branch, / as __>.diff`.
+   **The decision records:** when `.harness/records-source` names a URL and
+   `.harness/records/index.md` is missing or was synced more than a day ago, run the
+   **records-sync** subagent with the URL first. If it can't reach the source, go on with the copy
+   you have and say so in the report.
 3. **Dispatch in one message, in the background:**
    - the **reviewer** subagent: the base and head, whether the code is checked out, the harness
      scripts dir from the session context, and the task file when it's the current branch's.
@@ -34,9 +38,10 @@ Review a change for a human reviewer. Input: $ARGUMENTS
    ## Vet: <PR #n title, or branch> · <PASS | FIX FIRST>
    <the story: TL;DR and reading order>
 
-   Blockers:          <file:line: problem (source: reviewer, ADR-NNN, best-practices URL, security)>
+   Blockers:          <file:line: problem (source: reviewer, a record's ID, best-practices URL, security)>
    Should fix:        ...
-   Decision records:  <ADR-NNN title: kept | broken at file:line>  (or "none apply", "no docs/adr/")
+   Decision records:  <ID title: kept | broken at file:line>  (or "none apply", "none found";
+                      say when the copy is stale or couldn't be synced)
    Versions:          <package installed → latest; one line per upgrade note>
    Not checked:       <checks not run, practice not researched, and why>
    Questions for the author: <at most five, most important first>
@@ -44,5 +49,6 @@ Review a change for a human reviewer. Input: $ARGUMENTS
    <details><summary>Full reports</summary> each agent's output, and the claims table </details>
    ```
 6. **After.** Post nothing to GitHub unless asked (then `gh pr review <n> --comment
-   --body-file <file>`). When the user wants a finding to become a standing rule, offer `/adr`.
+   --body-file <file>`). When the user wants a finding to become a team rule, offer to draft a
+   decision record for them to propose; the team writes its records, so never add one yourself.
    pr-story proposes a `[review]` lesson for anything notable.
