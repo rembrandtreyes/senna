@@ -31,5 +31,5 @@ what="spec.md and the model"
 msg="The review deck for specs/$slug is now stale: $what changed since /present built it. When this round of edits is done, tell the user and suggest /present $slug (and /publish to update reviewers)."
 jq -n --arg m "$msg" '{hookSpecificOutput: {hookEventName: "PostToolUse", additionalContext: $m}}' || exit 0
 # Record the notice only after it's out.
-mkdir -p "$(dirname "$mark")" 2>/dev/null && echo "$build" > "$mark" 2>/dev/null
+harness_dir >/dev/null && echo "$build" > "$mark" 2>/dev/null
 exit 0

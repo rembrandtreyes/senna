@@ -1,6 +1,6 @@
 {
   "name": "core",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "Language-agnostic harness: session context, guardrails, handoffs, retro loop, core agents and workflow commands.",
   "author": {
     "name": "Rembrandt Reyes"

@@ -11,6 +11,5 @@ case "$tool" in
   Task|Agent) what="$(jget '.tool_input.description')" ;;
   *) what="" ;;
 esac
-mkdir -p "$(project_dir)/.harness"
-printf '%s  %-10s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$tool" "$what" >> "$(project_dir)/.harness/progress.log"
+printf '%s  %-10s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$tool" "$what" >> "$(harness_dir)/progress.log"
 exit 0

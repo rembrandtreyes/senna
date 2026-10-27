@@ -25,6 +25,33 @@ project_dir() {
   printf '%s' "$d"
 }
 
+# .harness/ keeps its own .gitignore, which ignores everything in it, itself included, except the
+# files a project commits. So the harness's state never shows in git status and no project adds
+# ignore rules for it (pytest's cache folder does the same). The first line marks the file as the
+# harness's, with a version: a file with a lower one is rewritten. Every plugin carries a copy of
+# this, and an older copy never rewrites a newer file. Raise the version when the list changes.
+HARNESS_GITIGNORE_V=1
+HARNESS_GITIGNORE="# harness .gitignore v${HARNESS_GITIGNORE_V}: the harness updates this file while this line is here.
+# It ignores itself too. What a project may commit:
+*
+!checks/
+!checks/**
+!learnings.md
+!blocked-commands.txt
+!records-source"
+
+# harness_dir : the project's .harness/ (printed), created when missing, with that .gitignore
+harness_dir() {
+  local d v; d="$(project_dir)/.harness"
+  printf '%s' "$d"
+  mkdir -p "$d" 2>/dev/null || return 0
+  v="$(head -n 1 "$d/.gitignore" 2>/dev/null | sed -n 's/^# harness \.gitignore v\([0-9][0-9]*\):.*/\1/p')"
+  if [ ! -f "$d/.gitignore" ] || { [ -n "$v" ] && [ "$v" -lt "$HARNESS_GITIGNORE_V" ]; }; then
+    printf '%s\n' "$HARNESS_GITIGNORE" > "$d/.gitignore" 2>/dev/null
+  fi
+  return 0
+}
+
 # Mode: HARNESS_MODE env var > .harness/mode file > "interactive"
 harness_mode() {
   if [ -n "${HARNESS_MODE:-}" ]; then printf '%s' "$HARNESS_MODE"; return; fi
@@ -73,7 +100,7 @@ stop_may_block() {
   local key="$1" max=1 n=0 f
   is_strict && max="${HARNESS_MAX_STOP_RETRIES:-3}"
   f="$(project_dir)/.harness/.stop-attempts-$key"
-  mkdir -p "$(dirname "$f")"
+  harness_dir >/dev/null
   if [ "$(jget '.stop_hook_active')" = "true" ] && [ -f "$f" ]; then
     n="$(cat "$f" 2>/dev/null || echo 0)"
     case "$n" in ''|*[!0-9]*) n=0 ;; esac
@@ -123,7 +150,7 @@ test_nudge() {
   f="$(project_dir)/.harness/.test-nudge-$key"
   sig="$(printf '%s\n' "$sources" | sort | git hash-object --stdin 2>/dev/null)"
   [ -f "$f" ] && [ "$(cat "$f" 2>/dev/null)" = "$sig" ] && return 0
-  mkdir -p "$(dirname "$f")" 2>/dev/null && echo "$sig" > "$f" 2>/dev/null
+  harness_dir >/dev/null && echo "$sig" > "$f" 2>/dev/null
   root="$(git -C "$(project_dir)" rev-parse --show-toplevel 2>/dev/null || project_dir)"
   list="$(printf '%s\n' "$sources" | sed "s|^$root/||" | head -n 10 | sed 's/^/- /')"
   REPORT="${REPORT}
@@ -191,6 +218,6 @@ verdict_file() { printf '%s/.harness/verdicts/%s' "$(project_dir)" "$(printf '%s
 gate_once() {
   local f; f="$(project_dir)/.harness/.gate-$1"
   [ -f "$f" ] && [ "$(cat "$f" 2>/dev/null)" = "$2" ] && return 1
-  mkdir -p "$(dirname "$f")" 2>/dev/null && echo "$2" > "$f" 2>/dev/null
+  harness_dir >/dev/null && echo "$2" > "$f" 2>/dev/null
   return 0
 }

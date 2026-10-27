@@ -15,7 +15,7 @@ yet run against a real account.** Check each command's output the first time and
 ## Publish
 All decks share one Vercel project, so each deck gets its own page path (`/<slug>/`) and comments
 can be filtered by it.
-1. Staging dir: `.harness/publish/vercel/` in the repo (add it to `.gitignore`). Copy
+1. Staging dir: `.harness/publish/vercel/` in the repo (git ignores `.harness/`). Copy
    `specs/<slug>/deck/index.html` to `.harness/publish/vercel/<slug>/index.html`.
 2. First time only: ask for the project name (default `review-decks`), then
    `vercel link --yes --project <name>` in the staging dir.

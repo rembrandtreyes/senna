@@ -68,7 +68,7 @@ subagents, slash commands) and fix anything that's drifted:
    `core` plus one language plugin, then confirm in a scratch project that the SessionStart
    context appears, a guarded command is blocked, and a Stop check blocks on a failing
    typecheck.
-7. **Roll out to one real project:** settings.json, CLAUDE.md, gitignore snippet, `tasks/`, then
+7. **Roll out to one real project:** settings.json, CLAUDE.md, `tasks/`, then
    run `/breakdown` on a small real task.
 8. **Optional:** a GitHub Action running `scripts/validate.sh` + shellcheck on push.
 
@@ -325,3 +325,24 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
 - **Open:** `allowed-tools` in the skill's frontmatter, so auto mode doesn't prompt for
   pr-facts.sh (confirm with one headless auto run); the README lines for pr-story and decision-log
   are in PR #1 (the README rewrite), so only one PR touches the README; merge this one first.
+
+## .harness/ ignores itself (2026-10-27)
+- **Why:** the owner doesn't want a setup step every adopter repeats, and the gitignore snippet
+  was one (14 lines, growing with each feature). `harness_dir` in `shared/common.sh` creates
+  `.harness/` with a `.gitignore` of `*` plus exceptions for what a project commits (`checks/`,
+  `learnings.md`, `blocked-commands.txt`, and `records-source`, which PR #3 adds). The file ignores
+  itself, as pytest's cache folder does.
+  Core's session start sets it up in any git work tree before Claude writes there, and every hook
+  that creates a state file goes through the helper. `templates/gitignore-snippet.txt` is gone,
+  and `worktree.sh` no longer writes `.git/info/exclude`.
+- **Versioned:** the first line marks the file as the harness's, with a version
+  (`HARNESS_GITIGNORE_V`); a file with a lower version is rewritten. Every plugin carries a copy
+  of common.sh, and plugins update separately, so an older copy must never rewrite a newer file.
+  Raise the version whenever the list changes. A project that wants its own rules deletes the
+  line.
+- **Rejected:** state in `.git/harness/` or under `~/.claude/` or `~/.cache/`. Claude Code's
+  Write tool calls `.git/` and `~/.claude/` sensitive and asks before writing outside the project
+  (checked with `claude -p --permission-mode acceptEdits`), so `/handoff`, `/breakdown` and
+  `/decide` would prompt every time.
+- **Deck QA:** `qa.mjs` gives `deck/qa/` its own `.gitignore` of `*`.
+- **Tests:** `scripts/tests/harness-dir.sh`, 17 checks, each mutation-checked.

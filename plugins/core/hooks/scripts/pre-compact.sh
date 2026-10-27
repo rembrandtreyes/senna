@@ -4,7 +4,7 @@
 source "$(dirname "$0")/common.sh"
 
 root="$(project_dir)"
-H="$root/.harness"; mkdir -p "$H"
+H="$(harness_dir)"
 out="$H/handoff-auto.md"
 {
   echo "# Auto handoff ($(date -u +%Y-%m-%dT%H:%M:%SZ), trigger: $(jget '.trigger'))"
