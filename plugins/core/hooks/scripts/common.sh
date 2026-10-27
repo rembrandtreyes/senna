@@ -28,22 +28,25 @@ project_dir() {
 # .harness/ keeps its own .gitignore, which ignores everything in it, itself included, except the
 # files a project commits. So the harness's state never shows in git status and no project adds
 # ignore rules for it (pytest's cache folder does the same). The first line marks the file as the
-# harness's: while it's there, the file is rewritten to match this one.
-HARNESS_GITIGNORE='# Written by the harness, and rewritten while this line is here. It ignores itself too.
-# What a project may commit:
+# harness's, with a version: a file with a lower one is rewritten. Every plugin carries a copy of
+# this, and an older copy never rewrites a newer file. Raise the version when the list changes.
+HARNESS_GITIGNORE_V=1
+HARNESS_GITIGNORE="# harness .gitignore v${HARNESS_GITIGNORE_V}: the harness updates this file while this line is here.
+# It ignores itself too. What a project may commit:
 *
 !checks/
 !checks/**
 !learnings.md
-!blocked-commands.txt'
+!blocked-commands.txt
+!records-source"
 
 # harness_dir : the project's .harness/ (printed), created when missing, with that .gitignore
 harness_dir() {
-  local d; d="$(project_dir)/.harness"
+  local d v; d="$(project_dir)/.harness"
   printf '%s' "$d"
   mkdir -p "$d" 2>/dev/null || return 0
-  if [ ! -f "$d/.gitignore" ] || { [ "$(head -n 1 "$d/.gitignore" 2>/dev/null)" = "${HARNESS_GITIGNORE%%
-*}" ] && [ "$(cat "$d/.gitignore" 2>/dev/null)" != "$HARNESS_GITIGNORE" ]; }; then
+  v="$(head -n 1 "$d/.gitignore" 2>/dev/null | sed -n 's/^# harness \.gitignore v\([0-9][0-9]*\):.*/\1/p')"
+  if [ ! -f "$d/.gitignore" ] || { [ -n "$v" ] && [ "$v" -lt "$HARNESS_GITIGNORE_V" ]; }; then
     printf '%s\n' "$HARNESS_GITIGNORE" > "$d/.gitignore" 2>/dev/null
   fi
   return 0

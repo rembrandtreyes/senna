@@ -21,7 +21,7 @@ repo() { mkdir -p "$1" && git -C "$1" init -q && git -C "$1" symbolic-ref HEAD r
   git -C "$1" commit -qm init; }
 hook() { printf '%s' "${3:-{\}}" | CLAUDE_PROJECT_DIR="$2" "$sh_bin" "$plugins/$1" >/dev/null 2>&1; }
 clean() { [ -z "$(git -C "$1" status --porcelain --untracked-files=all)" ]; }
-first="$(printf '%s\n' "$(sed -n "/^HARNESS_GITIGNORE='/{s/^HARNESS_GITIGNORE='//p;q;}" "$plugins/core/hooks/scripts/common.sh")")"
+v="$(sed -n 's/^HARNESS_GITIGNORE_V=//p' "$plugins/core/hooks/scripts/common.sh")"
 
 # Not a git repo: session start leaves the folder alone.
 mkdir -p "$tmp/plain"; hook core/hooks/scripts/session-start.sh "$tmp/plain" '{"source":"startup"}'
@@ -30,7 +30,7 @@ ok "not a git repo: no .harness/" '[ ! -e "$tmp/plain/.harness" ]'
 # Session start sets the folder up before Claude writes there.
 r="$tmp/repo"; repo "$r"
 hook core/hooks/scripts/session-start.sh "$r" '{"source":"startup"}'
-ok "session start: .gitignore written" '[ "$(head -n 1 "$r/.harness/.gitignore")" = "$first" ]'
+ok "session start: .gitignore written" 'head -n 1 "$r/.harness/.gitignore" | grep -q "^# harness \.gitignore v$v: "'
 ok "session start: nothing in git status" 'clean "$r"'
 H="$r/.harness"; mkdir -p "$H/verdicts" "$H/decisions/main" "$H/vet" "$H/publish/vercel/s"
 for f in mode current-task handoff.md handoff-auto.md progress.log ports.env .stop-attempts-ts \
@@ -40,17 +40,21 @@ for f in mode current-task handoff.md handoff-auto.md progress.log ports.env .st
 done
 ok "runtime state: nothing in git status" 'clean "$r"'
 mkdir -p "$H/checks/nx"
-for f in checks/ts-stop.sh checks/boundaries.txt checks/nx/run.sh learnings.md blocked-commands.txt; do
+for f in checks/ts-stop.sh checks/boundaries.txt checks/nx/run.sh learnings.md blocked-commands.txt records-source; do
   echo x > "$H/$f"
 done
-ok "what a project commits shows, the rest doesn't" '[ "$(git -C "$r" status --porcelain --untracked-files=all | sort | tr "\n" " ")" = "?? .harness/blocked-commands.txt ?? .harness/checks/boundaries.txt ?? .harness/checks/nx/run.sh ?? .harness/checks/ts-stop.sh ?? .harness/learnings.md " ]'
-ok "committed files add without -f" 'git -C "$r" add .harness/checks .harness/learnings.md .harness/blocked-commands.txt 2>/dev/null'
+ok "what a project commits shows, the rest doesn't" '[ "$(git -C "$r" status --porcelain --untracked-files=all | sort | tr "\n" " ")" = "?? .harness/blocked-commands.txt ?? .harness/checks/boundaries.txt ?? .harness/checks/nx/run.sh ?? .harness/checks/ts-stop.sh ?? .harness/learnings.md ?? .harness/records-source " ]'
+ok "committed files add without -f" 'git -C "$r" add .harness/checks .harness/learnings.md .harness/blocked-commands.txt .harness/records-source 2>/dev/null'
 git -C "$r" commit -qm "project files"
 
-# An older copy of ours is brought up to date; a project's own is left alone.
-printf '%s\n*\n' "$first" > "$H/.gitignore"
+# An older version of ours is brought up to date; a newer one (from a plugin updated before this
+# one) and a project's own are left alone.
+printf '# harness .gitignore v0: old\n*\n' > "$H/.gitignore"
 hook core/hooks/scripts/session-start.sh "$r" '{"source":"startup"}'
 ok "an older harness .gitignore is rewritten" 'grep -qxF "!learnings.md" "$H/.gitignore"'
+printf '# harness .gitignore v%s: newer\n*\n' $((v + 1)) > "$H/.gitignore"
+hook core/hooks/scripts/session-start.sh "$r" '{"source":"startup"}'
+ok "a newer harness .gitignore is kept" 'head -n 1 "$H/.gitignore" | grep -q " newer$"'
 printf '# ours\n*\n!notes.md\n' > "$H/.gitignore"
 hook core/hooks/scripts/session-start.sh "$r" '{"source":"startup"}'
 ok "a project's own .gitignore is kept" '[ "$(cat "$H/.gitignore")" = "$(printf "# ours\n*\n!notes.md")" ]'
