@@ -5,8 +5,8 @@ locally, or anywhere static files are served. Feedback comes back through the sp
 Works everywhere: no accounts beyond GitHub, and no claude.ai tools.
 
 ## Publish
-1. Make sure `deck/index.html` is committed on the spec's branch (the gitignore snippet ignores
-   only `deck/qa/`).
+1. Make sure `deck/index.html` is committed on the spec's branch (only `deck/qa/` stays out of
+   git).
 2. If the branch has a PR (`gh pr view --json number,url,body`), offer to add a **Review deck**
    section to its description. Show the text and ask before editing: it's visible to everyone on
    the repo.

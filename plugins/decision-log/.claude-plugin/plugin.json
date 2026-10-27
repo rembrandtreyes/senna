@@ -1,6 +1,6 @@
 {
   "name": "decision-log",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Keeps the why: a per-branch log of decisions, reloaded every session and after compaction, with a check at each stop for a decision that wasn't logged. pr-story and /ship read it.",
   "author": {
     "name": "Rembrandt Reyes"

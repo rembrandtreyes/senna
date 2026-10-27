@@ -85,7 +85,7 @@ Never leave the model invalid.
 ## init: bootstrap a model
 1. If `likec4` isn't a dev dependency, ask before adding it
    (`npm install --save-dev --save-exact likec4`; create a minimal private `package.json` in a
-   repo that has none). Add `architecture/.export/` to `.gitignore`.
+   repo that has none).
 2. Map the repo: dispatch **explorer** agents in parallel, one per top-level area (services,
    apps, infra, config, CI). Ask each for: deployables, stores, queues, external systems, who
    calls whom (with file:line), and the main flows.

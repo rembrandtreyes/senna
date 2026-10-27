@@ -11,7 +11,7 @@ export LC_ALL=C  # byte counts below
 
 root="$(project_dir)"
 git -C "$root" rev-parse --git-dir >/dev/null 2>&1 || exit 0
-D="$root/.harness/decisions"
+D="$(harness_dir)/decisions"
 # Set on an unborn branch too. Not --short: with a tag of the same name, that gives heads/<branch>.
 br="$(git -C "$root" symbolic-ref -q HEAD 2>/dev/null | sed 's|^refs/heads/||')"
 folder() { printf '%s' "$1" | sed 's|/|__|g'; }

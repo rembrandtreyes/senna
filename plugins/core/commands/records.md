@@ -10,7 +10,7 @@ The project's decision records, the rules the team agreed on. Input: $ARGUMENTS
   team keeps its records, and write the file; it's committed, so teammates get the same source.
 - **A folder:** there's nothing to sync. List the records in it.
 - **A URL:** run the **records-sync** subagent with it, and pass on its report. It writes the copy
-  to `.harness/records/`, which is gitignored.
+  to `.harness/records/`, which git ignores (the harness keeps `.harness/` out of git).
 - **An ID or a few words:** show that record from the copy or the folder, without syncing, and
   give its source link.
 - The team owns the records: never create, edit, approve, or comment on one. A change of

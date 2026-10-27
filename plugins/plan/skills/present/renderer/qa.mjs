@@ -14,6 +14,9 @@ import { pathToFileURL } from "node:url";
 
 const [htmlArg, outArg] = process.argv.slice(2);
 if (!htmlArg || !outArg) { console.error("usage: qa.mjs <index.html> <out-dir>"); process.exit(1); }
+// Screenshots are regenerated every run: the folder ignores itself, so no project needs a rule.
+mkdirSync(outArg, { recursive: true });
+writeFileSync(join(outArg, ".gitignore"), "# Written by qa.mjs: screenshots stay out of git.\n*\n");
 const pwDir = process.env.HARNESS_PW_DIR || join(homedir(), ".cache", "senna", "present");
 
 let chromium;

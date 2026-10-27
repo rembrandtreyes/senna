@@ -58,7 +58,7 @@ Template bugs it reports are real bugs in `renderer/`: tell the user and don't w
   "specHash": "<git hash-object spec.md>", "modelHash": "<cat model/*.c4 | git hash-object
   --stdin, only with a model>", "builtAt": "<ISO time>" }`. The plan plugin's hooks compare the
   spec and model against these to tell you when the deck is stale.
-- `deck/qa/` holds screenshots; it shouldn't be committed (see the gitignore snippet).
+- `deck/qa/` holds screenshots; `qa.mjs` gives it a `.gitignore` that ignores everything, so it's never committed.
 - Tell the user the path to `index.html` (on macOS, offer `open <path>`), the QA result, and
   that feedback typed into an unpublished deck stays in that browser. Reviewers can use
   **Export feedback (JSON)** in the review panel to send it back (`/feedback --from <file>`).
