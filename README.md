@@ -101,8 +101,11 @@ Then set up your machine and each project:
      `pr-story` or `decision-log` if you want them). Commit it, and the plugins install
      automatically for anyone who trusts the repo.
    - copy `templates/project-CLAUDE.md` to `<project>/CLAUDE.md` and fill it in
-   - append `templates/gitignore-snippet.txt` to `.gitignore`
-   - `mkdir tasks .harness`
+   - `mkdir tasks`
+
+The harness keeps its state in `.harness/`, which it creates with its own `.gitignore`: nothing
+there shows in `git status`, and no project needs ignore rules. A project commits only what it
+adds on purpose: `checks/`, `learnings.md`, and `blocked-commands.txt`.
 
 Forking it? Change the repo in `templates/project-settings.json` and the author names.
 
@@ -239,7 +242,7 @@ plugins/
 shared/common.sh  canonical hook library (synced into each plugin)
 architecture/     LikeC4 model of this repo (npm run arch to browse, arch:validate to check)
 docs/             planning-pipeline.md: the planning design (PRD → spec → present → review → build)
-templates/        global + project CLAUDE.md, settings, gitignore, override examples
+templates/        global + project CLAUDE.md, settings, override examples
 scripts/          sync-common.sh, validate.sh, tests/ (the fixture tests validate.sh runs)
 assets/           README banner and diagram (light + dark), social-preview.png
 ```

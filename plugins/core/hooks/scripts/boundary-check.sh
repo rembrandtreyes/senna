@@ -51,5 +51,5 @@ sig="$(printf '%s\n' "$hits_all" | git hash-object --stdin 2>/dev/null)"
 msg="Harness boundary check (warning): a boundary changed with only mocked or no tests.$warn
 A mock can agree with the code and disagree with reality; add a test against the real dependency (rules: .harness/checks/boundaries.txt)."
 jq -n --arg m "$msg" '{systemMessage: $m}' || exit 0
-mkdir -p "$(dirname "$mark")" 2>/dev/null && echo "$sig" > "$mark" 2>/dev/null
+harness_dir >/dev/null && echo "$sig" > "$mark" 2>/dev/null
 exit 0

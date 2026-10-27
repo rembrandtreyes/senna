@@ -23,7 +23,7 @@ case "$verdict" in
 esac
 
 f="$(verdict_file "$subject")"
-mkdir -p "$(dirname "$f")" 2>/dev/null || exit 0
+harness_dir >/dev/null; mkdir -p "$(dirname "$f")" 2>/dev/null || exit 0
 printf '%s %s %s %s\n' "$verdict" "$(subject_hash "$subject")" "$(jget '.agent_type')" \
   "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$f" 2>/dev/null
 exit 0

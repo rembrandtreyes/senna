@@ -6,6 +6,8 @@ source "$(dirname "$0")/common.sh"
 root="$(project_dir)"
 mode="$(harness_mode)"
 H="$root/.harness"
+# Claude writes here too (current-task, handoff.md), so set the folder up before it does.
+git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1 && harness_dir >/dev/null
 
 echo "## Harness context"
 echo "- Mode: **${mode}** (change with HARNESS_MODE env var or .harness/mode). interactive = light checks; parallel/auto = strict stop checks, progress log."
