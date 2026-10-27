@@ -361,16 +361,19 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
 - **Why:** the owner doesn't want a setup step every adopter repeats, and the gitignore snippet
   was one (14 lines, growing with each feature). `harness_dir` in `shared/common.sh` creates
   `.harness/` with a `.gitignore` of `*` plus exceptions for what a project commits (`checks/`,
-  `learnings.md`, `blocked-commands.txt`). The file ignores itself, as pytest's cache folder does.
+  `learnings.md`, `blocked-commands.txt`, and `records-source`, which PR #3 adds). The file ignores
+  itself, as pytest's cache folder does.
   Core's session start sets it up in any git work tree before Claude writes there, and every hook
   that creates a state file goes through the helper. `templates/gitignore-snippet.txt` is gone,
   and `worktree.sh` no longer writes `.git/info/exclude`.
-- **Rewritten while ours:** the file's first line marks it as the harness's; while that line is
-  there, the hooks rewrite the file to match the current exceptions. A project that wants its own
-  rules deletes the line.
+- **Versioned:** the first line marks the file as the harness's, with a version
+  (`HARNESS_GITIGNORE_V`); a file with a lower version is rewritten. Every plugin carries a copy
+  of common.sh, and plugins update separately, so an older copy must never rewrite a newer file.
+  Raise the version whenever the list changes. A project that wants its own rules deletes the
+  line.
 - **Rejected:** state in `.git/harness/` or under `~/.claude/` or `~/.cache/`. Claude Code's
   Write tool calls `.git/` and `~/.claude/` sensitive and asks before writing outside the project
   (checked with `claude -p --permission-mode acceptEdits`), so `/handoff`, `/breakdown` and
   `/decide` would prompt every time.
 - **Deck QA:** `qa.mjs` gives `deck/qa/` its own `.gitignore` of `*`.
-- **Tests:** `scripts/tests/harness-dir.sh`, 16 checks, each mutation-checked.
+- **Tests:** `scripts/tests/harness-dir.sh`, 17 checks, each mutation-checked.

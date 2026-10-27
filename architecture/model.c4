@@ -66,7 +66,7 @@ model {
       link ../shared/common.sh 'changed_files()'
     }
     harnessState = store '.harness/' {
-      description 'Runtime state (mode, current-task, handoffs, decisions/, progress.log, stop-attempt counters), ignored by its own .gitignore, plus what a project commits: checks/ overrides, learnings.md, blocked-commands.txt'
+      description 'Runtime state (mode, current-task, handoffs, decisions/, progress.log, stop-attempt counters), ignored by its own .gitignore, plus what a project commits: checks/ overrides, learnings.md, blocked-commands.txt, records-source'
       technology 'files'
       link ../shared/common.sh 'harness_dir and its .gitignore'
     }
