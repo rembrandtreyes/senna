@@ -17,6 +17,9 @@ Run a short retro on this session.
    - behavior that **must** always happen goes into a **hook** (in the harness repo)
    - how-to knowledge for a stack or workflow goes into a **skill**
    - a project-specific fact goes into the project **CLAUDE.md**
+   - a rule for the whole team's code, one a reviewer could spot broken in a diff (often a
+     recurring `[review]` line), is a **decision record** for me to propose to the team: draft
+     it, but never add it to the team's records yourself
 
    Draft the exact change, but ask me before editing CLAUDE.md or anything in the harness repo.
 4. **Test audit.** If this session fixed a bug, and the newest `.harness/test-audit-*.md` is

@@ -53,6 +53,10 @@ with you, so you never ship alone.
 - **PR stories** explain each change to its reviewer: the problem, the decisions and what they
   beat, and evidence for every claim. `/ship` has the reviewer check each claim against the code,
   and the decision log records each choice as it's made, so the why outlives the session.
+- **`/vet`** reviews a PR or branch in one report: its story, bugs and tests, the team's
+  decision records (read where the team keeps them, such as Notion, and listed at every session
+  start), and whether the code follows what its dependencies' docs say today, for the versions
+  it uses and the latest ones.
 - **`/retro`** turns each session's lessons into hooks and skills. Anything that goes wrong twice
   becomes a rule, so the harness gets stronger with every project.
 
@@ -63,7 +67,7 @@ and debugger agents, and an optional phone alert when Claude needs you.
 
 | Plugin | For | What it brings |
 |---|---|---|
-| `core` | every project | session context, guardrails, review gates, handoffs, the retro loop; explorer, reviewer, and debugger agents; `/breakdown` `/worktree` `/ship` `/handoff` `/retro` `/test-audit` |
+| `core` | every project | session context, guardrails, review gates, handoffs, the retro loop, decision records; explorer, reviewer, best-practices, records-sync, and debugger agents; `/breakdown` `/worktree` `/ship` `/vet` `/records` `/handoff` `/retro` `/test-audit` |
 | `plan` | features, projects | intake router, `/prd`, `/spec` with competing designs, reviewer lenses, `/present` review decks, `/feedback`; requirement IDs traced from PRD to task to test |
 | `lang-ts` | React, Next, Expo | format + lint on edit, typecheck (+ tests) on stop |
 | `lang-go` | Go | gofmt on edit, build + vet (+ tests) on stop |
@@ -102,10 +106,13 @@ Then set up your machine and each project:
      automatically for anyone who trusts the repo.
    - copy `templates/project-CLAUDE.md` to `<project>/CLAUDE.md` and fill it in
    - `mkdir tasks`
+   - if the team keeps decision records, put where in `.harness/records-source` (a URL, such as a
+     Notion database, or a folder in the repo) and commit it; for a URL, `/records` keeps a
+     read-only copy in `.harness/records/`
 
 The harness keeps its state in `.harness/`, which it creates with its own `.gitignore`: nothing
 there shows in `git status`, and no project needs ignore rules. A project commits only what it
-adds on purpose: `checks/`, `learnings.md`, and `blocked-commands.txt`.
+adds on purpose: `checks/`, `learnings.md`, `blocked-commands.txt`, and `records-source`.
 
 Forking it? Change the repo in `templates/project-settings.json` and the author names.
 
@@ -127,6 +134,7 @@ Forking it? Change the repo in `templates/project-settings.json` and the author 
 /worktree T-3 T-4 one worktree per independent task (unique ports, env copied, deps installed)
   ...implement... hooks format and lint every edit and verify at every stop
 /ship             checks, then reviewer + security-auditor in parallel, fix blockers, open the PR
+/vet 42           review a PR (or a branch): story, bugs, decision records, current practice
 /handoff          before stopping mid-task (loaded automatically next session)
 /retro            capture lessons; anything recurring becomes a skill or a hook
 /test-audit       quarterly: classify recent fix commits by the test layer that would have caught them
@@ -230,7 +238,8 @@ Run `/reload-plugins` after editing hooks or agents. Skill edits apply immediate
 .claude-plugin/marketplace.json   lists the plugins
 plugins/
   core/           every project: session context, guardrails, handoffs, retro loop,
-                  explorer/reviewer/debugger agents, /breakdown /ship /retro /handoff /worktree
+                  explorer/reviewer/best-practices/records-sync/debugger agents,
+                  /breakdown /ship /vet /records /retro /handoff /worktree
   plan/           planning pipeline: router, /prd, /spec, reviewers, /present, /feedback
   lang-ts/        React/Next/Expo: format+lint on edit, typecheck(+tests) on stop
   lang-go/        gofmt on edit, build+vet(+tests) on stop

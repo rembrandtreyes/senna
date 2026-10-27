@@ -8,7 +8,7 @@ model {
 
       // Hooks
       sessionStart = component 'session-start.sh' {
-        description 'Prints mode, stack, git state, current task, latest handoff, and learnings as context'
+        description 'Prints mode, stack, git state, accepted decision records, current task, latest handoff, and learnings as context'
         technology 'SessionStart hook'
         link ../plugins/core/hooks/scripts/session-start.sh 'code'
       }
@@ -69,6 +69,16 @@ model {
         technology 'command'
         link ../plugins/core/commands/ship.md 'code'
       }
+      vet = component '/vet' {
+        description 'Reviews a PR or branch as one report: its story, bugs and tests, the team\'s decision records, and current practice for its dependencies'
+        technology 'command'
+        link ../plugins/core/commands/vet.md 'code'
+      }
+      records = component '/records' {
+        description 'Syncs the team\'s decision records into a read-only copy, or shows one'
+        technology 'command'
+        link ../plugins/core/commands/records.md 'code'
+      }
       handoff = component '/handoff' {
         description 'Writes a human-readable handoff for the next session'
         technology 'command'
@@ -102,9 +112,19 @@ model {
         link ../plugins/core/agents/explorer.md 'code'
       }
       reviewer = component 'reviewer' {
-        description 'Adversarial review of the diff against acceptance criteria, R-ID tests, the spec, and the PR description\'s claims'
+        description 'Adversarial review of the diff against acceptance criteria, R-ID tests, the spec, the decision records, the codebase\'s patterns, and the PR description\'s claims'
         technology 'subagent'
         link ../plugins/core/agents/reviewer.md 'code'
+      }
+      bestPractices = component 'best-practices' {
+        description 'Researches the docs and changelogs for the dependency versions a change uses and their latest releases; web and read tools only'
+        technology 'subagent'
+        link ../plugins/core/agents/best-practices.md 'code'
+      }
+      recordsSync = component 'records-sync' {
+        description 'Copies decision records from the team\'s source into .harness/records/, fetching only what may have changed; never writes to the source'
+        technology 'subagent'
+        link ../plugins/core/agents/records-sync.md 'code'
       }
       debugger = component 'debugger' {
         description 'Reproduces, fixes minimally, and leaves a regression test'
@@ -135,6 +155,8 @@ model {
   claudeCode -> harness.core.ship '/ship'
   claudeCode -> harness.core.handoff '/handoff'
   claudeCode -> harness.core.retro '/retro'
+  claudeCode -> harness.core.vet '/vet <PR or base>'
+  claudeCode -> harness.core.records '/records'
   claudeCode -> harness.core.architecture '/architecture, or on cross-service questions'
   claudeCode -> harness.core.testing 'writing, fixing, or reviewing tests; every bug fix'
   claudeCode -> harness.core.testAudit '/test-audit, or quarterly via /retro'
@@ -163,6 +185,21 @@ model {
   harness.core.ship -> project.workTree 'commits'
   harness.core.ship -> github 'gh pr create'
   harness.core.handoff -> project.harnessState 'writes handoff.md'
+  harness.core.vet -> harness.core.reviewer 'dispatches, with the base and head'
+  harness.core.vet -> harness.core.bestPractices 'dispatches, with the diff as a file'
+  harness.core.vet -> harness.ops.securityAuditor 'dispatches (if installed)'
+  harness.core.vet -> harness.prStory.skill 'retells the PR (if installed)'
+  harness.core.vet -> github 'gh pr view, git fetch'
+  harness.core.vet -> project.harnessState 'writes vet/<id>.diff'
+  harness.core.bestPractices -> project.harnessState 'reads the diff' { style { line dashed } }
+  harness.core.bestPractices -> project.workTree 'reads lockfiles and manifests' { style { line dashed } }
+  harness.core.bestPractices -> webDocs 'latest versions, docs, changelogs'
+  harness.core.records -> harness.core.recordsSync 'dispatches, for a source outside the repo'
+  harness.core.vet -> harness.core.recordsSync 'dispatches when the copy is over a day old'
+  harness.core.recordsSync -> teamRecords 'reads records (never writes)'
+  harness.core.recordsSync -> project.records 'writes the copy and index.md'
+  harness.core.reviewer -> project.records 'checks the diff against the records that bear on it' { style { line dashed } }
+  harness.core.sessionStart -> project.records 'lists accepted and proposed records, flags a stale copy' { style { line dashed } }
   harness.core.retro -> project.harnessState 'writes learnings.md'
   harness.core.architecture -> harness.core.explorer 'dispatches (init)'
   harness.core.reviewer -> project.tasks 'reads acceptance criteria' { style { line dashed } }
