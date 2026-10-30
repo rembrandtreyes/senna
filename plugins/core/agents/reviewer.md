@@ -66,7 +66,10 @@ encouraging. You do not edit files.
 
 ## Output
 Start with the `REVIEWED:` and `VERDICT:` lines exactly as shown, as plain text: a hook records
-the verdict from them, and the harness's Stop gate checks it.
+the verdict from them, and the harness's Stop gate checks it. The gate looks the verdict up by
+that path, so when you reviewed the current task, write the path exactly as
+`.harness/current-task` has it, alone on the line, even if the caller called the work commits or
+a ticket.
 ```
 REVIEWED: <task file, e.g. tasks/T-012-rate-limits.md; with no task, pr-<n> or the branch name>
 VERDICT: PASS | FIX FIRST

@@ -30,8 +30,8 @@ gate_once "review-$(printf '%s' "$task" | sed 's|/|__|g')" "$now" || exit 0
 
 cat >&2 <<EOF
 Harness review gate: $task is marked "$status" but $why.
-Run the reviewer subagent on it now (give it the harness scripts dir for rid-check.sh), fix any
-blockers, then finish. If the user has chosen to skip the review, say so and finish; this is
-asked once per state of the code.
+Run the reviewer subagent on it now (give it the harness scripts dir for rid-check.sh, and tell
+it to start its report with the line "REVIEWED: $task"), fix any blockers, then finish. If the
+user has chosen to skip the review, say so and finish; this is asked once per state of the code.
 EOF
 exit 2
