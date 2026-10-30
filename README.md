@@ -162,7 +162,10 @@ back to you instead of looping. Tune it with `HARNESS_MAX_STOP_RETRIES`,
 of what was reviewed. Stop hooks then block once (per version) when a step finished without its
 check: a PRD or spec marked `in review` or `approved` with no critic PASS for its current content
 (plan), or a task marked `review` or `done` with no reviewer verdict (core). Turn them off with
-`HARNESS_STEP_GATE=off` / `HARNESS_REVIEW_GATE=off`.
+`HARNESS_STEP_GATE=off` / `HARNESS_REVIEW_GATE=off`. When a gate can't find a verdict you saw
+come back, read `.harness/.record-verdict.log` (and `.record-verdict.prev.log`, the run before):
+each critic or reviewer run leaves a short record there of what the hook parsed, where it wrote,
+or why it didn't.
 
 **Unattended runs.** Copy `templates/settings.local.auto.json` to
 `<project>/.claude/settings.local.json` so routine commands don't stall on permission prompts.
