@@ -24,10 +24,11 @@ git add -A && git commit -qm init
 mkdir -p .harness && echo tasks/T-1-x.md > .harness/current-task
 
 ok() { checks=$((checks + 1)); eval "$2" || { echo "FAIL: $1"; fails=$((fails + 1)); }; }
-# stop <agent_type> <message> [cwd] : the recorder as SubagentStop; sets code and err (stderr)
+# stop <agent_type> <message> [cwd] [transcript] : the recorder as SubagentStop; sets code and err
 stop() {
-  local in; in="$(jq -cn --arg t "$1" --arg m "$2" --arg c "${3:-$r}" '{hook_event_name:"SubagentStop",
-    agent_type:$t, agent_id:"a1", agent_transcript_path:"/x/a1.jsonl", cwd:$c, last_assistant_message:$m}')"
+  local in; in="$(jq -cn --arg t "$1" --arg m "$2" --arg c "${3:-$r}" --arg p "${4:-/x/a1.jsonl}" '{
+    hook_event_name:"SubagentStop", agent_type:$t, agent_id:"a1", agent_transcript_path:$p, cwd:$c,
+    last_assistant_message:$m}')"
   err="$(printf '%s' "$in" | CLAUDE_PROJECT_DIR="$r" "$sh_bin" "$scripts/record-verdict.sh" 2>&1 >/dev/null)"
   code=$?
 }
@@ -84,6 +85,74 @@ gate; ok "pass: the gate passes" '[ "$gcode" -eq 0 ]'
 stop general-purpose "$pass"
 ok "any subagent with the lines is recorded" '[ "$(cut -d" " -f3 "$V")" = general-purpose ] && [ "$(field agent_type)" = general-purpose ]'
 
+# A subagent that hands its report back: last_assistant_message is empty and the report is the
+# message of the SubagentHandback call that is its last step, in its transcript (lines that aren't
+# JSON objects, and a half-written last line, are skipped).
+tr="$tmp/a1.jsonl"
+# handback <message> : a hand-back as real transcripts write it: a thinking entry, the call, its
+# tool_result (which isn't a step), and an attachment entry naming the tool
+handback() {
+  jq -cn '{type:"assistant", message:{content:[{type:"thinking", thinking:""}]}}'
+  jq -cn --arg m "$1" '{type:"assistant", message:{content:[{type:"tool_use", id:"t1",
+    name:"SubagentHandback", input:{message:$m}}]}}'
+  jq -cn '{type:"user", message:{content:[{type:"tool_result", tool_use_id:"t1",
+    content:[{type:"text", text:"Report delivered to your caller."}]}]}}'
+  jq -cn '{type:"attachment", attachment:{tools:[{name:"SubagentHandback"}]}}'
+}
+{ jq -cn '{type:"user", message:{content:"Review the task"}}'
+  jq -cn '{type:"assistant", message:{content:[{type:"tool_use", name:"Bash", input:{command:"git diff"}}]}}'
+  handback "REVIEWED: tasks/T-1-x.md
+VERDICT: FIX FIRST"
+  echo 42
+  handback "$pass"
+  printf '{"type":"assistant","message":{"content":[{"type":"tool_u'
+} > "$tr"
+rm -f "$V"
+stop core:reviewer "" "$r" "$tr"
+ok "hand-back: exit 0, quiet" '[ "$code" -eq 0 ] && [ -z "$err" ]'
+ok "hand-back: the final one is recorded" '[ "$(cut -d" " -f1,3 "$V")" = "PASS core:reviewer" ] && [ "$(field outcome)" = "wrote: $(cat "$V")" ]'
+ok "hand-back: the record names its source" '[ "$(field message_source)" = SubagentHandback ]'
+gate; ok "hand-back: the gate passes" '[ "$gcode" -eq 0 ]'
+stop core:reviewer "REVIEWED: tasks/T-1-x.md
+VERDICT: FIX FIRST" "$r" "$tr"
+ok "final message with the lines: used over a hand-back" '[ "$(cut -d" " -f1 "$V")" = FIX_FIRST ] && [ "$(field message_source)" = last_assistant_message ]'
+stop general-purpose "" "$r" "$tr"
+ok "hand-back from any subagent with the lines: recorded" '[ "$(cut -d" " -f1,3 "$V")" = "PASS general-purpose" ]'
+handback "Found 3 files." > "$tr"
+stop Explore "" "$r" "$tr"
+ok "hand-back without the lines from another subagent: no record" '[ "$(field agent_type)" = general-purpose ]'
+# A step after the hand-back, whatever it is, means that report was on earlier work: it's never
+# recorded against this work. Each case is a hand-back of a PASS followed by one kind of step.
+prompt='{"type":"user","message":{"content":"Fixes are in; look again"}}'
+thinking='{"type":"assistant","message":{"content":[{"type":"thinking","thinking":""}]}}'
+call='{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Bash","input":{"command":"git diff"}}]}}'
+text='{"type":"assistant","message":{"content":[{"type":"text","text":"Looking again."}]}}'
+# after <entry>... : the transcript is a hand-back of a PASS, then these entries; no verdict yet
+after() { handback "$pass" > "$tr"; printf '%s\n' "$@" >> "$tr"; rm -f "$V"; }
+after "$prompt"
+stop core:reviewer "" "$r" "$tr"
+ok "continued, nothing written since the new prompt: nothing recorded, says so" '[ ! -e "$V" ] && field outcome | grep -q "didn.t end with a SubagentHandback"'
+after "$prompt" "$thinking"
+stop core:reviewer "" "$r" "$tr"
+ok "continued, only thinking since: nothing recorded" '[ ! -e "$V" ]'
+after "$call"
+stop core:reviewer "" "$r" "$tr"
+ok "a tool call after the hand-back: nothing recorded" '[ ! -e "$V" ]'
+after "$text"
+stop core:reviewer "Looking again." "$r" "$tr"
+ok "text after the hand-back: nothing recorded" '[ ! -e "$V" ] && [ "$(field message_source)" = last_assistant_message ]'
+# Any user entry but a list of tool results is a prompt, whatever its shape.
+for e in '{"type":"user","message":{"content":[]}}' '{"type":"user"}' \
+  '{"type":"user","message":{"content":["look again"]}}'; do
+  after "$e"
+  stop core:reviewer "" "$r" "$tr"
+  ok "user entry $e after the hand-back: nothing recorded" '[ ! -e "$V" ]'
+done
+after "$prompt" "$call"
+handback "$pass" >> "$tr"
+stop core:reviewer "" "$r" "$tr"
+ok "continued, handed back again: recorded" '[ "$(cut -d" " -f1 "$V")" = PASS ] && [ "$(field message_source)" = SubagentHandback ]'
+
 # FIX FIRST stays FIX FIRST, and the gate keeps its behavior: quiet until the code changes.
 stop core:reviewer "REVIEWED: tasks/T-1-x.md
 VERDICT: FIX FIRST"
@@ -132,6 +201,11 @@ mkdir -p sub
 jq -cn --arg c "$r/sub" --arg m "$pass" '{agent_type:"core:reviewer", cwd:$c, last_assistant_message:$m}' \
   | "$sh_bin" "$scripts/record-verdict.sh" >/dev/null 2>&1
 ok "no project dir: record shows the fallback root" '[ "$(field env_project_dir sub/$L)" = "(unset)" ] && [ "$(field root sub/$L)" = "$r/sub" ]'
+
+# No .harness/current-task: recorded as none, nothing on stderr.
+rm .harness/current-task
+stop core:reviewer "$pass"
+ok "no current task: quiet, recorded as none" '[ -z "$err" ] && [ "$(field current_task)" = "(none)" ]'
 
 if [ "$fails" -gt 0 ]; then echo "record-verdict: $fails of $checks checks failed"; exit 1; fi
 echo "record-verdict: $checks checks passed"
