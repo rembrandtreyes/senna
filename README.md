@@ -158,10 +158,11 @@ back to you instead of looping. Tune it with `HARNESS_MAX_STOP_RETRIES`,
 `HARNESS_GO_TEST_FLAGS=-race`, and `HARNESS_CLIPPY_FLAGS="-D warnings"`.
 
 **Review gates.** Critics and the reviewer end their output with `REVIEWED: <path>` and
-`VERDICT: ...`, and a SubagentStop hook records each verdict in `.harness/verdicts/` with a hash
-of what was reviewed. Stop hooks then block once (per version) when a step finished without its
-check: a PRD or spec marked `in review` or `approved` with no critic PASS for its current content
-(plan), or a task marked `review` or `done` with no reviewer verdict (core). Turn them off with
+`VERDICT: ...` (in a final message or a background hand-back), and a SubagentStop hook records
+each verdict in `.harness/verdicts/` with a hash of what was reviewed. Stop hooks then block once
+(per version) when a step finished without its check: a PRD or spec marked `in review` or
+`approved` with no critic PASS for its current content (plan), or a task marked `review` or `done`
+with no reviewer verdict (core). Turn them off with
 `HARNESS_STEP_GATE=off` / `HARNESS_REVIEW_GATE=off`. When a gate can't find a verdict you saw
 come back, read `.harness/.record-verdict.log` (and `.record-verdict.prev.log`, the run before):
 each critic or reviewer run leaves a short record there of what the hook parsed, where it wrote,
