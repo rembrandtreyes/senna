@@ -17,7 +17,7 @@
       "name": "lang-ts",
       "source": "./plugins/lang-ts",
       "description": "TypeScript/React/Next/Expo: format + lint on edit, typecheck + tests on stop, conventions.",
-      "version": "0.2.4"
+      "version": "0.2.5"
     },
     {
       "name": "lang-go",

@@ -51,5 +51,6 @@ Pick the cheapest layer that would catch the bug (the testing skill has the rubr
 - Every bug fix gets a regression test at the layer that would have caught it.
 
 ## Before finishing
-The Stop hook runs `tsc --noEmit` (plus tests in parallel/auto mode). Run them yourself first if
+The Stop hook runs `tsc --noEmit`, with the project's `tsconfig.typecheck.json` when it has one
+(plus tests in parallel/auto mode). Run them yourself first if
 you changed types that cross files.
