@@ -2,6 +2,8 @@
 # Stop: SLOW checks, only if TS/JS files changed.
 #   interactive: typecheck
 #   parallel/auto: typecheck + tests
+# Typecheck: tsc --noEmit in the nearest tsconfig.json's folder, with that folder's
+# tsconfig.typecheck.json when it has one.
 # Project override: .harness/checks/ts-stop.sh
 source "$(dirname "$0")/common.sh"
 
@@ -47,7 +49,15 @@ done <<< "$changed"
 for t in $tsdirs; do
   tsc=""
   for d in "$t" "$root"; do [ -x "$d/node_modules/.bin/tsc" ] && { tsc="$d/node_modules/.bin/tsc"; break; }; done
-  [ -n "$tsc" ] && run_check "typecheck" "$t" "$tsc" --noEmit -p .
+  [ -n "$tsc" ] || continue
+  # A project with a tsconfig.typecheck.json typechecks with it, often because tsconfig.json's
+  # include reaches files outside its rootDir. tsc then stops at those config errors (TS6059)
+  # without checking any types, so check it the way the project does.
+  if [ -f "$t/tsconfig.typecheck.json" ]; then
+    run_check "typecheck (tsconfig.typecheck.json)" "$t" "$tsc" --noEmit -p tsconfig.typecheck.json
+  else
+    run_check "typecheck" "$t" "$tsc" --noEmit -p .
+  fi
 done
 
 if is_strict; then
