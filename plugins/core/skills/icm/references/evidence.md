@@ -38,6 +38,8 @@ PR's own specs (hidden tests). Every task was validated: the PR's code passes th
   strong model: instruction files are a small part of what a real task reads. Don't promise speed
   or quality from it. Its value is robustness (rules that load, routes that hold up),
   legibility, and smaller always-on context.
+- Typecheck: new type errors appeared only in agents' own test files (runs couldn't typecheck):
+  BASE 3/30 runs, ICM 1/30 (Fisher p = 0.61), WF 5/30, mostly leftover probe files.
 - Exploratory, not significant: ICM runs checked their own work (tests, Biome) less often
   (18/30 vs 25/30, Fisher p = 0.08), and all 6 formatting slips came from runs that skipped
   Biome. When moving text out of the root file, keep the "how to verify a change" instructions
