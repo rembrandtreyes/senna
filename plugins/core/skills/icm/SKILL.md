@@ -1,7 +1,7 @@
 ---
 name: icm
-description: Audits and sets up a repo's agent context by layer (Interpretable Context Methodology) - what loads every session, what loads per folder, path-scoped rules, and workflow stage contracts - on top of Claude Code's own loaders. Use when the user types /icm; opens, clones, or joins an unfamiliar repo or a new company's codebase; asks to audit, clean up, slim down, or organize CLAUDE.md, AGENTS.md, .claude/rules, or Cursor/Copilot rules; says Claude ignores a rule or instruction that another tool follows; says context is bloated or CLAUDE.md is too long; wants instructions for one part of a monorepo; or wants a repeatable multi-step workflow (release, migration, incident) written down for agents. Audit is read-only; init proposes before writing and starts local-only.
-argument-hint: "[audit | init | promote] [path]"
+description: Audits and sets up a repo's agent context by layer (Interpretable Context Methodology) - what loads every session, what loads per folder, path-scoped rules, and workflow stage contracts - on top of Claude Code's own loaders. Use when the user types /icm; opens, clones, or joins an unfamiliar repo or a new company's codebase; asks to audit, clean up, slim down, or organize CLAUDE.md, AGENTS.md, .claude/rules, or Cursor/Copilot rules; says Claude ignores a rule or instruction that another tool follows; says context is bloated or CLAUDE.md is too long; wants instructions for one part of a monorepo; asks what reviewers keep correcting or how to cut review comments with better agent context; or wants a repeatable multi-step workflow (release, migration, incident) written down for agents. Audit is read-only; init proposes before writing and starts local-only.
+argument-hint: "[audit | learn | init | promote] [path]"
 ---
 
 # ICM: context by layer
@@ -82,6 +82,13 @@ points to it), arrives truncated, or a stage input that doesn't exist. **should*
 costs too much, loads twice, or sits in the wrong layer, or it doesn't load but a loaded file
 points to it (it works until someone edits that pointer). **consider**, structure and upkeep.
 **info**, facts to check.
+
+## learn (from the team's review comments)
+The highest-return fix in a repo with decent context: rank the conventions reviewers keep asking
+for by distinct PRs, check with `icm-audit.sh reach <repo> <path>` whether each reaches Claude at
+the files where it was flagged, and propose the smallest instruction text that closes each
+recurring gap. Read-only; deliver a patch and a report. Steps and prompts:
+`references/review-mining.md`.
 
 ## init (propose, then write locally)
 For a repo with little context, or to apply audit findings.

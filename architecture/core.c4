@@ -105,7 +105,7 @@ model {
         link ../plugins/core/skills/test-audit/SKILL.md 'code'
       }
       icm = component '/icm' {
-        description 'Audits a repo\'s agent context by layer (launch, per-folder, rules, workflow stages) and sets it up local-first, then promotes it'
+        description 'Audits a repo\'s agent context by layer (launch, per-folder, rules, workflow stages), learns gaps from PR review comments, and sets it up local-first, then promotes it'
         technology 'skill + icm-audit.sh'
         link ../plugins/core/skills/icm/SKILL.md 'code'
       }

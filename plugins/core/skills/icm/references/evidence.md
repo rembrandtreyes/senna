@@ -49,3 +49,21 @@ PR's own specs (hidden tests). Every task was validated: the PR's code passes th
   repo says go to the engineer, and a fresh build session stopped to ask with nobody at the
   gate. Stages fit work where a person reviews between them, which is the paper's design. For
   unattended runs, have the plan stage record the decision it made instead of asking.
+
+## 3. What do reviewers keep correcting, and does Claude have the rule? (240 PRs)
+Six weeks of merged PRs on the same repo: 724 human review comments (bot reviews excluded). 110
+were repo conventions (reusable rules about this codebase), 100 distinct by PR. Checked against
+the instruction text that loads for each flagged file (`icm-audit.sh reach`):
+
+| Status | Conventions |
+|---|---|
+| Reaches the flagged file | 31 (10 only partly) |
+| In an instruction file that doesn't load there | 7 |
+| In no instruction file | 62 (4 written only in READMEs or doc comments) |
+| Instruction lines that contradict a reviewer | 4 |
+
+Review effort followed the code (API 304 comments, portal 187), not the thinnest context: the
+Python services drew 11. The recurring gaps came down to 7 themes (data access, UI building, error
+handling, enums, test data, helper placement, naming), and 30 lines of instructions placed where
+they load covered them, at about 500 more always-loaded tokens. Whether that cuts review
+comments is still to be measured: rerun the mining after rollout.

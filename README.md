@@ -146,6 +146,7 @@ Forking it? Change the repo in `templates/project-settings.json` and the author 
 /test-audit       quarterly: classify recent fix commits by the test layer that would have caught them
 /icm              audit a repo's agent context by layer (what loads every session, per folder, per
                   rule), then set it up local-first and promote it when it's proven
+/icm learn        rank what reviewers keep correcting and check each rule reaches Claude where needed
 ```
 
 The full planning design is in [docs/planning-pipeline.md](docs/planning-pipeline.md).

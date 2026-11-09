@@ -128,6 +128,27 @@ checks=$((checks + 1))
 printf '%s\n' "$out" | sed -n '/^## Findings/,$p' | awk '/^\[should\]/{s=1} s&&/^\[blocker\]/{bad=1} END{exit bad}' \
   || { echo "FAIL: findings not ranked"; fails=$((fails + 1)); }
 
+# ---- reach: what loads for one path -------------------------------------------------------
+run reach "$tmp/a" apps/web/src/App.tsx
+has "reach: root file" "always CLAUDE.md"
+has "reach: root import" "always AGENTS.md"
+has "reach: eager import" "always docs/big.md"
+has "reach: unscoped root rule" "always .claude/rules/unscoped.md"
+has "reach: folder file" "area   apps/web/CLAUDE.md"
+has "reach: folder import" "area   apps/web/AGENTS.md"
+has "reach: rule written from its base" "rule   apps/web/.claude/rules/right.md"
+has "reach: brace expansion" "rule   .claude/rules/brace.md"
+has "reach: comma string" "rule   .claude/rules/comma.md"
+lacks "reach: rule written from the wrong base" "wrong-base.md"
+lacks "reach: dead rule" "dead.md"
+lacks "reach: other folder" "apps/api"
+run reach "$tmp/a" apps/web/src/NotYet.tsx
+has "reach: a file that doesn't exist yet still matches" "rule   apps/web/.claude/rules/right.md"
+run reach "$tmp/a" apps/web/src/App.tsx --text
+has "reach --text prints the rules" "Right line one."
+run reach "$tmp/a"
+code_is "reach without a path is a usage error" 2
+
 # Budgets come from the environment.
 ICM_AREA_BUDGET=100000 run "$tmp/a"
 lacks "area budget override" "area-budget"
@@ -163,6 +184,31 @@ has "no git" "[info] no-git"
 code_is "no git still exits 0" 0
 run "$tmp/does-not-exist"
 code_is "missing folder" 2
+
+# ---- review-comments.sh against a fake gh -------------------------------------------------
+rc="$(dirname "$script")/review-comments.sh"
+mkdir -p "$tmp/bin"
+cat > "$tmp/bin/gh" <<'GH'
+#!/usr/bin/env bash
+case "$*" in
+  *"pr list"*) printf '7\n8\n' ;;
+  *"pulls/7/comments"*) echo '[{"user":{"login":"amy","type":"User"},"path":"src/a.ts","in_reply_to_id":null,"body":"Use Option.map here"},{"user":{"login":"bob","type":"User"},"path":"src/a.ts","in_reply_to_id":1,"body":"done"}]' ;;
+  *"pulls/7/reviews"*) echo '[{"user":{"login":"lint-bot[bot]","type":"Bot"},"state":"COMMENTED","body":"Found 1 issue"},{"user":{"login":"amy","type":"User"},"state":"APPROVED","body":""}]' ;;
+  *) echo '[]' ;;
+esac
+GH
+chmod +x "$tmp/bin/gh"
+out="$(PATH="$tmp/bin:$PATH" "$sh_bin" "$rc" acme/app 2 "$tmp/reviews.jsonl" 2>&1)"; code=$?
+code_is "review-comments exits 0" 0
+has "review-comments summary" "2 PRs, 2 inline, 1 review bodies, 1 with none, 0 errors"
+out="$(cat "$tmp/reviews.jsonl")"
+has "inline comment" '{"pr":7,"kind":"inline","author":"amy","bot":false,"path":"src/a.ts","reply":false,"body":"Use Option.map here"}'
+has "reply flagged" '"author":"bob","bot":false,"path":"src/a.ts","reply":true'
+has "bot review flagged" '"kind":"review","author":"lint-bot[bot]","bot":true'
+lacks "empty review body skipped" '"state":"APPROVED"'
+has "PR with nothing" '{"pr":8,"kind":"none"}'
+out="$(PATH="$tmp/bin:$PATH" "$sh_bin" "$rc" not-a-repo 2 "$tmp/x.jsonl" 2>&1)"; code=$?
+code_is "review-comments rejects a bad repo" 2
 
 if [ "$fails" -gt 0 ]; then echo "icm-audit: $fails of $checks checks failed"; exit 1; fi
 echo "icm-audit: $checks checks passed"

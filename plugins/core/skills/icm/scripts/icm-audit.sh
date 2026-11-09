@@ -3,6 +3,10 @@
 #                                  prints a markdown report (findings ranked blocker > should >
 #                                  consider > info) for the icm skill to verify and explain.
 # icm-audit.sh stamp <CONTEXT.md>  Print the inputs hash a workflow stage writes into its outputs.
+# icm-audit.sh reach <repo> <path> [--text]
+#                                  List the instruction files Claude Code loads when it edits <path>
+#                                  ("always", "area", or "rule" per line), or print their text.
+#                                  Used by /icm learn to check whether a convention reaches a file.
 #
 # Loader facts it encodes (Claude Code docs, checked 2026-11, v2.1.319): root CLAUDE.md files and
 # unscoped root rules load at launch, @imports load with the file that names them (max 4 hops),
@@ -124,6 +128,73 @@ stage_hash() {
 if [ "${1:-}" = stamp ]; then
   [ -f "${2:-}" ] || { echo "usage: icm-audit.sh stamp <CONTEXT.md>" >&2; exit 2; }
   stage_hash "$2"; exit 0
+fi
+
+# Patterns of a rule's `paths:` (one per line, quotes stripped); exit 1 when it has none.
+rule_patterns() {
+  awk '
+    NR==1 { if ($0 !~ /^---[ \t]*$/) exit; fm=1; next }
+    fm && /^---[ \t]*$/ { exit }
+    fm && /^paths:/ { inp=1; v=$0; sub(/^paths:[ \t]*/, "", v); if (v != "") print "STR\t" v; next }
+    fm && /^[A-Za-z_][A-Za-z0-9_-]*:/ { inp=0; next }
+    fm && inp && /^[ \t]*-[ \t]*/ { v=$0; sub(/^[ \t]*-[ \t]*/, "", v); print "ITEM\t" v }' "$1" \
+  | awk -F'\t' '$1 == "ITEM" { print $2; next }
+      { v = $2; gsub(/^\[|\]$/, "", v)
+        if (v ~ /^".*"$/ && substr(v, 2, length(v) - 2) !~ /"/) v = substr(v, 2, length(v) - 2)
+        d = 0; t = ""
+        for (i = 1; i <= length(v); i++) { c = substr(v, i, 1); if (c == "{") d++; if (c == "}") d--
+          if (c == "," && d == 0) { print t; t = "" } else t = t c }
+        print t }' \
+  | sed -e 's/^[ \t]*//' -e 's/[ \t]*$//' -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'\$/\\1/" | grep -v '^$'
+}
+
+if [ "${1:-}" = reach ]; then
+  [ -d "${2:-}" ] && [ -n "${3:-}" ] || { echo "usage: icm-audit.sh reach <repo> <path> [--text]" >&2; exit 2; }
+  root="$(cd "$2" && pwd -P)"; target="${3#./}"; text=0; [ "${4:-}" = --text ] && text=1
+  : > "$tmp/edges"; : > "$tmp/missing_imports"; : > "$tmp/reach"
+  add() { grep -Fq -- "	$2" "$tmp/reach" 2>/dev/null || printf '%s\t%s\n' "$1" "$2" >> "$tmp/reach"; }
+  with_imports() { local kind="$1" f="$2" v; [ -f "$f" ] || return 0; : > "$tmp/visited"; expand_bytes "$f" 0 > /dev/null
+    while IFS= read -r v <&5; do add "$kind" "$v"; done 5< "$tmp/visited"; }
+  claude_mode=0
+  for n in CLAUDE.md .claude/CLAUDE.md CLAUDE.local.md; do [ -f "$root/$n" ] && claude_mode=1; done
+  for n in CLAUDE.md .claude/CLAUDE.md CLAUDE.local.md; do with_imports always "$root/$n"; done
+  [ "$claude_mode" = 0 ] && for n in AGENTS.md .claude/AGENTS.md; do with_imports always "$root/$n"; done
+  # Folders on the way down: their CLAUDE.md files (or AGENTS.md when the repo has no CLAUDE.md).
+  d="$(dirname "$target")"; chain=""
+  while [ "$d" != . ] && [ "$d" != / ]; do chain="$d
+$chain"; d="$(dirname "$d")"; done
+  printf '%s' "$chain" | while IFS= read -r d; do
+    [ -n "$d" ] || continue; had=0
+    for n in CLAUDE.md .claude/CLAUDE.md CLAUDE.local.md; do [ -f "$root/$d/$n" ] && { had=1; with_imports area "$root/$d/$n"; }; done
+    [ "$claude_mode" = 0 ] && [ "$had" = 0 ] && with_imports area "$root/$d/AGENTS.md"
+  done
+  # Rules: unscoped ones load with their folder; scoped ones when the path matches from their base.
+  find "$root" \( -name node_modules -o -name .git -o -name .venv -o -name dist -o -name build \) -prune \
+    -o -type f -path '*/.claude/rules/*.md' -print 2>/dev/null | sort | while IFS= read -r r; do
+    base="${r%%/.claude/rules/*}"
+    case "$root/$target" in "$base"/*) ;; *) continue ;; esac
+    sub="${root}/${target}"; sub="${sub#"$base"/}"
+    if ! rule_patterns "$r" > "$tmp/rp" || [ ! -s "$tmp/rp" ]; then
+      if [ "$base" = "$root" ]; then add always "$r"; else add area "$r"; fi; continue
+    fi
+    hit=0
+    while IFS= read -r pat <&6; do
+      while IFS= read -r e <&7; do
+        case "$e" in /*) spec="${e#/}" ;; */*) spec="$e" ;; *) spec="**/$e" ;; esac
+        if [ -e "$root/$target" ]; then
+          (cd "$base" && git ls-files --cached --others --exclude-standard -- ":(glob)$spec" 2>/dev/null) | grep -Fxq -- "$sub" && hit=1
+        else  # the file doesn't exist: approximate with shell patterns (** spans folders)
+          sp="$(printf '%s' "$spec" | sed 's|\*\*/|*|g')"
+          # shellcheck disable=SC2254  # $sp is a glob on purpose
+          case "$sub" in $sp) hit=1 ;; esac
+        fi
+      done 7< <(expand_braces "$pat")
+    done 6< "$tmp/rp"
+    [ "$hit" = 1 ] && add rule "$r"
+  done
+  if [ "$text" = 1 ]; then cut -f2 "$tmp/reach" | while IFS= read -r f; do cat "$f"; echo; done
+  else awk -F'\t' -v r="$root/" '{ f = $2; if (index(f, r) == 1) f = substr(f, length(r) + 1); printf "%-6s %s\n", $1, f }' "$tmp/reach"; fi
+  exit 0
 fi
 
 root="$(cd "${1:-.}" 2>/dev/null && pwd -P)" || { echo "icm-audit: no such folder: ${1:-.}" >&2; exit 2; }

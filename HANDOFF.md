@@ -421,6 +421,13 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
 - **Fixed from dogfooding:** stage inputs that are run-time outputs (L4, `*/output/*`) are
   "pending" (info), not missing; prose in an Inputs list (`git diff`, a bare `AGENTS.md`) isn't
   parsed as a path. 64 fixture checks, the new ones mutation-checked.
+- **`/icm learn` (2026-11-09):** review mining as a mode. `scripts/review-comments.sh` collects
+  merged PRs' review comments to disk with `gh` + `jq`; `icm-audit.sh reach <repo> <path>` lists
+  the instruction files that load for a path; `references/review-mining.md` has the classify,
+  cluster (by distinct PR), coverage and propose steps with the prompts that worked. On one real
+  repo: 100 recurring conventions, 62 in no instruction file, 7 not loading where needed, 4
+  contradicted; a 30-line patch placed where it loads covered the 7 recurring themes. Tests: 87
+  fixture checks (reach and a fake `gh` included), new ones mutation-checked.
 - **Not built yet:** hooks (a SessionStart line when context is over budget or a stage is stale),
-  `/retro` reading recurring edits to stage outputs (the paper's edit-source loop), provenance IDs
-  inside stage outputs, and running the skill-creator evals with and without the skill.
+  wiring `/icm learn` into `/retro` (the paper's edit-source loop, now with a data source),
+  provenance IDs inside stage outputs, and running the skill-creator evals with and without the skill.
