@@ -10,8 +10,8 @@
     {
       "name": "core",
       "source": "./plugins/core",
-      "description": "Language-agnostic harness: session context, guardrails, handoffs, retro loop, core agents and workflow commands.",
-      "version": "0.9.2"
+      "description": "Language-agnostic harness: session context, guardrails, handoffs, retro loop, context audits (/icm), core agents and workflow commands.",
+      "version": "0.10.0"
     },
     {
       "name": "lang-ts",
