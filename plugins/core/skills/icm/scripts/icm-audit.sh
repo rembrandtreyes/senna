@@ -99,17 +99,24 @@ glob_files() {
 }
 
 # Inputs hash of a stage contract: cksum of its existing Inputs, in order.
+# Prints "<layer>\t<path>" for each Inputs item whose first backticked token is a path (a slash
+# and no spaces before any #section); prose such as "the `AGENTS.md` of every folder" or `git diff` is skipped.
 stage_inputs() {
   awk '
     /^## /{ sec = $0; next }
     sec ~ /^## Inputs/ && /^[ \t]*[-*][ \t]/ {
-      if (match($0, /`[^`]+`/)) print substr($0, RSTART + 1, RLENGTH - 2)
+      if (!match($0, /`[^`]+`/)) next
+      t = substr($0, RSTART + 1, RLENGTH - 2)
+      path = t; sub(/#.*/, "", path)
+      if (path !~ /\// || path ~ /[ \t]/) next
+      layer = "?"; if ($0 ~ /(^|[^A-Za-z0-9])L3([^0-9]|$)/) layer = "L3"; if ($0 ~ /(^|[^A-Za-z0-9])L4([^0-9]|$)/) layer = "L4"
+      print layer "\t" t
     }' "$1"
 }
 stage_hash() {
   local ctx="$1" dir t p
   dir="$(dirname "$ctx")"
-  stage_inputs "$ctx" | while IFS= read -r t; do
+  stage_inputs "$ctx" | while IFS="$(printf '\t')" read -r _ t; do
     p="$dir/${t%%#*}"; [ -f "$p" ] && cat "$p"
   done | cksum | awk '{print $1 "-" $2}'
 }
@@ -198,6 +205,18 @@ sort -u "$tmp/edges" | while IFS="$(printf '\t')" read -r from to; do
   [ "$b" -gt 2000 ] && finding consider import-eager "$(rel "$from")" "@$(rel "$to") adds ~$(tok "$b") tok at launch: imports load with their file, so this costs the same as pasting it in; route to it instead if it's only needed sometimes"
 done
 
+# A file that points to a rule (by its file name or its rules folder) lets agents read it by hand
+# even when it never loads natively. Measured on a team repo: with the pointer, 26/27 runs read the
+# dead rules before editing and broke none of them; without it, 1/27 did, the same as no rules.
+routed_by() {
+  local rule="$1" base="$2" name f
+  name="$(basename "$rule")"
+  cat "$tmp/claude" "$tmp/agents" | sort -u | while IFS= read -r f; do
+    case "$f" in "$base"/*|"$root"/CLAUDE.md|"$root"/AGENTS.md|"$root"/.claude/*) ;; *) continue ;; esac
+    if grep -q -F -- "$name" "$f" 2>/dev/null || grep -q -F -- ".claude/rules" "$f" 2>/dev/null; then rel "$f"; break; fi
+  done
+}
+
 # ---- Rules ----------------------------------------------------------------------------------
 : > "$tmp/rule_summary"; : > "$tmp/unscoped_rules"; mkdir -p "$tmp/match"
 rule_n=0; scoped_n=0; dead_n=0
@@ -268,12 +287,17 @@ while IFS= read -r f <&3; do
     fi
   done 5< "$tmp/pats"
   zero="${zero#, }"; fixes="${fixes#; }"
+  via=""; { [ -n "$fixes" ] || [ "$total" -eq 0 ]; } && via="$(routed_by "$f" "$base")"
   if [ -n "$fixes" ]; then
-    finding blocker rule-base "$fr" "paths resolve from $baserel/ (the folder holding .claude/), so these match nothing and the rule never loads for them: $fixes"
+    if [ -n "$via" ]; then
+      finding should rule-base "$fr" "paths resolve from $baserel/ (the folder holding .claude/), so these match nothing and the rule never loads natively: $fixes. Agents still read it by hand because $via points to it, so it works today, until someone edits that pointer"
+    else
+      finding blocker rule-base "$fr" "paths resolve from $baserel/ (the folder holding .claude/), so these match nothing and the rule never loads: $fixes. Nothing points to it either, so for Claude it's as good as deleted"
+    fi
   fi
   if [ "$total" -eq 0 ]; then
     dead_n=$(( dead_n + 1 ))
-    [ -z "$fixes" ] && finding should rule-dead "$fr" "no file under $baserel/ matches any pattern ($zero), so the rule never loads"
+    [ -z "$fixes" ] && finding should rule-dead "$fr" "no file under $baserel/ matches any pattern ($zero), so the rule never loads natively${via:+; $via points to it, so agents may still read it by hand}"
   elif [ -n "$zero" ] && [ -z "$fixes" ]; then
     finding info rule-pattern-empty "$fr" "pattern(s) match no files yet: $zero"
   fi
@@ -437,10 +461,13 @@ stage_n=0
 while IFS= read -r ctx <&3; do
   grep -q '^## Inputs' "$ctx" || continue
   stage_n=$(( stage_n + 1 )); dir="$(dirname "$ctx")"; cr="$(rel "$ctx")"
-  stage_inputs "$ctx" | while IFS= read -r t; do
+  stage_inputs "$ctx" | while IFS="$(printf '\t')" read -r layer t; do
     p="$dir/${t%%#*}"
     if [ ! -f "$p" ]; then
-      finding blocker stage-input-missing "$cr" "input '$t' doesn't exist (resolved from the stage folder)"
+      case "$layer|$t" in
+        L4\|*|*\|*/output/*) finding info stage-input-pending "$cr" "input '$t' is working material produced at run time; it doesn't exist yet" ;;
+        *) finding blocker stage-input-missing "$cr" "input '$t' doesn't exist (resolved from the stage folder)" ;;
+      esac
     else
       case "$t" in *"#"*)
         h="${t#*#}"

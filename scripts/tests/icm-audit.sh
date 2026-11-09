@@ -37,6 +37,10 @@ echo 'infra notes' > INFRA.md; echo 'readme' > README.md
 
 rule apps/web/.claude/rules/wrong-base.md 'paths:
   - "apps/web/src/**/*.tsx"' '# Wrong base' 'Rule line one about components.' 'Rule line two about props.' 'Rule line three, see [other](other.md).'
+mkdir -p apps/admin/src; echo 'export const Admin = 1' > apps/admin/src/Admin.tsx
+printf '# Admin\n\nWriting a component? Read .claude/rules/routed.md first.\n' > apps/admin/CLAUDE.md
+rule apps/admin/.claude/rules/routed.md 'paths:
+  - "apps/admin/src/**/*.tsx"' '# Routed but written from the root'
 rule apps/web/.claude/rules/right.md 'paths:
   - "src/**/*.tsx"' '# Right' 'Right line one.' 'Right line two.' 'Right line three, see [right.md](right.md).'
 rule .claude/rules/dead.md 'paths:
@@ -56,7 +60,7 @@ mkdir -p .claude/skills/long .claude/skills/nodesc .claude/skills/folded
 { echo '---'; echo 'name: nodesc'; echo '---'; echo 'body'; } > .claude/skills/nodesc/SKILL.md
 { echo '---'; echo 'name: folded'; echo 'description: >-'; echo '  Use when folding things,'; echo '  across two lines.'; echo '---'; echo 'body'; } > .claude/skills/folded/SKILL.md
 
-{ echo '# Stage: plan'; echo '## Inputs'; echo '- L3 `../../docs/big.md#Heading One`'; echo '- L3 `missing.md`';
+{ echo '# Stage: plan'; echo '## Inputs'; echo '- L3 `../../docs/big.md#Heading One`'; echo '- L3 `./missing.md`'; echo '- L4 `../00_intake/output/brief.md`'; echo '- L3 the `AGENTS.md` of every folder you change'; echo '- L4 the change itself (`git diff`)';
   echo '- L3 `../../docs/big.md#No Such Heading`'; echo '## Process'; echo 'Plan it.'; echo '## Outputs'; echo '- `output/plan.md`'; } > workflows/01_plan/CONTEXT.md
 { echo '# Stage: build'; echo '## Inputs'; echo '- L4 `../01_plan/output/plan.md`'; echo '## Outputs'; echo '- `output/build.md`'; } > workflows/02_build/CONTEXT.md
 git add -A && git commit -qm init
@@ -72,7 +76,11 @@ run "$tmp/a"
 code_is "audit exits 0" 0
 has "mode" "instructions: CLAUDE.md"
 has "launch counts the AGENTS.md import" "CLAUDE.md with imports:"
-has "rule base" "[blocker] rule-base apps/web/.claude/rules/wrong-base.md"
+has "rule base, nothing points to it" "[blocker] rule-base apps/web/.claude/rules/wrong-base.md"
+has "unrouted dead rule is as good as deleted" "as good as deleted"
+has "rule base, a loaded file points to it" "[should] rule-base apps/admin/.claude/rules/routed.md"
+has "routed dead rule names its pointer" "because apps/admin/CLAUDE.md points to it"
+lacks "routed dead rule isn't a blocker" "[blocker] rule-base apps/admin"
 has "rule base fix" '"apps/web/src/**/*.tsx" -> "src/**/*.tsx" (1 files)'
 lacks "rule written from its base" "right.md: paths resolve"
 lacks "right rule isn't dead" "rule-dead apps/web/.claude/rules/right.md"
@@ -104,7 +112,11 @@ lacks "folded description parses" "skills/folded"
 has "reverify" "[info] reverify AGENTS.md:4"
 has "unrouted doc" "[info] unrouted-doc INFRA.md"
 lacks "readme isn't flagged" "unrouted-doc README.md"
-has "stage input missing" "[blocker] stage-input-missing workflows/01_plan/CONTEXT.md: input 'missing.md'"
+has "stage input missing" "[blocker] stage-input-missing workflows/01_plan/CONTEXT.md: input './missing.md'"
+has "a pending run-time input is info, not a blocker" "[info] stage-input-pending workflows/01_plan/CONTEXT.md: input '../00_intake/output/brief.md'"
+lacks "pending input isn't reported missing" "stage-input-missing workflows/01_plan/CONTEXT.md: input '../00_intake"
+lacks "prose bare name isn't a path" "input 'AGENTS.md'"
+lacks "prose command isn't a path" "input 'git diff'"
 has "stage anchor missing" "[should] stage-anchor-missing workflows/01_plan/CONTEXT.md: input '../../docs/big.md#No Such Heading'"
 lacks "existing anchor resolves" "#Heading One' names a section"
 has "stale stage output" "[should] stage-stale workflows/02_build/output/build.md"

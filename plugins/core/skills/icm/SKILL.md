@@ -32,6 +32,13 @@ Why it's shaped this way:
 - **Fix the source, not the output.** The same correction made three times to agent output is a
   contract or reference bug: propose the fix there, and capture it with /retro.
 
+**What to promise** (measured on one real repo, details in `references/evidence.md`): rules that
+reach Claude change what it writes, and a single routing line can carry a rule whose loading is
+broken. Restructuring an already tidy repo's context didn't change pass rates or cost on real
+tasks; sell it as robustness and legibility, not speed. Staged workflows cost about 2x and stall
+unattended when the plan surfaces a decision, so recommend them only where a person reviews
+between stages.
+
 **Loader facts that break setups silently** (Claude Code 2.1.319; details, sources, and a probe
 in `references/loaders.md`):
 - A rule's `paths:` resolve from the folder that holds its `.claude/`. In
@@ -70,9 +77,11 @@ in `references/loaders.md`):
    (create `.harness/` with a `.gitignore` of `*` if it's missing). Tell the user the counts, each
    blocker with its evidence and fix, and the top should-fixes. Ask before changing anything.
 
-Severity: **blocker**, an instruction that never reaches Claude, arrives truncated, or a stage
-input that doesn't exist. **should**, it loads but costs too much, loads twice, or sits in the
-wrong layer. **consider**, structure and upkeep. **info**, facts to check.
+Severity: **blocker**, an instruction that reaches Claude by no route (it doesn't load and nothing
+points to it), arrives truncated, or a stage input that doesn't exist. **should**, it loads but
+costs too much, loads twice, or sits in the wrong layer, or it doesn't load but a loaded file
+points to it (it works until someone edits that pointer). **consider**, structure and upkeep.
+**info**, facts to check.
 
 ## init (propose, then write locally)
 For a repo with little context, or to apply audit findings.
@@ -96,6 +105,8 @@ For a repo with little context, or to apply audit findings.
    - In a repo that relies on `AGENTS.md`, start every `CLAUDE.local.md` with `@AGENTS.md`
      (that folder's), or Claude stops reading `AGENTS.md` there.
    - Moves out of committed files wait for promote; list them.
+   - Keep the root's "how to verify a change" instructions (test, lint, format commands) in the
+     root: runs checked their own work less often when they were further away.
 4. **Validate.** Rerun the audit and show launch and area costs before and after. Probe new scoped
    rules once.
 5. **Record** every added or moved piece, from → to, in `.harness/icm/moves-<YYYY-MM-DD>.md`.
@@ -123,3 +134,5 @@ decoration. One folder per stage, `workflows/NN_<name>/`, numbered in run order,
   `icm-audit.sh stamp <CONTEXT.md>`; the audit then flags outputs whose inputs changed, so only
   that stage and the ones after it re-run.
 - Run a stage's `## Verify` list as a critic subagent before the human gate.
+- If stages will run with nobody at the gates, tell the plan stage to decide and record its
+  decisions instead of asking, or the build stage stops and waits.

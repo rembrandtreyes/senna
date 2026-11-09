@@ -409,6 +409,18 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
   mutation-checked. `plugins/core/skills/icm/evals/` holds three skill-creator cases (audit a team
   monorepo, init local-only in an AGENTS.md repo, diagnose an ignored rule); their scaffolds build
   the fixture repos at run time so no fixture CLAUDE.md ever loads while editing senna.
+- **Measured (2026-11-09, `references/evidence.md`):** three pre-registered experiments on one
+  real repo, 306 headless runs. Rules that reach Claude change what it writes (no rules: 34
+  violations in 27 runs; reachable rules: 0). A routing line in a loaded AGENTS.md carried rules
+  whose loading was broken (26/27 runs read them by hand); without it they were as good as
+  deleted. On 10 real merged PRs graded by their own specs, the `/icm init` layout matched the
+  original context (30/30 resolved both, same cost, 11% fewer instruction tokens); the staged
+  workflow cost 2.2x and resolved 27/30, stalling when the plan raised decisions with nobody at
+  the gate. The skill now grades a dead rule by whether anything routes to it, says what to
+  promise, keeps verify instructions in the root, and warns about unattended stages.
+- **Fixed from dogfooding:** stage inputs that are run-time outputs (L4, `*/output/*`) are
+  "pending" (info), not missing; prose in an Inputs list (`git diff`, a bare `AGENTS.md`) isn't
+  parsed as a path. 64 fixture checks, the new ones mutation-checked.
 - **Not built yet:** hooks (a SessionStart line when context is over budget or a stage is stale),
   `/retro` reading recurring edits to stage outputs (the paper's edit-source loop), provenance IDs
-  inside stage outputs, and running the evals with and without the skill.
+  inside stage outputs, and running the skill-creator evals with and without the skill.
