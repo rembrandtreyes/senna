@@ -104,6 +104,11 @@ model {
         technology 'skill'
         link ../plugins/core/skills/test-audit/SKILL.md 'code'
       }
+      icm = component '/icm' {
+        description 'Audits a repo\'s agent context by layer (launch, per-folder, rules, workflow stages) and sets it up local-first, then promotes it'
+        technology 'skill + icm-audit.sh'
+        link ../plugins/core/skills/icm/SKILL.md 'code'
+      }
 
       // Subagents
       explorer = component 'explorer' {
@@ -163,6 +168,10 @@ model {
   harness.core.testAudit -> harness.core.explorer 'dispatches (batches of commits)'
   harness.core.testAudit -> project.harnessState 'writes test-audit-<date>.md'
   harness.core.retro -> harness.core.testAudit 'suggests quarterly' { style { line dashed } }
+  claudeCode -> harness.core.icm '/icm, or on opening an unfamiliar repo'
+  harness.core.icm -> project.contextFiles 'audits; init writes local-only files, promote commits them'
+  harness.core.icm -> project.harnessState 'writes icm/audit-<date>.md, icm/moves-<date>.md'
+  harness.core.icm -> harness.core.architecture 'takes areas from the model when there is one' { style { line dashed } }
   harness.core.reviewer -> harness.core.testing 'grades the diff\'s tests against the rubric'
   claudeCode -> harness.core.debugger 'bugs and failing tests'
 

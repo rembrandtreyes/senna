@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: init-local-agents-md-repo
+expected_outcome: |
+  The run proposes a layout first, then writes it locally: no tracked file changes, every new file
+  is excluded through .git/info/exclude (not .gitignore), any CLAUDE.local.md imports AGENTS.md so
+  Claude keeps reading it, and billing-only and ui-only advice ends up in files that load only for
+  those folders.
+context:
+  scaffold_script: place-files.sh

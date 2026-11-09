@@ -377,3 +377,38 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
   `/decide` would prompt every time.
 - **Deck QA:** `qa.mjs` gives `deck/qa/` its own `.gitignore` of `*`.
 - **Tests:** `scripts/tests/harness-dir.sh`, 17 checks, each mutation-checked.
+
+## /icm: context by layer (2026-11-09)
+- **Why:** the owner wants one command to run in any repo they join: audit how it feeds context to
+  Claude, then set it up in layers. Built from the Interpretable Context Methodology paper (Van
+  Clief and McDermott, 2026: folders as stages, five context layers, stage contracts), adapted to
+  code repos through Claude Code's own loaders instead of asking Claude to read routing files.
+- **Built (core 0.10.0):** `plugins/core/skills/icm/` with `/icm audit | init | promote`.
+  `scripts/icm-audit.sh` does the mechanical checks (launch and stacked per-folder token cost,
+  rule `paths:` resolved from the rule's base folder, invalid rule YAML, on-demand truncation past
+  ~40k chars, AGENTS.md that nothing imports, the CLAUDE.local.md-shadows-AGENTS.md trap, eager
+  imports, skill description and length limits, duplicate lines, rule twins for other tools
+  compared with links ignored, time-bound wording, unrouted docs, workflow stage inputs, section
+  anchors, and stale stage outputs through `icm-inputs` stamps). The skill adds judgment (wrong
+  layer, paraphrased duplicates, handoffs through the conversation), the repo's own conventions
+  first, a probe that proves what loads (`InstructionsLoaded` hook in a scratch copy), and the
+  report. `references/loaders.md` holds the loader facts with sources.
+- **Decisions (owner, 2026-11-09):** in core, not opt-in. Local-first: init writes new files at
+  their final paths and lists them in `<git-common-dir>/info/exclude` (never `.gitignore`),
+  committed files untouched; promote makes it a reviewed change and follows the repo's git rules.
+  Layout: area contracts next to the code (nested CLAUDE.md, scoped rules), numbered
+  `workflows/NN_<name>/` only for real multi-step processes. Propose before writing, never drop
+  text. One source of truth across tools (AGENTS.md + `@AGENTS.md`). Audit on demand; hooks later
+  once the noise is known. Reuse the LikeC4 model for areas when a repo has one. Code repos first.
+- **Verified:** on a real team monorepo (read-only, nothing from it is in this repo) the script
+  found 9 path-scoped rules that never loaded because their globs were written from the repo
+  root; a probe with Claude Code 2.1.319 confirmed it (the as-written rule didn't load, the
+  rewritten one did, and all 9 loaded after the fix). It runs in ~4s there. `/doctor
+  prompt-audit` covers wording and contradictions, so the skill leaves those to it.
+- **Tests:** `scripts/tests/icm-audit.sh` (56 checks over three fixture repos), each key check
+  mutation-checked. `plugins/core/skills/icm/evals/` holds three skill-creator cases (audit a team
+  monorepo, init local-only in an AGENTS.md repo, diagnose an ignored rule); their scaffolds build
+  the fixture repos at run time so no fixture CLAUDE.md ever loads while editing senna.
+- **Not built yet:** hooks (a SessionStart line when context is over budget or a stage is stale),
+  `/retro` reading recurring edits to stage outputs (the paper's edit-source loop), provenance IDs
+  inside stage outputs, and running the evals with and without the skill.
