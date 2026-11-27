@@ -57,6 +57,12 @@ with you, so you never ship alone.
   decision records (read where the team keeps them, such as Notion, and listed at every session
   start), and whether the code follows what its dependencies' docs say today, for the versions
   it uses and the latest ones.
+- **`/icm`** audits how a repo feeds context to Claude, the first thing to run in a repo you
+  just joined: what loads every session, what loads per folder, rules that silently never load
+  (paths written from the wrong folder, AGENTS.md nothing imports), and what costs too much.
+  Then it sets the context up in layers, local-only until you promote it to a change the team
+  reviews. Built on the Interpretable Context Methodology paper, with checks the paper only
+  proposed (stale stage outputs, measured budgets).
 - **`/retro`** turns each session's lessons into hooks and skills. Anything that goes wrong twice
   becomes a rule, so the harness gets stronger with every project.
 
@@ -67,7 +73,7 @@ and debugger agents, and an optional phone alert when Claude needs you.
 
 | Plugin | For | What it brings |
 |---|---|---|
-| `core` | every project | session context, guardrails, review gates, handoffs, the retro loop, decision records; explorer, reviewer, best-practices, records-sync, and debugger agents; `/breakdown` `/worktree` `/ship` `/vet` `/records` `/handoff` `/retro` `/test-audit` |
+| `core` | every project | session context, guardrails, review gates, handoffs, the retro loop, decision records; explorer, reviewer, best-practices, records-sync, and debugger agents; `/breakdown` `/worktree` `/ship` `/vet` `/records` `/handoff` `/retro` `/test-audit` `/icm` |
 | `plan` | features, projects | intake router, `/prd`, `/spec` with competing designs, reviewer lenses, `/present` review decks, `/feedback`; requirement IDs traced from PRD to task to test |
 | `lang-ts` | React, Next, Expo | format + lint on edit, typecheck (+ tests) on stop |
 | `lang-go` | Go | gofmt on edit, build + vet (+ tests) on stop |
@@ -138,6 +144,9 @@ Forking it? Change the repo in `templates/project-settings.json` and the author 
 /handoff          before stopping mid-task (loaded automatically next session)
 /retro            capture lessons; anything recurring becomes a skill or a hook
 /test-audit       quarterly: classify recent fix commits by the test layer that would have caught them
+/icm              audit a repo's agent context by layer (what loads every session, per folder, per
+                  rule), then set it up local-first and promote it when it's proven
+/icm learn        rank what reviewers keep correcting and check each rule reaches Claude where needed
 ```
 
 The full planning design is in [docs/planning-pipeline.md](docs/planning-pipeline.md).
@@ -243,7 +252,7 @@ Run `/reload-plugins` after editing hooks or agents. Skill edits apply immediate
 plugins/
   core/           every project: session context, guardrails, handoffs, retro loop,
                   explorer/reviewer/best-practices/records-sync/debugger agents,
-                  /breakdown /ship /vet /records /retro /handoff /worktree
+                  /breakdown /ship /vet /records /retro /handoff /worktree /icm
   plan/           planning pipeline: router, /prd, /spec, reviewers, /present, /feedback
   lang-ts/        React/Next/Expo: format+lint on edit, typecheck(+tests) on stop
   lang-go/        gofmt on edit, build+vet(+tests) on stop

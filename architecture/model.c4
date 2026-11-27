@@ -70,6 +70,11 @@ model {
       technology 'files'
       link ../shared/common.sh 'harness_dir and its .gitignore'
     }
+    contextFiles = store 'agent context' {
+      description 'CLAUDE.md, AGENTS.md, .claude/rules/, other tools\' rules, and workflows/NN_<stage>/CONTEXT.md: what Claude loads at launch and per folder'
+      technology 'markdown'
+      link ../plugins/core/skills/icm/references/loaders.md 'how they load'
+    }
     tasks = store 'tasks/' {
       description 'Task files (T-NNN.md) with acceptance criteria and status'
       technology 'markdown'

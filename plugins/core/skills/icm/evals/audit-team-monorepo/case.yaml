@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: audit-team-monorepo
+expected_outcome: |
+  A read-only audit. It finds the web testing rule that never loads (its paths are written from
+  the repo root but resolve from apps/web/) and gives src/**/*.test.tsx as the fix, finds that
+  apps/api/AGENTS.md is never read because no CLAUDE.md imports it, flags the always-loaded root
+  context as heavier than it needs to be with sections that could move out, writes a report under
+  .harness/icm/, and changes none of the repo's files.
+context:
+  scaffold_script: place-files.sh

@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: init-greenfield-template
+expected_outcome: |
+  In a new scaffold whose CLAUDE.md is an unfilled template describing a stack the repo doesn't
+  have, the run proposes and writes nothing: one lean root file with the real layout and the
+  manifest's verify commands, the template text called out, no area files, rules, or workflow
+  stages, and a question about what the project is instead of a guess.
+context:
+  scaffold_script: place-files.sh
