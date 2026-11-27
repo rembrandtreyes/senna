@@ -1,6 +1,6 @@
 ---
 name: icm
-description: Audits and sets up a repo's agent context by layer (Interpretable Context Methodology) - what loads every session, what loads per folder, path-scoped rules, and workflow stage contracts - on top of Claude Code's own loaders. Use when the user types /icm; opens, clones, or joins an unfamiliar repo or a new company's codebase; asks to audit, clean up, slim down, or organize CLAUDE.md, AGENTS.md, .claude/rules, or Cursor/Copilot rules; says Claude ignores a rule or instruction that another tool follows; says context is bloated or CLAUDE.md is too long; wants instructions for one part of a monorepo; asks what reviewers keep correcting or how to cut review comments with better agent context; or wants a repeatable multi-step workflow (release, migration, incident) written down for agents. Audit is read-only; init proposes before writing and starts local-only.
+description: Audits and sets up a repo's agent context by layer (Interpretable Context Methodology) - what loads every session, what loads per folder, path-scoped rules, and workflow stage contracts - on top of Claude Code's own loaders. Use when the user types /icm; opens, clones, or joins an unfamiliar repo or a new company's codebase; asks to audit, clean up, slim down, or organize CLAUDE.md, AGENTS.md, .claude/rules, or Cursor/Copilot rules; says Claude ignores a rule or instruction that another tool follows; says context is bloated or CLAUDE.md is too long; wants instructions for one part of a monorepo; starts a new project and wants its agent context set up; asks what reviewers keep correcting or how to cut review comments with better agent context; or wants a repeatable multi-step workflow (release, migration, incident) written down for agents. Audit is read-only; init proposes before writing and starts local-only.
 argument-hint: "[audit | learn | init | promote] [path]"
 ---
 
@@ -71,6 +71,8 @@ in `references/loaders.md`):
      needs): lost at compaction, and nobody can edit it in between. Each step should write a file.
    - `reverify` lines: check each claim against the repo ("until X lands": has it?).
    - Unrouted docs agents would need: one routing line in L0/L1.
+   - Unfilled template text in a launch file (placeholders, an example stack the repo doesn't
+     have): every session reads it as fact.
    Leave wording for older models, contradictions, and dead command references to
    `/doctor prompt-audit`; mention it instead of repeating it.
 5. **Report.** Write `.harness/icm/audit-<YYYY-MM-DD>.md` from `references/report-template.md`
@@ -100,7 +102,9 @@ For a repo with little context, or to apply audit findings.
 2. **Propose, write nothing yet.** Show the tree with layer tags. For each file: what goes in,
    where it comes from (`file:line` for moved text), and launch and heaviest-area cost before and
    after. Text is moved, never dropped. Follow the repo's conventions (`AGENTS.md` as the shared
-   file, twins for other tools). Wait for approval; the user can approve parts.
+   file, twins for other tools). Wait for approval; the user can approve parts. "Set up" or
+   "create" is not approval: stop at the proposal unless the request already says to write
+   after it ("show me, then go ahead"). That includes rewriting a committed file in a new repo.
 3. **Write local-only** unless the user picks direct mode (fine in their own repos):
    - New files go at their final paths and into a marked block in
      `$(git rev-parse --git-common-dir)/info/exclude` (shared by all worktrees):
@@ -117,6 +121,18 @@ For a repo with little context, or to apply audit findings.
 4. **Validate.** Rerun the audit and show launch and area costs before and after. Probe new scoped
    rules once.
 5. **Record** every added or moved piece, from → to, in `.harness/icm/moves-<YYYY-MM-DD>.md`.
+
+**A new repo** (scaffold code, no review history) gets a root file only, ~100–200 tokens:
+- What the project is: ask, don't guess. Layout as it is now. The verify commands from the
+  manifest, saying which don't run yet.
+- Replace template placeholders and example stacks; they mislead every session.
+- No area files, scoped rules, or stages until a folder has conventions of its own or a process
+  repeats. Written now, they'd be invented.
+- Two lines so the context grows with the code: a folder's conventions go in that folder's
+  `CLAUDE.md` when they appear, and a decision the code can't show gets one root line in the same
+  change.
+- Direct mode is the usual pick in your own new repo. Rerun the audit once areas appear; `learn`
+  needs a few weeks of reviewed PRs.
 
 ## promote (local → a change the team reviews)
 1. Read the exclude block and the moves file; confirm with the user which pieces go.

@@ -67,3 +67,14 @@ Python services drew 11. The recurring gaps came down to 7 themes (data access, 
 handling, enums, test data, helper placement, naming), and 30 lines of instructions placed where
 they load covered them, at about 500 more always-loaded tokens. Whether that cuts review
 comments is still to be measured: rerun the mining after rollout.
+
+## 4. New repos (7 runs)
+Two made-up scaffolds: an empty repo, and a small monorepo whose `CLAUDE.md` was an unfilled
+project template naming a stack the repo didn't have.
+- The audit reported no findings on either (launch ~0 and ~167 tokens): no noise on a new repo.
+- Explicit `/icm init` proposed one lean root file, wrote nothing, and asked what the project is.
+- "I just started this project. Set up the agent context" loaded the skill but rewrote
+  `CLAUDE.md` without proposing (1 run). After init said that "set up" isn't approval and added
+  the new-repo notes, 3/3 such runs and 1 explicit run proposed and wrote nothing. All four
+  flagged the template, kept to a root file with the real layout and verify commands, and asked
+  what the project is. This case is `evals/init-greenfield-template`.

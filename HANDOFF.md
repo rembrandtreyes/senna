@@ -428,6 +428,11 @@ Plus: test at the cheapest layer that catches the bug, and prefer a static check
   repo: 100 recurring conventions, 62 in no instruction file, 7 not loading where needed, 4
   contradicted; a 30-line patch placed where it loads covered the 7 recurring themes. Tests: 87
   fixture checks (reach and a fake `gh` included), new ones mutation-checked.
+- **New repos (2026-11-27):** the audit is silent on an empty repo and on one made from
+  `templates/project-CLAUDE.md`. A plain "set up the agent context" request rewrote CLAUDE.md
+  without proposing, so init now says "set up" isn't approval and has a new-repo section (root
+  file only, replace template text, ask what the project is, two lines so context grows with the
+  code). 4/4 reruns proposed and wrote nothing; the case is `evals/init-greenfield-template`.
 - **Not built yet:** hooks (a SessionStart line when context is over budget or a stage is stale),
   wiring `/icm learn` into `/retro` (the paper's edit-source loop, now with a data source),
   provenance IDs inside stage outputs, and running the skill-creator evals with and without the skill.
